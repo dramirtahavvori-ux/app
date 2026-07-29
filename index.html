@@ -1,0 +1,3732 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NephroRounds Studio</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #eef5f3;
+      --ink: #14211f;
+      --muted: #657371;
+      --line: #d5dfdc;
+      --panel: #ffffff;
+      --soft: #e7f5f2;
+      --brand: #0f766e;
+      --brand-dark: #0a5651;
+      --blue: #2f5f98;
+      --amber: #c9902c;
+      --coral: #c8644b;
+      --violet: #6f5aa8;
+      --shadow: 0 22px 56px rgba(20, 33, 31, .12);
+      --schedule-card-min-height: 165px;
+      --hero-image-height: 330px;
+      --avatar-size: 74px;
+      --panel-padding: 18px;
+      --brand-justify: flex-start;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, rgba(124, 201, 184, .34), transparent 30%),
+        radial-gradient(circle at 88% 18%, rgba(47, 95, 152, .18), transparent 24%),
+        linear-gradient(135deg, #f8fbfa, var(--bg) 48%, #f8f4ea);
+    }
+
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      padding: 10px 11px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, .12);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .btn {
+      min-height: 40px;
+      border-radius: 8px;
+      padding: 9px 13px;
+      background: var(--brand);
+      color: white;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-weight: 800;
+      white-space: nowrap;
+      box-shadow: 0 12px 24px rgba(15, 118, 110, .18);
+    }
+
+    .btn:hover {
+      background: var(--brand-dark);
+    }
+
+    .btn.secondary {
+      background: #f5f8f7;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .btn.warn {
+      background: var(--coral);
+    }
+
+    .btn.small {
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 12px;
+    }
+
+    .btn:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      margin: 0;
+    }
+
+    .login-view {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(340px, 460px) 1fr;
+    }
+
+    .login-panel {
+      background: rgba(255, 255, 255, .95);
+      border-right: 1px solid rgba(15, 118, 110, .14);
+      padding: 42px;
+      display: grid;
+      align-content: center;
+      gap: 26px;
+      box-shadow: var(--shadow);
+      z-index: 1;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      justify-content: var(--brand-justify);
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 50px;
+      height: 50px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--brand), var(--blue));
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      letter-spacing: .5px;
+      box-shadow: 0 12px 28px rgba(15, 118, 110, .24);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .login-panel h2 {
+      margin: 0;
+      font-size: 31px;
+      line-height: 1.18;
+      letter-spacing: 0;
+    }
+
+    .hero {
+      min-height: 100vh;
+      padding: 44px;
+      display: grid;
+      place-items: center;
+    }
+
+    .hero-board {
+      width: min(900px, 94%);
+      display: grid;
+      grid-template-columns: 1.08fr .82fr;
+      gap: 18px;
+      align-items: stretch;
+    }
+
+    .hero-card,
+    .hero-side {
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .78);
+      border: 1px solid rgba(15, 118, 110, .16);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-card {
+      padding: 28px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-image {
+      width: 100%;
+      height: var(--hero-image-height);
+      max-height: 430px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid rgba(15, 118, 110, .16);
+    }
+
+    .hero-side {
+      padding: 20px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+
+    .mini-card {
+      border-radius: 8px;
+      background: #fbfcfc;
+      border: 1px solid var(--line);
+      padding: 14px;
+    }
+
+    .mini-card strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric {
+      border-radius: 8px;
+      background: #f7fbfa;
+      border: 1px solid var(--line);
+      padding: 12px;
+    }
+
+    .metric b {
+      display: block;
+      color: var(--brand-dark);
+      font-size: 20px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 286px 1fr;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      background: #132825;
+      color: #eff8f6;
+    }
+
+    .sidebar .brand p,
+    .profile-strip small {
+      color: #a9c8c2;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: transparent;
+      color: #edf8f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-align: left;
+      font-weight: 800;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: rgba(255, 255, 255, .12);
+    }
+
+    .profile-strip {
+      margin-top: auto;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, .14);
+      display: grid;
+      gap: 12px;
+    }
+
+    .main {
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .topbar {
+      min-height: 62px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 25px;
+      letter-spacing: 0;
+    }
+
+    .topbar p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, .92);
+      padding: var(--panel-padding);
+      box-shadow: 0 10px 28px rgba(17, 32, 31, .06);
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-size: 17px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.25fr .85fr;
+      gap: 18px;
+      align-items: start;
+    }
+
+    .notification-panel {
+      border: 1px solid rgba(201, 145, 45, .28);
+      background: linear-gradient(135deg, rgba(255, 248, 231, .96), rgba(255, 255, 255, .9));
+      border-radius: 8px;
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .schedule {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 10px;
+    }
+
+    .schedule-item {
+      min-height: var(--schedule-card-min-height);
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfc;
+      padding: 12px;
+    }
+
+    .schedule-item strong {
+      font-size: 14px;
+    }
+
+    .schedule-item time {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .task {
+      padding: 8px;
+      border-radius: 7px;
+      background: #eef7f5;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .recording-link {
+      min-height: 34px;
+      border-radius: 7px;
+      padding: 7px 9px;
+      background: #fff8e7;
+      color: #6f4d11;
+      border: 1px solid rgba(201, 144, 44, .28);
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slides-link {
+      background: #e9f7ff;
+      color: #07506c;
+      border-color: rgba(25, 122, 158, .24);
+    }
+
+    .slide-viewer {
+      display: grid;
+      gap: 12px;
+    }
+
+    .slide-frame {
+      width: 100%;
+      min-height: 520px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f7faf9;
+    }
+
+    .meeting-now {
+      min-height: 200px;
+      display: grid;
+      gap: 14px;
+      background: linear-gradient(135deg, rgba(231, 245, 242, .85), rgba(255, 255, 255, .96));
+    }
+
+    .split-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .pill {
+      border-radius: 999px;
+      padding: 5px 10px;
+      background: var(--soft);
+      color: var(--brand-dark);
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .video-panel {
+      border: 1px solid rgba(15, 118, 110, .18);
+      border-radius: 8px;
+      padding: 12px;
+      background: #f7fbfa;
+    }
+
+    .people-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 12px;
+    }
+
+    .person-card {
+      display: grid;
+      grid-template-columns: var(--avatar-size) 1fr;
+      gap: 14px;
+      align-items: start;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfc;
+      padding: 14px;
+    }
+
+    .avatar {
+      width: var(--avatar-size);
+      height: var(--avatar-size);
+      border-radius: 8px;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 900;
+      background:
+        radial-gradient(circle at 34% 25%, rgba(255, 255, 255, .72), transparent 18%),
+        linear-gradient(145deg, var(--brand), var(--blue));
+      box-shadow: 0 12px 22px rgba(15, 118, 110, .17);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .avatar.alt {
+      background:
+        radial-gradient(circle at 34% 25%, rgba(255, 255, 255, .72), transparent 18%),
+        linear-gradient(145deg, var(--violet), var(--blue));
+    }
+
+    .avatar.warm {
+      background:
+        radial-gradient(circle at 34% 25%, rgba(255, 255, 255, .72), transparent 18%),
+        linear-gradient(145deg, var(--coral), var(--amber));
+    }
+
+    .person-card h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.55;
+      margin: 3px 0 8px;
+    }
+
+    .question-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .question {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .option {
+      min-height: 44px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      background: #fbfcfc;
+      color: var(--ink);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .option.selected {
+      color: white;
+      border-color: var(--brand);
+      background: linear-gradient(135deg, var(--brand), var(--blue));
+    }
+
+    .option:disabled:not(.selected) {
+      color: #909b99;
+      background: #f0f3f2;
+    }
+
+    .reason-box {
+      display: grid;
+      gap: 8px;
+    }
+
+    .reason-box textarea {
+      min-height: 72px;
+      background: #fbfdfc;
+    }
+
+    .locked-reason {
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px 12px;
+      background: #f5f8f7;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .live-room {
+      display: grid;
+      gap: 12px;
+    }
+
+    .presenter-stage {
+      display: grid;
+      grid-template-columns: minmax(240px, .8fr) 1fr;
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .video-preview {
+      min-height: 220px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      color: white;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 18px;
+      background: linear-gradient(135deg, #123b3a, #2f5f98);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .video-preview.blur-bg {
+      background: linear-gradient(135deg, #9fb7b5, #425e67);
+    }
+
+    .video-preview.kidney-bg {
+      background:
+        radial-gradient(circle at 30% 42%, rgba(201, 100, 75, .92), transparent 16%),
+        radial-gradient(circle at 68% 42%, rgba(201, 100, 75, .92), transparent 16%),
+        linear-gradient(135deg, #123b3a, #2f5f98);
+    }
+
+    .video-preview.conference-bg {
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.12) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(255,255,255,.12) 1px, transparent 1px),
+        linear-gradient(135deg, #0f766e, #6f5aa8);
+      background-size: 36px 36px, 36px 36px, auto;
+    }
+
+    .video-preview strong {
+      position: relative;
+      z-index: 1;
+      font-size: 18px;
+    }
+
+    .media-preview {
+      width: 100%;
+      min-height: 190px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #122421;
+      object-fit: cover;
+      display: block;
+    }
+
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(135px, 1fr));
+      gap: 10px;
+    }
+
+    .chat-feed {
+      max-height: 280px;
+      overflow: auto;
+      display: grid;
+      gap: 8px;
+      padding-right: 4px;
+    }
+
+    .chat-message {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfc;
+      padding: 10px 12px;
+    }
+
+    .chat-message strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+
+    .chat-compose {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .status-line {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .admin-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .admin-tabs button {
+      min-height: 36px;
+      border-radius: 8px;
+      padding: 8px 11px;
+      background: #f5f8f7;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .admin-tabs button.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: white;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .editable-row {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfc;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    .table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table th,
+    .table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .empty-state {
+      min-height: 110px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      padding: 20px;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      left: 18px;
+      z-index: 10;
+      display: none;
+      border-radius: 8px;
+      padding: 12px 14px;
+      background: #132825;
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.show {
+      display: block;
+    }
+
+    @media (max-width: 1020px) {
+      .login-view,
+      .hero-board,
+      .app-shell,
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        min-height: auto;
+      }
+
+      .hero {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 660px) {
+      .login-panel,
+      .hero,
+      .sidebar,
+      .main {
+        padding: 18px;
+      }
+
+      .topbar,
+      .split-title,
+      .notification-panel {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .actions,
+      .row-actions {
+        justify-content: stretch;
+      }
+
+      .actions .btn,
+      .row-actions .btn,
+      .notification-panel .btn {
+        width: 100%;
+      }
+
+      .form-grid,
+      .metric-row,
+      .editable-row,
+      .chat-compose {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginView" class="login-view">
+    <section class="login-panel">
+      <div class="brand">
+        <div class="brand-mark">NR</div>
+        <div>
+          <h1 id="landingBrandName">NephroRounds Studio</h1>
+          <p id="landingBrandTagline">Editable nephrology morning report</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 id="landingLoginHeadline">Build each round yourself.</h2>
+        <p id="landingLoginLead" class="hint">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" autocomplete="username" required>
+        </div>
+        <div class="field" style="margin-top: 12px;">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Sign in</button>
+      </form>
+
+      <p class="hint">Demo clinician: <b>ali</b> / <b>1234</b><br>Demo presenter: <b>speaker</b> / <b>slides2026</b><br>Demo admin: <b>amiradmin</b> / <b>nephro2026</b></p>
+    </section>
+
+    <section class="hero" aria-hidden="true">
+      <div class="hero-board">
+        <div class="hero-card">
+          <div>
+            <span id="landingHeroBadge" class="pill">Nephrology case conference</span>
+            <h2 id="landingHeroHeadline" style="margin: 14px 0 0; font-size: 28px;">Schedule. Speakers. Guests. Questions. All editable.</h2>
+          </div>
+          <img id="landingHeroImage" class="hero-image" src="assets/nephro-hero-kidneys.png" alt="Nephrology hero image">
+          <div id="landingMetrics" class="metric-row"></div>
+        </div>
+
+        <div id="landingCards" class="hero-side"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">NR</div>
+        <div>
+          <h1 id="appShellName">NephroRounds</h1>
+          <p id="todayText"></p>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <button id="reportTab" class="active" type="button">Morning report <span>01</span></button>
+        <button id="profileTab" type="button">My profile <span>02</span></button>
+        <button id="presenterTab" class="hidden" type="button">My presentation <span>03</span></button>
+        <button id="adminTab" class="hidden" type="button">Admin console <span>04</span></button>
+      </nav>
+
+      <div class="profile-strip">
+        <div>
+          <strong id="profileName"></strong><br>
+          <small id="profileRole"></small>
+        </div>
+        <button id="logoutBtn" class="btn secondary" type="button">Sign out</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="reportView">
+        <div class="topbar">
+          <div>
+            <h2 id="reportHeading">Nephrology Morning Report</h2>
+            <p id="reportSubheading">Schedule, speakers, video access, and locked audience responses.</p>
+          </div>
+          <div class="actions">
+            <button id="copyMeetingLink" class="btn secondary" type="button">Copy video link</button>
+            <a id="meetingLink" class="btn" href="#" target="_blank" rel="noreferrer">Join video</a>
+          </div>
+        </div>
+
+        <div id="notificationPanel" class="notification-panel">
+          <div>
+            <strong id="notificationTitle">15-minute meeting reminder</strong>
+            <p id="notificationText" class="hint">Enable reminders to receive a browser notification before the round starts.</p>
+          </div>
+          <button id="enableReminder" class="btn secondary" type="button">Enable reminder</button>
+        </div>
+
+        <div class="panel">
+          <div class="split-title">
+            <div>
+              <h3>Audio and video</h3>
+              <p id="mediaStatus" class="hint">Mic and camera are off. Admin can allow, mute, or block camera access in Live room.</p>
+            </div>
+            <span id="mediaAccessLabel" class="pill">Ready</span>
+          </div>
+          <div class="presenter-stage" style="margin-top: 12px;">
+            <video id="localMediaPreview" class="media-preview" autoplay muted playsinline></video>
+            <div class="live-room">
+              <div class="control-grid">
+                <button id="userMicToggle" class="btn secondary" type="button">Turn mic on</button>
+                <button id="userCameraToggle" class="btn secondary" type="button">Turn camera on</button>
+                <button id="stopMediaBtn" class="btn warn" type="button">Stop audio/video</button>
+              </div>
+              <p class="hint">Your browser may ask permission. On iPhone/Android, open the hosted app in Safari/Chrome and allow camera/microphone.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="panel">
+            <h3>Schedule</h3>
+            <div id="schedule" class="schedule"></div>
+          </div>
+
+          <div id="meetingCard" class="panel meeting-now">
+            <div class="split-title">
+              <div>
+                <h3 id="meetingTitle">Today round</h3>
+                <p id="meetingMeta" class="hint"></p>
+              </div>
+              <span class="pill" id="submitState">Awaiting response</span>
+            </div>
+            <p id="meetingNotes" class="hint"></p>
+            <div class="video-panel">
+              <strong>Mobile video access</strong>
+              <p class="hint">Open this app on a phone and tap Join video. Zoom, Teams, and Google Meet links work here.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="slideViewerPanel" class="panel slide-viewer hidden">
+          <div class="split-title">
+            <div>
+              <h3 id="slideViewerTitle">Slides</h3>
+              <p class="hint">PDF slide decks open inside the app. PowerPoint files may open in a new tab or download, depending on the device.</p>
+            </div>
+            <div class="actions">
+              <a id="slideOpenLink" class="btn secondary" href="#" target="_blank" rel="noreferrer">Open in new tab</a>
+              <button id="closeSlides" class="btn secondary" type="button">Close slides</button>
+            </div>
+          </div>
+          <iframe id="slideFrame" class="slide-frame" title="Session slides"></iframe>
+        </div>
+
+        <div class="panel">
+          <h3>Presenters</h3>
+          <div id="presenters" class="people-grid"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Guests</h3>
+          <div id="guests" class="people-grid"></div>
+        </div>
+
+        <div class="panel">
+          <div class="split-title">
+            <div>
+              <h3>Round questions</h3>
+              <p class="hint">Choose an answer and write the reason for your choice. Once submitted, both are locked.</p>
+            </div>
+            <span id="lockedLabel" class="pill hidden">Submitted and locked</span>
+          </div>
+          <div id="questions" class="question-list"></div>
+          <button id="submitAnswers" class="btn" type="button" style="margin-top: 14px;">Submit answers</button>
+        </div>
+
+        <div class="panel live-room">
+          <div class="split-title">
+            <div>
+              <h3>Live Q&A and hand raise</h3>
+              <p class="hint">Participants can send questions during the report or request permission to speak.</p>
+            </div>
+            <span id="handRaiseStatus" class="pill">No request</span>
+          </div>
+          <div id="liveMessages" class="chat-feed"></div>
+          <form id="liveMessageForm" class="chat-compose">
+            <input id="liveMessageInput" placeholder="Type a question for the presenter..." autocomplete="off">
+            <button class="btn secondary" type="submit">Send question</button>
+            <button id="raiseHandBtn" class="btn" type="button">Request to speak</button>
+          </form>
+        </div>
+      </section>
+
+      <section id="profileView" class="hidden">
+        <div class="topbar">
+          <div>
+            <h2>My Profile</h2>
+            <p>Update your photo, login, affiliation, and personal information.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <form id="profileForm" class="form-grid">
+            <input id="profilePhotoData" type="hidden">
+            <div class="field">
+              <label for="profileFullName">Full name</label>
+              <input id="profileFullName" required>
+            </div>
+            <div class="field">
+              <label for="profileUsernameInput">Username</label>
+              <input id="profileUsernameInput" autocomplete="off" required>
+            </div>
+            <div class="field">
+              <label for="profilePasswordInput">Password</label>
+              <input id="profilePasswordInput" autocomplete="new-password" required>
+            </div>
+            <div class="field">
+              <label for="profileEmail">Email</label>
+              <input id="profileEmail" type="email" placeholder="name@hospital.edu">
+            </div>
+            <div class="field">
+              <label for="profileDiscipline">Discipline / specialty</label>
+              <input id="profileDiscipline" placeholder="Nephrology, Internal Medicine, Research...">
+            </div>
+            <div class="field">
+              <label for="profileUniversity">University / hospital</label>
+              <input id="profileUniversity">
+            </div>
+            <div class="field">
+              <label for="profileLocation">City / country</label>
+              <input id="profileLocation">
+            </div>
+            <div class="field">
+              <label for="profilePhoto">Profile photo</label>
+              <input id="profilePhoto" type="file" accept="image/*">
+            </div>
+            <div class="field full">
+              <label for="profileBio">Bio / introduction</label>
+              <textarea id="profileBio"></textarea>
+            </div>
+            <div class="full actions">
+              <button class="btn" type="submit">Save my profile</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section id="presenterView" class="hidden">
+        <div class="topbar">
+          <div>
+            <h2>My Presentation</h2>
+            <p>Upload or link your session slides without entering the admin console.</p>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="split-title">
+            <div>
+              <h3>Presenting mode</h3>
+              <p class="hint">Control your microphone, camera, slides, and virtual background before speaking.</p>
+            </div>
+            <span id="presentingStatus" class="pill">Not presenting</span>
+          </div>
+          <div class="presenter-stage">
+            <div id="presenterPreview" class="video-preview">
+              <strong id="presenterPreviewText">Camera preview off</strong>
+            </div>
+            <div class="live-room">
+              <div class="control-grid">
+                <button id="presentingToggle" class="btn" type="button">Start presenting</button>
+                <button id="presenterMicToggle" class="btn secondary" type="button">Mic off</button>
+                <button id="presenterCameraToggle" class="btn secondary" type="button">Camera off</button>
+              </div>
+              <div class="field">
+                <label for="presenterBackground">Video background</label>
+                <select id="presenterBackground">
+                  <option value="clean">Clean studio</option>
+                  <option value="blur">Blur style</option>
+                  <option value="kidney">Kidney teaching room</option>
+                  <option value="conference">Conference pattern</option>
+                </select>
+              </div>
+              <p class="hint">Demo controls only. A production version can connect these controls to Zoom/Teams SDK or WebRTC.</p>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div id="presenterSlidesList" class="list"></div>
+        </div>
+      </section>
+
+      <section id="adminView" class="hidden">
+        <div class="topbar">
+          <div>
+            <h2>Admin Console</h2>
+            <p>Edit everything in the demo: meeting, calendar, people, photos, questions, and responses.</p>
+          </div>
+          <button id="resetDemo" class="btn warn" type="button">Reset demo data</button>
+        </div>
+
+        <div class="panel">
+          <div class="admin-tabs">
+            <button data-admin-section="landingAdmin" type="button">Landing page</button>
+            <button class="active" data-admin-section="meetingAdmin" type="button">Meeting</button>
+            <button data-admin-section="scheduleAdmin" type="button">Schedule</button>
+            <button data-admin-section="peopleAdmin" type="button">People</button>
+            <button data-admin-section="questionsAdmin" type="button">Questions</button>
+            <button data-admin-section="liveRoomAdmin" type="button">Live room</button>
+            <button data-admin-section="appearanceAdmin" type="button">Design</button>
+            <button data-admin-section="usersAdmin" type="button">Users / Access</button>
+            <button data-admin-section="thankYouAdmin" type="button">Thank-you cards</button>
+            <button data-admin-section="responsesAdmin" type="button">Responses</button>
+          </div>
+
+          <section id="landingAdmin" class="admin-section hidden">
+            <h3>Landing page</h3>
+            <form id="landingForm" class="form-grid">
+              <input id="landingHeroImageData" type="hidden">
+              <div class="field">
+                <label for="adminLandingBrandName">App name</label>
+                <input id="adminLandingBrandName">
+              </div>
+              <div class="field">
+                <label for="adminLandingBrandTagline">App tagline</label>
+                <input id="adminLandingBrandTagline">
+              </div>
+              <div class="field">
+                <label for="adminLandingLoginHeadline">Login headline</label>
+                <input id="adminLandingLoginHeadline">
+              </div>
+              <div class="field">
+                <label for="adminLandingLoginLead">Login description</label>
+                <input id="adminLandingLoginLead">
+              </div>
+              <div class="field">
+                <label for="adminLandingHeroBadge">Hero badge</label>
+                <input id="adminLandingHeroBadge">
+              </div>
+              <div class="field">
+                <label for="adminLandingHeroImage">Hero image</label>
+                <input id="adminLandingHeroImage" type="file" accept="image/*">
+              </div>
+              <div class="field full">
+                <label for="adminLandingHeroHeadline">Hero headline</label>
+                <textarea id="adminLandingHeroHeadline"></textarea>
+              </div>
+              <div class="field full">
+                <div class="split-title">
+                  <div>
+                    <h3 style="margin: 0;">Small boxes under hero image</h3>
+                    <p class="hint">Add, remove, or leave empty any number of small boxes.</p>
+                  </div>
+                  <div class="actions">
+                    <button id="addLandingMetric" class="btn secondary small" type="button">Add small box</button>
+                    <button id="clearLandingMetrics" class="btn warn small" type="button">Remove all</button>
+                  </div>
+                </div>
+                <div id="landingMetricsAdminList" class="list" style="margin-top: 10px;"></div>
+              </div>
+              <div class="field full">
+                <div class="split-title">
+                  <div>
+                    <h3 style="margin: 0;">Right-side landing cards</h3>
+                    <p class="hint">These are the larger cards on the right side of the landing page.</p>
+                  </div>
+                  <div class="actions">
+                    <button id="addLandingCard" class="btn secondary small" type="button">Add card</button>
+                    <button id="clearLandingCards" class="btn warn small" type="button">Remove all</button>
+                  </div>
+                </div>
+                <div id="landingCardsAdminList" class="list" style="margin-top: 10px;"></div>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save landing page</button>
+                <button id="clearLandingHeroImage" class="btn secondary" type="button">Remove uploaded hero image</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="meetingAdmin" class="admin-section">
+            <h3>Meeting details</h3>
+            <form id="meetingForm" class="form-grid">
+              <div class="field">
+                <label for="adminReportHeading">Main page heading</label>
+                <input id="adminReportHeading" placeholder="Nephrology Morning Report">
+              </div>
+              <div class="field">
+                <label for="adminReportSubheading">Main page subtitle</label>
+                <input id="adminReportSubheading" placeholder="Schedule, speakers, video access...">
+              </div>
+              <div class="field">
+                <label for="adminMeetingTitle">Round title</label>
+                <input id="adminMeetingTitle">
+              </div>
+              <div class="field">
+                <label for="adminMeetingTime">Meeting time text</label>
+                <input id="adminMeetingTime" placeholder="08:30 - 09:00">
+              </div>
+              <div class="field full">
+                <label for="adminMeetingUrl">Zoom / Teams / Google Meet link</label>
+                <input id="adminMeetingUrl" type="url">
+              </div>
+              <div class="field full">
+                <label for="adminMeetingNotes">Round notes</label>
+                <textarea id="adminMeetingNotes"></textarea>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save meeting</button>
+                <button id="clearMeeting" class="btn secondary" type="button">Hide / clear meeting card</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="scheduleAdmin" class="admin-section hidden">
+            <h3>Calendar and schedule</h3>
+            <form id="scheduleForm" class="form-grid">
+              <input id="scheduleId" type="hidden">
+              <div class="field">
+                <label for="scheduleDate">Date</label>
+                <input id="scheduleDate" type="date" required>
+              </div>
+              <div class="field">
+                <label for="scheduleTime">Time</label>
+                <input id="scheduleTime" type="time" required>
+              </div>
+              <div class="field">
+                <label for="scheduleEndTime">End time</label>
+                <input id="scheduleEndTime" type="time">
+              </div>
+              <div class="field">
+                <label for="scheduleTopic">Topic</label>
+                <input id="scheduleTopic" placeholder="AKI, Electrolytes, Dialysis..." required>
+              </div>
+              <div class="field full">
+                <label for="scheduleNotes">Notes or agenda items</label>
+                <textarea id="scheduleNotes" placeholder="Write one agenda item per line."></textarea>
+              </div>
+              <div class="field">
+                <label for="scheduleRecordingUrl">Recording link</label>
+                <input id="scheduleRecordingUrl" type="url" placeholder="Zoom cloud, Google Drive, YouTube, Vimeo...">
+              </div>
+              <div class="field">
+                <label for="scheduleRecordingFile">Upload recording file</label>
+                <input id="scheduleRecordingFile" type="file" accept="video/*">
+                <input id="scheduleRecordingData" type="hidden">
+              </div>
+              <div class="field">
+                <label for="scheduleSlidesUrl">Slides link</label>
+                <input id="scheduleSlidesUrl" type="url" placeholder="PDF, Google Drive, OneDrive, Box...">
+              </div>
+              <div class="field">
+                <label for="scheduleSlidesFile">Upload slides</label>
+                <input id="scheduleSlidesFile" type="file" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+                <input id="scheduleSlidesData" type="hidden">
+                <input id="scheduleSlidesName" type="hidden">
+                <input id="scheduleSlidesType" type="hidden">
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save schedule item</button>
+                <button id="cancelScheduleEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="scheduleAdminList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="peopleAdmin" class="admin-section hidden">
+            <h3>Presenters and guests</h3>
+            <form id="personForm" class="form-grid">
+              <input id="personId" type="hidden">
+              <input id="personPhotoData" type="hidden">
+              <div class="field">
+                <label for="personType">Type</label>
+                <select id="personType">
+                  <option value="presenter">Presenter</option>
+                  <option value="guest">Guest</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="personName">Name</label>
+                <input id="personName" required>
+              </div>
+              <div class="field">
+                <label for="personRole">Role / title</label>
+                <input id="personRole" placeholder="Nephrology Fellow, Guest Discussant..." required>
+              </div>
+              <div class="field">
+                <label for="personInstitution">University / hospital</label>
+                <input id="personInstitution" required>
+              </div>
+              <div class="field">
+                <label for="personLocation">City / country</label>
+                <input id="personLocation">
+              </div>
+              <div class="field">
+                <label for="personPhoto">Photo</label>
+                <input id="personPhoto" type="file" accept="image/*">
+              </div>
+              <div class="field full">
+                <label for="personIntro">Introduction</label>
+                <textarea id="personIntro" placeholder="Presenter introduction, guest bio, or topic description."></textarea>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save person</button>
+                <button id="cancelPersonEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="peopleAdminList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="questionsAdmin" class="admin-section hidden">
+            <h3>Questions</h3>
+            <form id="questionForm" class="form-grid">
+              <input id="questionId" type="hidden">
+              <div class="field full">
+                <label for="questionText">Question text</label>
+                <textarea id="questionText" required></textarea>
+              </div>
+              <div class="field full">
+                <label for="questionOptions">Answer options</label>
+                <input id="questionOptions" placeholder="Example: Yes, No, Needs attending input">
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save question</button>
+                <button id="cancelQuestionEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="questionsAdminList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="usersAdmin" class="admin-section hidden">
+            <h3>Users and access</h3>
+            <p class="hint" style="margin-bottom: 12px;">Create usernames and passwords for people who should enter the demo. Admin users can edit content; clinician users can answer questions.</p>
+            <form id="userForm" class="form-grid">
+              <input id="userId" type="hidden">
+              <input id="userPhotoData" type="hidden">
+              <div class="field">
+                <label for="userFullName">Full name</label>
+                <input id="userFullName" placeholder="Example: Amir Tahavvori, MD" required>
+              </div>
+              <div class="field">
+                <label for="userUsername">Username</label>
+                <input id="userUsername" autocomplete="off" required>
+              </div>
+              <div class="field">
+                <label for="userPassword">Password</label>
+                <input id="userPassword" autocomplete="new-password" required>
+              </div>
+              <div class="field">
+                <label for="userEmail">Email</label>
+                <input id="userEmail" type="email" placeholder="name@hospital.edu">
+              </div>
+              <div class="field">
+                <label for="userRole">Access level</label>
+                <select id="userRole">
+                  <option value="user">Clinician / respondent</option>
+                  <option value="presenter">Presenter / temporary access</option>
+                  <option value="admin">Admin / editor</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="userDiscipline">Discipline / specialty</label>
+                <input id="userDiscipline" placeholder="Nephrology, Internal Medicine...">
+              </div>
+              <div class="field">
+                <label for="userUniversity">University / hospital</label>
+                <input id="userUniversity">
+              </div>
+              <div class="field">
+                <label for="userLocation">City / country</label>
+                <input id="userLocation">
+              </div>
+              <div class="field">
+                <label for="userPhoto">Profile photo</label>
+                <input id="userPhoto" type="file" accept="image/*">
+              </div>
+              <div class="field full">
+                <label for="userBio">Bio / introduction</label>
+                <textarea id="userBio"></textarea>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save user</button>
+                <button id="cancelUserEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="usersAdminList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="liveRoomAdmin" class="admin-section hidden">
+            <h3>Live room control</h3>
+            <p class="hint" style="margin-bottom: 12px;">Review live questions and approve or decline hand-raise requests.</p>
+            <div id="liveRoomAdminList" class="list"></div>
+          </section>
+
+          <section id="appearanceAdmin" class="admin-section hidden">
+            <h3>Design and box sizes</h3>
+            <form id="appearanceForm" class="form-grid">
+              <div class="field">
+                <label for="appearanceScheduleHeight">Schedule box height</label>
+                <input id="appearanceScheduleHeight" type="number" min="130" max="320" step="10">
+              </div>
+              <div class="field">
+                <label for="appearanceHeroHeight">Landing image height</label>
+                <input id="appearanceHeroHeight" type="number" min="220" max="520" step="10">
+              </div>
+              <div class="field">
+                <label for="appearanceAvatarSize">Presenter / guest photo size</label>
+                <input id="appearanceAvatarSize" type="number" min="56" max="110" step="2">
+              </div>
+              <div class="field">
+                <label for="appearancePanelPadding">Panel spacing</label>
+                <input id="appearancePanelPadding" type="number" min="12" max="30" step="2">
+              </div>
+              <div class="field">
+                <label for="appearanceBrandAlign">App name alignment</label>
+                <select id="appearanceBrandAlign">
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save design</button>
+                <button id="resetAppearance" class="btn secondary" type="button">Reset design</button>
+              </div>
+            </form>
+          </section>
+
+          <section id="thankYouAdmin" class="admin-section hidden">
+            <h3>Thank-you cards</h3>
+            <p class="hint" style="margin-bottom: 12px;">Prepare a postcard-style thank-you email for participants after a session.</p>
+            <form id="thankYouForm" class="form-grid">
+              <div class="field">
+                <label for="thankYouSession">Session</label>
+                <select id="thankYouSession"></select>
+              </div>
+              <div class="field">
+                <label for="thankYouSubject">Email subject</label>
+                <input id="thankYouSubject" value="Thank you for attending Nephrology Morning Report">
+              </div>
+              <div class="field full">
+                <label for="thankYouMessage">Card message</label>
+                <textarea id="thankYouMessage">Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.</textarea>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Generate cards</button>
+              </div>
+            </form>
+            <div id="thankYouList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="responsesAdmin" class="admin-section hidden">
+            <h3>Submitted responses</h3>
+            <div id="answersTable"></div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const storageKey = "nephrorounds-studio-v1";
+    const seedData = {
+      users: [
+        { id: crypto.randomUUID(), username: "ali", password: "1234", name: "Ali Rezaei, MD", email: "ali@example.com", role: "user", discipline: "Internal Medicine", university: "University Teaching Hospital", location: "Los Angeles, USA", bio: "", photo: "" },
+        { id: crypto.randomUUID(), username: "sara", password: "1234", name: "Sara Ahmadi, MD", email: "sara@example.com", role: "user", discipline: "Nephrology", university: "University Teaching Hospital", location: "Los Angeles, USA", bio: "", photo: "" },
+        { id: crypto.randomUUID(), username: "speaker", password: "slides2026", name: "Conference Speaker, MD", email: "speaker@example.com", role: "presenter", discipline: "Nephrology", university: "Guest Institution", location: "", bio: "", photo: "" },
+        { id: crypto.randomUUID(), username: "presenter", password: "present123", name: "Demo Presenter, MD", email: "presenter@example.com", role: "presenter", discipline: "Nephrology", university: "University Teaching Hospital", location: "Los Angeles, USA", bio: "", photo: "" },
+        { id: crypto.randomUUID(), username: "amiradmin", password: "nephro2026", name: "Amir Tahavvori, MD", email: "", role: "admin", discipline: "Nephrology", university: "Loma Linda University", location: "Loma Linda, USA", bio: "", photo: "" },
+        { id: crypto.randomUUID(), username: "admin", password: "admin123", name: "Program Admin", email: "", role: "admin", discipline: "Program Administration", university: "NephroRounds", location: "", bio: "", photo: "" }
+      ],
+      appearance: {
+        scheduleHeight: 165,
+        heroHeight: 330,
+        avatarSize: 74,
+        panelPadding: 18,
+        brandAlign: "left"
+      },
+      liveRoom: {
+        messages: [],
+        handRaises: [],
+        avControls: {}
+      },
+      landing: {
+        brandName: "NephroRounds Studio",
+        brandTagline: "Editable nephrology morning report",
+        loginHeadline: "Build each round yourself.",
+        loginLead: "Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.",
+        heroBadge: "Nephrology case conference",
+        heroHeadline: "Schedule. Speakers. Guests. Questions. All editable.",
+        heroImage: "",
+        metrics: [
+          { value: "Edit", label: "Calendar" },
+          { value: "Upload", label: "Photos" },
+          { value: "Lock", label: "Answers" }
+        ],
+        cards: [
+          { title: "Admin-controlled content", text: "Add as many presenters and guests as you want, with photos and affiliations." },
+          { title: "Flexible calendar", text: "Each item can have its own date, time, topic, and notes." },
+          { title: "Locked responses", text: "Users choose an answer, write a reason, and cannot edit after submitting." }
+        ],
+        metricOneValue: "Edit",
+        metricOneLabel: "Calendar",
+        metricTwoValue: "Upload",
+        metricTwoLabel: "Photos",
+        metricThreeValue: "Lock",
+        metricThreeLabel: "Answers",
+        cardOneTitle: "Admin-controlled content",
+        cardOneText: "Add as many presenters and guests as you want, with photos and affiliations.",
+        cardTwoTitle: "Flexible calendar",
+        cardTwoText: "Each item can have its own date, time, topic, and notes.",
+        cardThreeTitle: "Locked responses",
+        cardThreeText: "Users choose an answer, write a reason, and cannot edit after submitting."
+      },
+      meeting: {
+        enabled: true,
+        reportHeading: "Nephrology Morning Report",
+        reportSubheading: "Schedule, speakers, video access, and locked audience responses.",
+        title: "Nephrology Morning Report",
+        time: "08:30 - 09:00",
+        url: "https://meet.google.com/",
+        notes: "Today: high-yield nephrology cases, action items for admitted patients, and teaching points for the team."
+      },
+      schedule: [
+        {
+          id: crypto.randomUUID(),
+          date: toIsoDate(offsetDate(1)),
+          time: "08:30",
+          endTime: "09:00",
+          topic: "AKI and urine microscopy",
+          notes: "Prerenal vs intrinsic AKI\nUrine sediment teaching",
+          recordingUrl: "",
+          recordingData: "",
+          slidesUrl: "",
+          slidesData: "",
+          slidesName: "",
+          slidesType: ""
+        },
+        {
+          id: crypto.randomUUID(),
+          date: toIsoDate(offsetDate(2)),
+          time: "08:30",
+          endTime: "09:00",
+          topic: "Electrolytes",
+          notes: "Hyponatremia framework\nHyperkalemia management",
+          recordingUrl: "",
+          recordingData: "",
+          slidesUrl: "",
+          slidesData: "",
+          slidesName: "",
+          slidesType: ""
+        },
+        {
+          id: crypto.randomUUID(),
+          date: toIsoDate(offsetDate(3)),
+          time: "08:30",
+          endTime: "09:00",
+          topic: "Dialysis access",
+          notes: "Urgent dialysis indications\nAccess planning",
+          recordingUrl: "",
+          recordingData: "",
+          slidesUrl: "",
+          slidesData: "",
+          slidesName: "",
+          slidesType: ""
+        }
+      ],
+      people: [
+        {
+          id: crypto.randomUUID(),
+          type: "presenter",
+          name: "Nima Farzan, MD",
+          role: "Nephrology Fellow",
+          institution: "University Teaching Hospital",
+          location: "Los Angeles, USA",
+          introduction: "Presenter for today's AKI case. The introduction can be edited from Admin, and this photo can be replaced with an uploaded image.",
+          photo: "",
+          tone: ""
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "guest",
+          name: "Mina Rahimi, MD",
+          role: "Guest Discussant",
+          institution: "Tehran University of Medical Sciences",
+          location: "Tehran, Iran",
+          introduction: "Guest nephrologist joining for case discussion.",
+          photo: "",
+          tone: "alt"
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "guest",
+          name: "Daniel Carter, MD",
+          role: "Transplant Nephrology Guest",
+          institution: "University of California",
+          location: "California, USA",
+          introduction: "Guest faculty for transplant and immunosuppression teaching points.",
+          photo: "",
+          tone: "warm"
+        }
+      ],
+      questions: [
+        {
+          id: crypto.randomUUID(),
+          text: "Which topic should we prioritize for the next nephrology teaching block?",
+          options: ["AKI", "Electrolytes", "Dialysis", "Transplant"]
+        },
+        {
+          id: crypto.randomUUID(),
+          text: "Does today's case need attending-level follow-up after rounds?",
+          options: ["Yes", "No", "Unsure"]
+        }
+      ],
+      answers: {}
+    };
+
+    let state = loadState();
+    let currentUser = null;
+    let draftAnswers = {};
+    let reminderTimer = null;
+    let presenterMode = {
+      presenting: false,
+      mic: false,
+      camera: false,
+      background: "clean"
+    };
+    let localMedia = {
+      stream: null,
+      mic: false,
+      camera: false,
+      status: "Mic and camera are off."
+    };
+
+    const els = {
+      loginView: document.getElementById("loginView"),
+      appView: document.getElementById("appView"),
+      loginForm: document.getElementById("loginForm"),
+      username: document.getElementById("username"),
+      password: document.getElementById("password"),
+      todayText: document.getElementById("todayText"),
+      appShellName: document.getElementById("appShellName"),
+      profileName: document.getElementById("profileName"),
+      profileRole: document.getElementById("profileRole"),
+      logoutBtn: document.getElementById("logoutBtn"),
+      reportTab: document.getElementById("reportTab"),
+      profileTab: document.getElementById("profileTab"),
+      presenterTab: document.getElementById("presenterTab"),
+      adminTab: document.getElementById("adminTab"),
+      reportView: document.getElementById("reportView"),
+      profileView: document.getElementById("profileView"),
+      presenterView: document.getElementById("presenterView"),
+      adminView: document.getElementById("adminView"),
+      meetingLink: document.getElementById("meetingLink"),
+      copyMeetingLink: document.getElementById("copyMeetingLink"),
+      reportHeading: document.getElementById("reportHeading"),
+      reportSubheading: document.getElementById("reportSubheading"),
+      meetingCard: document.getElementById("meetingCard"),
+      notificationTitle: document.getElementById("notificationTitle"),
+      notificationText: document.getElementById("notificationText"),
+      enableReminder: document.getElementById("enableReminder"),
+      meetingTitle: document.getElementById("meetingTitle"),
+      meetingMeta: document.getElementById("meetingMeta"),
+      meetingNotes: document.getElementById("meetingNotes"),
+      localMediaPreview: document.getElementById("localMediaPreview"),
+      userMicToggle: document.getElementById("userMicToggle"),
+      userCameraToggle: document.getElementById("userCameraToggle"),
+      stopMediaBtn: document.getElementById("stopMediaBtn"),
+      mediaStatus: document.getElementById("mediaStatus"),
+      mediaAccessLabel: document.getElementById("mediaAccessLabel"),
+      submitState: document.getElementById("submitState"),
+      lockedLabel: document.getElementById("lockedLabel"),
+      schedule: document.getElementById("schedule"),
+      presenters: document.getElementById("presenters"),
+      guests: document.getElementById("guests"),
+      questions: document.getElementById("questions"),
+      submitAnswers: document.getElementById("submitAnswers"),
+      liveMessages: document.getElementById("liveMessages"),
+      liveMessageForm: document.getElementById("liveMessageForm"),
+      liveMessageInput: document.getElementById("liveMessageInput"),
+      raiseHandBtn: document.getElementById("raiseHandBtn"),
+      handRaiseStatus: document.getElementById("handRaiseStatus"),
+      slideViewerPanel: document.getElementById("slideViewerPanel"),
+      slideViewerTitle: document.getElementById("slideViewerTitle"),
+      slideFrame: document.getElementById("slideFrame"),
+      slideOpenLink: document.getElementById("slideOpenLink"),
+      closeSlides: document.getElementById("closeSlides"),
+      meetingForm: document.getElementById("meetingForm"),
+      adminReportHeading: document.getElementById("adminReportHeading"),
+      adminReportSubheading: document.getElementById("adminReportSubheading"),
+      adminMeetingTitle: document.getElementById("adminMeetingTitle"),
+      adminMeetingTime: document.getElementById("adminMeetingTime"),
+      adminMeetingUrl: document.getElementById("adminMeetingUrl"),
+      adminMeetingNotes: document.getElementById("adminMeetingNotes"),
+      clearMeeting: document.getElementById("clearMeeting"),
+      scheduleForm: document.getElementById("scheduleForm"),
+      scheduleId: document.getElementById("scheduleId"),
+      scheduleDate: document.getElementById("scheduleDate"),
+      scheduleTime: document.getElementById("scheduleTime"),
+      scheduleEndTime: document.getElementById("scheduleEndTime"),
+      scheduleTopic: document.getElementById("scheduleTopic"),
+      scheduleNotes: document.getElementById("scheduleNotes"),
+      scheduleRecordingUrl: document.getElementById("scheduleRecordingUrl"),
+      scheduleRecordingFile: document.getElementById("scheduleRecordingFile"),
+      scheduleRecordingData: document.getElementById("scheduleRecordingData"),
+      scheduleSlidesUrl: document.getElementById("scheduleSlidesUrl"),
+      scheduleSlidesFile: document.getElementById("scheduleSlidesFile"),
+      scheduleSlidesData: document.getElementById("scheduleSlidesData"),
+      scheduleSlidesName: document.getElementById("scheduleSlidesName"),
+      scheduleSlidesType: document.getElementById("scheduleSlidesType"),
+      cancelScheduleEdit: document.getElementById("cancelScheduleEdit"),
+      scheduleAdminList: document.getElementById("scheduleAdminList"),
+      personForm: document.getElementById("personForm"),
+      personId: document.getElementById("personId"),
+      personType: document.getElementById("personType"),
+      personName: document.getElementById("personName"),
+      personRole: document.getElementById("personRole"),
+      personInstitution: document.getElementById("personInstitution"),
+      personLocation: document.getElementById("personLocation"),
+      personPhoto: document.getElementById("personPhoto"),
+      personPhotoData: document.getElementById("personPhotoData"),
+      personIntro: document.getElementById("personIntro"),
+      cancelPersonEdit: document.getElementById("cancelPersonEdit"),
+      peopleAdminList: document.getElementById("peopleAdminList"),
+      questionForm: document.getElementById("questionForm"),
+      questionId: document.getElementById("questionId"),
+      questionText: document.getElementById("questionText"),
+      questionOptions: document.getElementById("questionOptions"),
+      cancelQuestionEdit: document.getElementById("cancelQuestionEdit"),
+      questionsAdminList: document.getElementById("questionsAdminList"),
+      userForm: document.getElementById("userForm"),
+      userId: document.getElementById("userId"),
+      userPhotoData: document.getElementById("userPhotoData"),
+      userFullName: document.getElementById("userFullName"),
+      userUsername: document.getElementById("userUsername"),
+      userPassword: document.getElementById("userPassword"),
+      userEmail: document.getElementById("userEmail"),
+      userRole: document.getElementById("userRole"),
+      userDiscipline: document.getElementById("userDiscipline"),
+      userUniversity: document.getElementById("userUniversity"),
+      userLocation: document.getElementById("userLocation"),
+      userPhoto: document.getElementById("userPhoto"),
+      userBio: document.getElementById("userBio"),
+      cancelUserEdit: document.getElementById("cancelUserEdit"),
+      usersAdminList: document.getElementById("usersAdminList"),
+      liveRoomAdminList: document.getElementById("liveRoomAdminList"),
+      appearanceForm: document.getElementById("appearanceForm"),
+      appearanceScheduleHeight: document.getElementById("appearanceScheduleHeight"),
+      appearanceHeroHeight: document.getElementById("appearanceHeroHeight"),
+      appearanceAvatarSize: document.getElementById("appearanceAvatarSize"),
+      appearancePanelPadding: document.getElementById("appearancePanelPadding"),
+      appearanceBrandAlign: document.getElementById("appearanceBrandAlign"),
+      resetAppearance: document.getElementById("resetAppearance"),
+      presentingStatus: document.getElementById("presentingStatus"),
+      presenterPreview: document.getElementById("presenterPreview"),
+      presenterPreviewText: document.getElementById("presenterPreviewText"),
+      presentingToggle: document.getElementById("presentingToggle"),
+      presenterMicToggle: document.getElementById("presenterMicToggle"),
+      presenterCameraToggle: document.getElementById("presenterCameraToggle"),
+      presenterBackground: document.getElementById("presenterBackground"),
+      presenterSlidesList: document.getElementById("presenterSlidesList"),
+      profileForm: document.getElementById("profileForm"),
+      profilePhotoData: document.getElementById("profilePhotoData"),
+      profileFullName: document.getElementById("profileFullName"),
+      profileUsernameInput: document.getElementById("profileUsernameInput"),
+      profilePasswordInput: document.getElementById("profilePasswordInput"),
+      profileEmail: document.getElementById("profileEmail"),
+      profileDiscipline: document.getElementById("profileDiscipline"),
+      profileUniversity: document.getElementById("profileUniversity"),
+      profileLocation: document.getElementById("profileLocation"),
+      profilePhoto: document.getElementById("profilePhoto"),
+      profileBio: document.getElementById("profileBio"),
+      thankYouForm: document.getElementById("thankYouForm"),
+      thankYouSession: document.getElementById("thankYouSession"),
+      thankYouSubject: document.getElementById("thankYouSubject"),
+      thankYouMessage: document.getElementById("thankYouMessage"),
+      thankYouList: document.getElementById("thankYouList"),
+      answersTable: document.getElementById("answersTable"),
+      resetDemo: document.getElementById("resetDemo"),
+      toast: document.getElementById("toast")
+    };
+
+    Object.assign(els, {
+      landingBrandName: document.getElementById("landingBrandName"),
+      landingBrandTagline: document.getElementById("landingBrandTagline"),
+      landingLoginHeadline: document.getElementById("landingLoginHeadline"),
+      landingLoginLead: document.getElementById("landingLoginLead"),
+      landingHeroBadge: document.getElementById("landingHeroBadge"),
+      landingHeroHeadline: document.getElementById("landingHeroHeadline"),
+      landingHeroImage: document.getElementById("landingHeroImage"),
+      landingMetrics: document.getElementById("landingMetrics"),
+      landingCards: document.getElementById("landingCards"),
+      landingForm: document.getElementById("landingForm"),
+      landingHeroImageData: document.getElementById("landingHeroImageData"),
+      adminLandingBrandName: document.getElementById("adminLandingBrandName"),
+      adminLandingBrandTagline: document.getElementById("adminLandingBrandTagline"),
+      adminLandingLoginHeadline: document.getElementById("adminLandingLoginHeadline"),
+      adminLandingLoginLead: document.getElementById("adminLandingLoginLead"),
+      adminLandingHeroBadge: document.getElementById("adminLandingHeroBadge"),
+      adminLandingHeroImage: document.getElementById("adminLandingHeroImage"),
+      adminLandingHeroHeadline: document.getElementById("adminLandingHeroHeadline"),
+      landingMetricsAdminList: document.getElementById("landingMetricsAdminList"),
+      landingCardsAdminList: document.getElementById("landingCardsAdminList"),
+      addLandingMetric: document.getElementById("addLandingMetric"),
+      clearLandingMetrics: document.getElementById("clearLandingMetrics"),
+      addLandingCard: document.getElementById("addLandingCard"),
+      clearLandingCards: document.getElementById("clearLandingCards"),
+      clearLandingHeroImage: document.getElementById("clearLandingHeroImage")
+    });
+
+    els.todayText.textContent = new Intl.DateTimeFormat("en-US", {
+      weekday: "long",
+      month: "short",
+      day: "numeric"
+    }).format(new Date());
+    applyAppearance();
+    renderLanding();
+
+    els.loginForm.addEventListener("submit", event => {
+      event.preventDefault();
+      ensureRecoveryAccounts();
+      const found = state.users.find(user =>
+        user.username === els.username.value.trim() &&
+        user.password === els.password.value
+      );
+
+      if (!found) {
+        showToast("The username or password is incorrect.");
+        return;
+      }
+
+      currentUser = found;
+      draftAnswers = {};
+      els.loginView.classList.add("hidden");
+      els.appView.classList.remove("hidden");
+      renderUserShell();
+      els.adminTab.classList.toggle("hidden", currentUser.role !== "admin");
+      els.presenterTab.classList.toggle("hidden", currentUser.role !== "presenter");
+      if (currentUser.role === "presenter") {
+        showPresenter();
+      } else {
+        showReport();
+      }
+      renderAll();
+    });
+
+    els.logoutBtn.addEventListener("click", () => {
+      currentUser = null;
+      draftAnswers = {};
+      els.appView.classList.add("hidden");
+      els.loginView.classList.remove("hidden");
+      els.password.value = "";
+    });
+
+    els.reportTab.addEventListener("click", showReport);
+    els.profileTab.addEventListener("click", showProfile);
+    els.presenterTab.addEventListener("click", showPresenter);
+    els.adminTab.addEventListener("click", showAdmin);
+
+    document.querySelectorAll("[data-admin-section]").forEach(button => {
+      button.addEventListener("click", () => {
+        document.querySelectorAll("[data-admin-section]").forEach(item => item.classList.remove("active"));
+        document.querySelectorAll(".admin-section").forEach(section => section.classList.add("hidden"));
+        button.classList.add("active");
+        document.getElementById(button.dataset.adminSection).classList.remove("hidden");
+      });
+    });
+
+    els.copyMeetingLink.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(state.meeting.url);
+        showToast("Video meeting link copied.");
+      } catch {
+        showToast("Copy failed. Open Admin and copy the link manually.");
+      }
+    });
+
+    els.enableReminder.addEventListener("click", enableMeetingReminder);
+
+    els.userMicToggle.addEventListener("click", async () => {
+      await setLocalMedia({ mic: !localMedia.mic, camera: localMedia.camera });
+    });
+
+    els.userCameraToggle.addEventListener("click", async () => {
+      await setLocalMedia({ mic: localMedia.mic, camera: !localMedia.camera });
+    });
+
+    els.stopMediaBtn.addEventListener("click", () => {
+      stopLocalMedia();
+      renderMediaControls();
+      showToast("Audio and video stopped.");
+    });
+
+    els.liveMessageForm.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!currentUser) return;
+      const text = els.liveMessageInput.value.trim();
+      if (!text) {
+        showToast("Write a question first.");
+        return;
+      }
+      state.liveRoom.messages.unshift({
+        id: crypto.randomUUID(),
+        userId: currentUser.id,
+        userName: currentUser.name,
+        role: currentUser.role,
+        text,
+        createdAt: new Date().toISOString()
+      });
+      els.liveMessageInput.value = "";
+      saveState();
+      showToast("Question sent to the live room.");
+      renderAll();
+    });
+
+    els.raiseHandBtn.addEventListener("click", () => {
+      if (!currentUser) return;
+      const activeRequest = getCurrentHandRaise();
+      if (activeRequest && activeRequest.status === "pending") {
+        showToast("Your request is already waiting for admin approval.");
+        return;
+      }
+      state.liveRoom.handRaises.unshift({
+        id: crypto.randomUUID(),
+        userId: currentUser.id,
+        userName: currentUser.name,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        decidedAt: ""
+      });
+      saveState();
+      showToast("Hand raise request sent.");
+      renderAll();
+    });
+
+    els.adminLandingHeroImage.addEventListener("change", async () => {
+      const file = els.adminLandingHeroImage.files[0];
+      if (!file) return;
+      els.landingHeroImageData.value = await readFileAsDataUrl(file);
+      showToast("Landing hero image loaded. Save landing page to apply it.");
+    });
+
+    els.addLandingMetric.addEventListener("click", () => {
+      state.landing = normalizeLanding(state.landing);
+      state.landing.metrics = readLandingMetricsFromAdmin();
+      state.landing.cards = readLandingCardsFromAdmin();
+      state.landing.metrics.push({ value: "New", label: "Small box" });
+      renderLanding();
+    });
+
+    els.clearLandingMetrics.addEventListener("click", () => {
+      state.landing = normalizeLanding(state.landing);
+      state.landing.cards = readLandingCardsFromAdmin();
+      state.landing.metrics = [];
+      renderLanding();
+    });
+
+    els.addLandingCard.addEventListener("click", () => {
+      state.landing = normalizeLanding(state.landing);
+      state.landing.metrics = readLandingMetricsFromAdmin();
+      state.landing.cards = readLandingCardsFromAdmin();
+      state.landing.cards.push({ title: "New card", text: "Write the card text here." });
+      renderLanding();
+    });
+
+    els.clearLandingCards.addEventListener("click", () => {
+      state.landing = normalizeLanding(state.landing);
+      state.landing.metrics = readLandingMetricsFromAdmin();
+      state.landing.cards = [];
+      renderLanding();
+    });
+
+    els.landingMetricsAdminList.addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-landing-metric]");
+      if (!button) return;
+      state.landing = normalizeLanding(state.landing);
+      state.landing.metrics = readLandingMetricsFromAdmin();
+      state.landing.cards = readLandingCardsFromAdmin();
+      state.landing.metrics.splice(Number(button.dataset.removeLandingMetric), 1);
+      renderLanding();
+    });
+
+    els.landingCardsAdminList.addEventListener("click", event => {
+      const button = event.target.closest("[data-remove-landing-card]");
+      if (!button) return;
+      state.landing = normalizeLanding(state.landing);
+      state.landing.metrics = readLandingMetricsFromAdmin();
+      state.landing.cards = readLandingCardsFromAdmin();
+      state.landing.cards.splice(Number(button.dataset.removeLandingCard), 1);
+      renderLanding();
+    });
+
+    els.landingForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const currentLanding = normalizeLanding(state.landing);
+      state.landing = {
+        brandName: els.adminLandingBrandName.value.trim(),
+        brandTagline: els.adminLandingBrandTagline.value.trim(),
+        loginHeadline: els.adminLandingLoginHeadline.value.trim(),
+        loginLead: els.adminLandingLoginLead.value.trim(),
+        heroBadge: els.adminLandingHeroBadge.value.trim(),
+        heroHeadline: els.adminLandingHeroHeadline.value.trim(),
+        heroImage: els.landingHeroImageData.value || state.landing.heroImage || "",
+        metrics: readLandingMetricsFromAdmin(),
+        cards: readLandingCardsFromAdmin()
+      };
+      Object.assign(state.landing, legacyLandingFields(state.landing, currentLanding));
+      saveState();
+      showToast("Landing page saved.");
+      renderAll();
+    });
+
+    els.clearLandingHeroImage.addEventListener("click", () => {
+      state.landing.heroImage = "";
+      els.landingHeroImageData.value = "";
+      els.adminLandingHeroImage.value = "";
+      saveState();
+      showToast("Uploaded landing image removed. The default asset will be used if available.");
+      renderAll();
+    });
+
+    els.submitAnswers.addEventListener("click", () => {
+      if (!currentUser || hasSubmitted()) return;
+      const missing = state.questions.some(question => {
+        const answer = normalizeAnswer(draftAnswers[question.id]);
+        return !answer.choice || !answer.reason.trim();
+      });
+
+      if (missing) {
+        showToast("Please select an answer and write a reason for every question.");
+        return;
+      }
+
+      state.answers[currentUser.username] = {
+        user: currentUser.name,
+        submittedAt: new Date().toISOString(),
+        responses: { ...draftAnswers }
+      };
+      saveState();
+      showToast("Answers submitted and locked.");
+      renderAll();
+    });
+
+    els.meetingForm.addEventListener("submit", event => {
+      event.preventDefault();
+      state.meeting = {
+        enabled: true,
+        reportHeading: els.adminReportHeading.value.trim(),
+        reportSubheading: els.adminReportSubheading.value.trim(),
+        title: els.adminMeetingTitle.value.trim(),
+        time: els.adminMeetingTime.value.trim(),
+        url: els.adminMeetingUrl.value.trim(),
+        notes: els.adminMeetingNotes.value.trim()
+      };
+      saveState();
+      showToast("Meeting details saved.");
+      renderAll();
+    });
+
+    els.clearMeeting.addEventListener("click", () => {
+      state.meeting = {
+        ...state.meeting,
+        enabled: false,
+        title: "",
+        time: "",
+        url: "",
+        notes: ""
+      };
+      saveState();
+      showToast("Meeting card hidden. You can add it again by saving meeting details.");
+      renderAll();
+    });
+
+    els.scheduleForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const existing = state.schedule.find(item => item.id === els.scheduleId.value);
+      const item = {
+        id: els.scheduleId.value || crypto.randomUUID(),
+        date: els.scheduleDate.value,
+        time: els.scheduleTime.value,
+        endTime: els.scheduleEndTime.value,
+        topic: els.scheduleTopic.value.trim(),
+        notes: els.scheduleNotes.value.trim(),
+        recordingUrl: els.scheduleRecordingUrl.value.trim(),
+        recordingData: els.scheduleRecordingData.value || existing?.recordingData || "",
+        slidesUrl: els.scheduleSlidesUrl.value.trim(),
+        slidesData: els.scheduleSlidesData.value || existing?.slidesData || "",
+        slidesName: els.scheduleSlidesName.value || existing?.slidesName || "",
+        slidesType: els.scheduleSlidesType.value || existing?.slidesType || ""
+      };
+
+      upsertById(state.schedule, item);
+      state.schedule.sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`));
+      saveState();
+      clearScheduleForm();
+      showToast("Schedule item saved.");
+      renderAll();
+    });
+
+    els.cancelScheduleEdit.addEventListener("click", clearScheduleForm);
+
+    els.scheduleRecordingFile.addEventListener("change", async () => {
+      const file = els.scheduleRecordingFile.files[0];
+      if (!file) return;
+      els.scheduleRecordingData.value = await readFileAsDataUrl(file);
+      showToast("Recording file loaded. Save schedule item to keep it.");
+    });
+
+    els.scheduleSlidesFile.addEventListener("change", async () => {
+      const file = els.scheduleSlidesFile.files[0];
+      if (!file) return;
+      els.scheduleSlidesData.value = await readFileAsDataUrl(file);
+      els.scheduleSlidesName.value = file.name;
+      els.scheduleSlidesType.value = file.type || "";
+      showToast("Slides loaded. Save schedule item to keep them.");
+    });
+
+    els.closeSlides.addEventListener("click", () => {
+      els.slideViewerPanel.classList.add("hidden");
+      els.slideFrame.removeAttribute("src");
+      els.slideOpenLink.href = "#";
+    });
+
+    els.presenterSlidesList.addEventListener("change", async event => {
+      const input = event.target.closest("[data-presenter-slide-file]");
+      if (!input) return;
+      const file = input.files[0];
+      if (!file) return;
+      const item = state.schedule.find(entry => entry.id === input.dataset.presenterSlideFile);
+      if (!item) return;
+      item.slidesData = await readFileAsDataUrl(file);
+      item.slidesName = file.name;
+      item.slidesType = file.type || "";
+      saveState();
+      showToast("Slides uploaded for this session.");
+      renderAll();
+    });
+
+    els.presenterSlidesList.addEventListener("click", event => {
+      const saveButton = event.target.closest("[data-presenter-save-slides]");
+      if (!saveButton) return;
+      const item = state.schedule.find(entry => entry.id === saveButton.dataset.presenterSaveSlides);
+      const input = els.presenterSlidesList.querySelector(`[data-presenter-slide-url="${saveButton.dataset.presenterSaveSlides}"]`);
+      if (!item || !input) return;
+      item.slidesUrl = input.value.trim();
+      saveState();
+      showToast("Slides link saved for this session.");
+      renderAll();
+    });
+
+    els.presentingToggle.addEventListener("click", () => {
+      presenterMode.presenting = !presenterMode.presenting;
+      renderPresentingMode();
+      showToast(presenterMode.presenting ? "Presenting mode started." : "Presenting mode stopped.");
+    });
+
+    els.presenterMicToggle.addEventListener("click", () => {
+      presenterMode.mic = !presenterMode.mic;
+      renderPresentingMode();
+    });
+
+    els.presenterCameraToggle.addEventListener("click", () => {
+      presenterMode.camera = !presenterMode.camera;
+      renderPresentingMode();
+    });
+
+    els.presenterBackground.addEventListener("change", () => {
+      presenterMode.background = els.presenterBackground.value;
+      renderPresentingMode();
+    });
+
+    els.personPhoto.addEventListener("change", async () => {
+      const file = els.personPhoto.files[0];
+      if (!file) return;
+      els.personPhotoData.value = await readFileAsDataUrl(file);
+      showToast("Photo loaded. Save person to apply it.");
+    });
+
+    els.profilePhoto.addEventListener("change", async () => {
+      const file = els.profilePhoto.files[0];
+      if (!file) return;
+      els.profilePhotoData.value = await readFileAsDataUrl(file);
+      showToast("Profile photo loaded. Save profile to apply it.");
+    });
+
+    els.profileForm.addEventListener("submit", event => {
+      event.preventDefault();
+      if (!currentUser) return;
+      const oldUsername = currentUser.username;
+      const username = els.profileUsernameInput.value.trim();
+      const duplicate = state.users.some(user => user.username === username && user.id !== currentUser.id);
+      if (duplicate) {
+        showToast("That username already exists.");
+        return;
+      }
+
+      const updated = {
+        ...currentUser,
+        name: els.profileFullName.value.trim(),
+        username,
+        password: els.profilePasswordInput.value,
+        email: els.profileEmail.value.trim(),
+        discipline: els.profileDiscipline.value.trim(),
+        university: els.profileUniversity.value.trim(),
+        location: els.profileLocation.value.trim(),
+        bio: els.profileBio.value.trim(),
+        photo: els.profilePhotoData.value || currentUser.photo || ""
+      };
+
+      upsertById(state.users, updated);
+      moveAnswersToUsername(oldUsername, username);
+      currentUser = updated;
+      saveState();
+      renderProfile();
+      renderUserShell();
+      showToast("Profile saved.");
+    });
+
+    els.userPhoto.addEventListener("change", async () => {
+      const file = els.userPhoto.files[0];
+      if (!file) return;
+      els.userPhotoData.value = await readFileAsDataUrl(file);
+      showToast("User photo loaded. Save user to apply it.");
+    });
+
+    els.personForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const existing = state.people.find(person => person.id === els.personId.value);
+      const person = {
+        id: els.personId.value || crypto.randomUUID(),
+        type: els.personType.value,
+        name: els.personName.value.trim(),
+        role: els.personRole.value.trim(),
+        institution: els.personInstitution.value.trim(),
+        location: els.personLocation.value.trim(),
+        introduction: els.personIntro.value.trim(),
+        photo: els.personPhotoData.value || existing?.photo || "",
+        tone: existing?.tone || pickTone(state.people.length)
+      };
+
+      upsertById(state.people, person);
+      saveState();
+      clearPersonForm();
+      showToast("Person saved.");
+      renderAll();
+    });
+
+    els.cancelPersonEdit.addEventListener("click", clearPersonForm);
+
+    els.questionForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const options = els.questionOptions.value
+        .split(",")
+        .map(option => option.trim())
+        .filter(Boolean);
+      const question = {
+        id: els.questionId.value || crypto.randomUUID(),
+        text: els.questionText.value.trim(),
+        options: options.length ? options : ["Yes", "No"]
+      };
+
+      upsertById(state.questions, question);
+      saveState();
+      clearQuestionForm();
+      showToast("Question saved.");
+      renderAll();
+    });
+
+    els.cancelQuestionEdit.addEventListener("click", clearQuestionForm);
+
+    els.userForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const username = els.userUsername.value.trim();
+      const duplicate = state.users.some(user => user.username === username && user.id !== els.userId.value);
+      if (duplicate) {
+        showToast("That username already exists.");
+        return;
+      }
+
+      const user = {
+        id: els.userId.value || crypto.randomUUID(),
+        name: els.userFullName.value.trim(),
+        username,
+        password: els.userPassword.value,
+        email: els.userEmail.value.trim(),
+        role: els.userRole.value,
+        discipline: els.userDiscipline.value.trim(),
+        university: els.userUniversity.value.trim(),
+        location: els.userLocation.value.trim(),
+        bio: els.userBio.value.trim(),
+        photo: els.userPhotoData.value || state.users.find(user => user.id === els.userId.value)?.photo || ""
+      };
+
+      const oldUser = state.users.find(entry => entry.id === user.id);
+      upsertById(state.users, user);
+      if (oldUser) moveAnswersToUsername(oldUser.username, user.username);
+      saveState();
+      clearUserForm();
+      showToast("User access saved.");
+      renderAll();
+    });
+
+    els.cancelUserEdit.addEventListener("click", clearUserForm);
+
+    els.appearanceForm.addEventListener("submit", event => {
+      event.preventDefault();
+      state.appearance = {
+        scheduleHeight: clampNumber(els.appearanceScheduleHeight.value, 130, 320, 165),
+        heroHeight: clampNumber(els.appearanceHeroHeight.value, 220, 520, 330),
+        avatarSize: clampNumber(els.appearanceAvatarSize.value, 56, 110, 74),
+        panelPadding: clampNumber(els.appearancePanelPadding.value, 12, 30, 18),
+        brandAlign: els.appearanceBrandAlign.value
+      };
+      saveState();
+      showToast("Design settings saved.");
+      renderAll();
+    });
+
+    els.resetAppearance.addEventListener("click", () => {
+      state.appearance = structuredClone(seedData.appearance);
+      saveState();
+      showToast("Design settings reset.");
+      renderAll();
+    });
+
+    els.thankYouForm.addEventListener("submit", event => {
+      event.preventDefault();
+      renderThankYouCards();
+      showToast("Thank-you cards generated.");
+    });
+
+    els.resetDemo.addEventListener("click", () => {
+      localStorage.removeItem(storageKey);
+      state = structuredClone(seedData);
+      draftAnswers = {};
+      clearScheduleForm();
+      clearPersonForm();
+      clearQuestionForm();
+      clearUserForm();
+      showToast("Demo data reset.");
+      renderAll();
+    });
+
+    function loadState() {
+      const saved = localStorage.getItem(storageKey);
+      if (!saved) return structuredClone(seedData);
+      try {
+        const parsed = JSON.parse(saved);
+        return {
+          ...structuredClone(seedData),
+          ...parsed,
+          appearance: { ...seedData.appearance, ...parsed.appearance },
+          liveRoom: normalizeLiveRoom(parsed.liveRoom),
+          landing: normalizeLanding({ ...seedData.landing, ...parsed.landing }),
+          meeting: { ...seedData.meeting, ...parsed.meeting },
+          users: normalizeUsers(parsed.users || seedData.users),
+          schedule: parsed.schedule || seedData.schedule,
+          people: parsed.people || seedData.people,
+          questions: parsed.questions || seedData.questions,
+          answers: parsed.answers || {}
+        };
+      } catch {
+        return structuredClone(seedData);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function ensureRecoveryAccounts() {
+      const requiredUsers = [
+        {
+          username: "amiradmin",
+          password: "nephro2026",
+          name: "Amir Tahavvori, MD",
+          email: "",
+          role: "admin",
+          discipline: "Nephrology",
+          university: "Loma Linda University",
+          location: "Loma Linda, USA"
+        },
+        {
+          username: "speaker",
+          password: "slides2026",
+          name: "Conference Speaker, MD",
+          email: "speaker@example.com",
+          role: "presenter",
+          discipline: "Nephrology",
+          university: "Guest Institution",
+          location: ""
+        }
+      ];
+
+      let changed = false;
+      requiredUsers.forEach(user => {
+        const existing = state.users.find(entry => entry.username === user.username);
+        if (existing) {
+          if (existing.password !== user.password || existing.role !== user.role) {
+            existing.password = user.password;
+            existing.role = user.role;
+            changed = true;
+          }
+          return;
+        }
+        state.users.push({
+          id: crypto.randomUUID(),
+          ...user,
+          bio: "",
+          photo: ""
+        });
+        changed = true;
+      });
+
+      if (changed) saveState();
+    }
+
+    function normalizeUsers(users) {
+      return users.map(user => ({
+        id: user.id || crypto.randomUUID(),
+        username: user.username || "",
+        password: user.password || "",
+        name: user.name || user.username || "Unnamed user",
+        email: user.email || "",
+        role: user.role || "user",
+        discipline: user.discipline || "",
+        university: user.university || "",
+        location: user.location || "",
+        bio: user.bio || "",
+        photo: user.photo || ""
+      }));
+    }
+
+    function normalizeLiveRoom(liveRoom) {
+      return {
+        messages: Array.isArray(liveRoom?.messages) ? liveRoom.messages : [],
+        handRaises: Array.isArray(liveRoom?.handRaises) ? liveRoom.handRaises : [],
+        avControls: liveRoom?.avControls && typeof liveRoom.avControls === "object" ? liveRoom.avControls : {}
+      };
+    }
+
+    function normalizeLanding(landing) {
+      const source = { ...seedData.landing, ...landing };
+      const metrics = Array.isArray(source.metrics)
+        ? source.metrics
+        : [
+          { value: source.metricOneValue, label: source.metricOneLabel },
+          { value: source.metricTwoValue, label: source.metricTwoLabel },
+          { value: source.metricThreeValue, label: source.metricThreeLabel }
+        ];
+      const cards = Array.isArray(source.cards)
+        ? source.cards
+        : [
+          { title: source.cardOneTitle, text: source.cardOneText },
+          { title: source.cardTwoTitle, text: source.cardTwoText },
+          { title: source.cardThreeTitle, text: source.cardThreeText }
+        ];
+
+      return {
+        ...source,
+        metrics: metrics.map(item => ({ value: item.value || "", label: item.label || "" })).filter(item => item.value || item.label),
+        cards: cards.map(item => ({ title: item.title || "", text: item.text || "" })).filter(item => item.title || item.text)
+      };
+    }
+
+    function renderAll() {
+      applyAppearance();
+      renderLanding();
+      renderMeeting();
+      renderReminderStatus();
+      renderSchedule();
+      renderPeople();
+      renderQuestions();
+      renderLiveRoom();
+      renderMediaControls();
+      renderPresenterSlides();
+      renderPresentingMode();
+      renderAdmin();
+    }
+
+    function applyAppearance() {
+      const appearance = { ...seedData.appearance, ...state.appearance };
+      document.documentElement.style.setProperty("--schedule-card-min-height", `${appearance.scheduleHeight}px`);
+      document.documentElement.style.setProperty("--hero-image-height", `${appearance.heroHeight}px`);
+      document.documentElement.style.setProperty("--avatar-size", `${appearance.avatarSize}px`);
+      document.documentElement.style.setProperty("--panel-padding", `${appearance.panelPadding}px`);
+      document.documentElement.style.setProperty("--brand-justify", getBrandJustify(appearance.brandAlign));
+      els.appearanceScheduleHeight.value = appearance.scheduleHeight;
+      els.appearanceHeroHeight.value = appearance.heroHeight;
+      els.appearanceAvatarSize.value = appearance.avatarSize;
+      els.appearancePanelPadding.value = appearance.panelPadding;
+      els.appearanceBrandAlign.value = appearance.brandAlign || "left";
+    }
+
+    function renderLanding() {
+      const landing = normalizeLanding(state.landing || seedData.landing);
+      state.landing = landing;
+      els.landingBrandName.textContent = landing.brandName || "";
+      document.title = landing.brandName || "NephroRounds Studio";
+      els.appShellName.textContent = landing.brandName || "NephroRounds";
+      els.landingBrandTagline.textContent = landing.brandTagline || "";
+      els.landingLoginHeadline.textContent = landing.loginHeadline || "";
+      els.landingLoginLead.textContent = landing.loginLead || "";
+      els.landingHeroBadge.textContent = landing.heroBadge || "";
+      els.landingHeroHeadline.textContent = landing.heroHeadline || "";
+      els.landingMetrics.innerHTML = landing.metrics.map(item => `
+        <div class="metric"><b>${escapeHtml(item.value)}</b><span>${escapeHtml(item.label)}</span></div>
+      `).join("");
+      els.landingMetrics.classList.toggle("hidden", landing.metrics.length === 0);
+      els.landingCards.innerHTML = landing.cards.map(item => `
+        <div class="mini-card">
+          <strong>${escapeHtml(item.title)}</strong>
+          <p class="hint">${escapeHtml(item.text)}</p>
+        </div>
+      `).join("");
+      els.landingCards.classList.toggle("hidden", landing.cards.length === 0);
+
+      const heroSrc = landing.heroImage || "assets/nephro-hero-kidneys.png";
+      els.landingHeroImage.src = heroSrc;
+      els.landingHeroImage.alt = landing.heroHeadline || "Landing hero image";
+      els.landingHeroImage.onerror = () => {
+        els.landingHeroImage.removeAttribute("src");
+        els.landingHeroImage.alt = "Upload a landing image from Admin Console";
+      };
+
+      els.adminLandingBrandName.value = landing.brandName || "";
+      els.adminLandingBrandTagline.value = landing.brandTagline || "";
+      els.adminLandingLoginHeadline.value = landing.loginHeadline || "";
+      els.adminLandingLoginLead.value = landing.loginLead || "";
+      els.adminLandingHeroBadge.value = landing.heroBadge || "";
+      els.adminLandingHeroHeadline.value = landing.heroHeadline || "";
+      els.landingHeroImageData.value = landing.heroImage || "";
+      renderLandingMetricsAdmin(landing.metrics);
+      renderLandingCardsAdmin(landing.cards);
+    }
+
+    function renderLandingMetricsAdmin(metrics) {
+      els.landingMetricsAdminList.innerHTML = metrics.length
+        ? metrics.map((item, index) => `
+          <article class="editable-row">
+            <div class="form-grid">
+              <div class="field">
+                <label>Big text</label>
+                <input data-landing-metric-value="${index}" value="${escapeHtml(item.value)}" placeholder="Edit">
+              </div>
+              <div class="field">
+                <label>Small text</label>
+                <input data-landing-metric-label="${index}" value="${escapeHtml(item.label)}" placeholder="Calendar">
+              </div>
+            </div>
+            <div class="row-actions">
+              <button class="btn warn small" type="button" data-remove-landing-metric="${index}">Remove</button>
+            </div>
+          </article>
+        `).join("")
+        : `<div class="empty-state">No small boxes. Click Add small box if you want one.</div>`;
+    }
+
+    function renderLandingCardsAdmin(cards) {
+      els.landingCardsAdminList.innerHTML = cards.length
+        ? cards.map((item, index) => `
+          <article class="editable-row">
+            <div class="form-grid">
+              <div class="field">
+                <label>Card title</label>
+                <input data-landing-card-title="${index}" value="${escapeHtml(item.title)}" placeholder="Admin-controlled content">
+              </div>
+              <div class="field">
+                <label>Card text</label>
+                <input data-landing-card-text="${index}" value="${escapeHtml(item.text)}" placeholder="Write the card text here.">
+              </div>
+            </div>
+            <div class="row-actions">
+              <button class="btn warn small" type="button" data-remove-landing-card="${index}">Remove</button>
+            </div>
+          </article>
+        `).join("")
+        : `<div class="empty-state">No right-side cards. Click Add card if you want one.</div>`;
+    }
+
+    function readLandingMetricsFromAdmin() {
+      return [...els.landingMetricsAdminList.querySelectorAll("[data-landing-metric-value]")]
+        .map(input => {
+          const index = input.dataset.landingMetricValue;
+          const label = els.landingMetricsAdminList.querySelector(`[data-landing-metric-label="${index}"]`);
+          return { value: input.value.trim(), label: label?.value.trim() || "" };
+        })
+        .filter(item => item.value || item.label);
+    }
+
+    function readLandingCardsFromAdmin() {
+      return [...els.landingCardsAdminList.querySelectorAll("[data-landing-card-title]")]
+        .map(input => {
+          const index = input.dataset.landingCardTitle;
+          const text = els.landingCardsAdminList.querySelector(`[data-landing-card-text="${index}"]`);
+          return { title: input.value.trim(), text: text?.value.trim() || "" };
+        })
+        .filter(item => item.title || item.text);
+    }
+
+    function legacyLandingFields(landing, fallback) {
+      const metrics = landing.metrics || fallback.metrics || [];
+      const cards = landing.cards || fallback.cards || [];
+      return {
+        metricOneValue: metrics[0]?.value || "",
+        metricOneLabel: metrics[0]?.label || "",
+        metricTwoValue: metrics[1]?.value || "",
+        metricTwoLabel: metrics[1]?.label || "",
+        metricThreeValue: metrics[2]?.value || "",
+        metricThreeLabel: metrics[2]?.label || "",
+        cardOneTitle: cards[0]?.title || "",
+        cardOneText: cards[0]?.text || "",
+        cardTwoTitle: cards[1]?.title || "",
+        cardTwoText: cards[1]?.text || "",
+        cardThreeTitle: cards[2]?.title || "",
+        cardThreeText: cards[2]?.text || ""
+      };
+    }
+
+    function renderMeeting() {
+      els.reportHeading.textContent = state.meeting.reportHeading || "Morning Report";
+      els.reportSubheading.textContent = state.meeting.reportSubheading || "";
+      els.meetingTitle.textContent = state.meeting.title || "Meeting details";
+      els.meetingMeta.textContent = state.meeting.time || "";
+      els.meetingNotes.textContent = state.meeting.notes || "";
+      els.meetingLink.href = state.meeting.url || "#";
+      els.meetingCard.classList.toggle("hidden", state.meeting.enabled === false);
+      els.meetingLink.classList.toggle("hidden", !state.meeting.url);
+      els.copyMeetingLink.classList.toggle("hidden", !state.meeting.url);
+      els.adminReportHeading.value = state.meeting.reportHeading || "";
+      els.adminReportSubheading.value = state.meeting.reportSubheading || "";
+      els.adminMeetingTitle.value = state.meeting.title || "";
+      els.adminMeetingTime.value = state.meeting.time || "";
+      els.adminMeetingUrl.value = state.meeting.url || "";
+      els.adminMeetingNotes.value = state.meeting.notes || "";
+    }
+
+    function renderReminderStatus() {
+      const start = getMeetingStartDate();
+      if (!start) {
+        els.notificationTitle.textContent = "15-minute meeting reminder";
+        els.notificationText.textContent = "Add a meeting time like 08:30 - 09:00 to enable the reminder.";
+        return;
+      }
+
+      const minutes = Math.round((start.getTime() - Date.now()) / 60000);
+      if (minutes > 15) {
+        els.notificationTitle.textContent = "15-minute meeting reminder";
+        els.notificationText.textContent = `Round starts in about ${minutes} minutes. Enable reminders to be notified 15 minutes before start.`;
+      } else if (minutes >= 0) {
+        els.notificationTitle.textContent = "Round starting soon";
+        els.notificationText.textContent = `The meeting starts in about ${minutes} minutes. Join video when ready.`;
+      } else {
+        els.notificationTitle.textContent = "Round time has passed";
+        els.notificationText.textContent = "Update the meeting time in Admin Console for the next round reminder.";
+      }
+    }
+
+    function renderSchedule() {
+      if (!state.schedule.length) {
+        els.schedule.innerHTML = `<div class="empty-state">No schedule items yet.</div>`;
+        return;
+      }
+
+      els.schedule.innerHTML = state.schedule.map(item => `
+        <article class="schedule-item">
+          <strong>${escapeHtml(item.topic)}</strong>
+          <time>${formatScheduleDate(item.date)}<br>${escapeHtml(formatTimeRange(item))}</time>
+          ${notesToTasks(item.notes)}
+          ${renderSlidesButton(item)}
+          ${renderRecordingButton(item)}
+        </article>
+      `).join("");
+
+      els.schedule.querySelectorAll("[data-view-slides]").forEach(button => {
+        button.addEventListener("click", () => openSlides(button.dataset.viewSlides));
+      });
+    }
+
+    function renderPeople() {
+      const presenters = state.people.filter(person => person.type === "presenter");
+      const guests = state.people.filter(person => person.type === "guest");
+
+      els.presenters.innerHTML = presenters.length
+        ? presenters.map(renderPersonCard).join("")
+        : `<div class="empty-state">No presenters yet.</div>`;
+
+      els.guests.innerHTML = guests.length
+        ? guests.map(renderPersonCard).join("")
+        : `<div class="empty-state">No guests yet.</div>`;
+    }
+
+    function renderPersonCard(person) {
+      return `
+        <article class="person-card">
+          ${renderAvatar(person)}
+          <div>
+            <h4>${escapeHtml(person.name)}</h4>
+            <div class="meta">${escapeHtml(person.role)}<br>${escapeHtml(person.institution)}${person.location ? `<br>${escapeHtml(person.location)}` : ""}</div>
+            <p class="hint">${escapeHtml(person.introduction || "")}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderQuestions() {
+      els.questions.innerHTML = "";
+      const locked = hasSubmitted();
+      const savedResponses = locked ? state.answers[currentUser.username].responses : {};
+
+      els.lockedLabel.classList.toggle("hidden", !locked);
+      els.submitAnswers.disabled = locked || state.questions.length === 0;
+      els.submitAnswers.textContent = locked ? "Answers submitted" : "Submit answers";
+      els.submitState.textContent = locked ? "Submitted" : "Awaiting response";
+
+      if (!state.questions.length) {
+        els.questions.innerHTML = `<div class="empty-state">No questions have been added for this round.</div>`;
+        return;
+      }
+
+      state.questions.forEach((question, index) => {
+        const answer = normalizeAnswer(locked ? savedResponses[question.id] : draftAnswers[question.id]);
+        const node = document.createElement("article");
+        node.className = "question";
+        node.innerHTML = `
+          <div class="split-title">
+            <strong>${index + 1}. ${escapeHtml(question.text)}</strong>
+            ${locked ? `<span class="pill">Locked</span>` : ""}
+          </div>
+          <div class="options">
+            ${question.options.map(option => `
+              <button class="option ${answer.choice === option ? "selected" : ""}" type="button" ${locked ? "disabled" : ""} data-question="${question.id}" data-option="${escapeHtml(option)}">
+                ${escapeHtml(option)}
+              </button>
+            `).join("")}
+          </div>
+          <div class="reason-box">
+            <label for="reason-${question.id}">Reason for your choice</label>
+            ${locked
+              ? `<div class="locked-reason">${escapeHtml(answer.reason || "No reason provided")}</div>`
+              : `<textarea id="reason-${question.id}" data-reason-question="${question.id}" placeholder="Briefly explain why you selected this answer.">${escapeHtml(answer.reason || "")}</textarea>`
+            }
+          </div>
+        `;
+        els.questions.append(node);
+      });
+
+      els.questions.querySelectorAll(".option").forEach(button => {
+        button.addEventListener("click", () => {
+          const existing = normalizeAnswer(draftAnswers[button.dataset.question]);
+          draftAnswers[button.dataset.question] = { ...existing, choice: button.dataset.option };
+          renderQuestions();
+        });
+      });
+
+      els.questions.querySelectorAll("[data-reason-question]").forEach(textarea => {
+        textarea.addEventListener("input", () => {
+          const existing = normalizeAnswer(draftAnswers[textarea.dataset.reasonQuestion]);
+          draftAnswers[textarea.dataset.reasonQuestion] = { ...existing, reason: textarea.value };
+        });
+      });
+    }
+
+    function renderLiveRoom() {
+      const messages = state.liveRoom.messages || [];
+      els.liveMessages.innerHTML = messages.length
+        ? messages.map(message => `
+          <article class="chat-message">
+            <strong>${escapeHtml(message.userName)} <span class="hint">| ${escapeHtml(formatDate(message.createdAt))}</span></strong>
+            <div>${escapeHtml(message.text)}</div>
+          </article>
+        `).join("")
+        : `<div class="empty-state">No live questions yet.</div>`;
+
+      const request = getCurrentHandRaise();
+      if (!request) {
+        els.handRaiseStatus.textContent = "No request";
+        els.raiseHandBtn.disabled = false;
+        els.raiseHandBtn.textContent = "Request to speak";
+        return;
+      }
+
+      if (request.status === "pending") {
+        els.handRaiseStatus.textContent = "Waiting for approval";
+        els.raiseHandBtn.disabled = true;
+        els.raiseHandBtn.textContent = "Request pending";
+      } else if (request.status === "approved") {
+        els.handRaiseStatus.textContent = "Approved to speak";
+        els.raiseHandBtn.disabled = false;
+        els.raiseHandBtn.textContent = "Request again";
+      } else {
+        els.handRaiseStatus.textContent = "Request declined";
+        els.raiseHandBtn.disabled = false;
+        els.raiseHandBtn.textContent = "Request again";
+      }
+    }
+
+    function renderMediaControls() {
+      if (!currentUser) return;
+      const controls = getAvControls(currentUser.id);
+      const micBlocked = controls.micAllowed === false;
+      const cameraBlocked = controls.cameraAllowed === false;
+
+      if (micBlocked && localMedia.mic) stopLocalMedia({ micOnly: true });
+      if (cameraBlocked && localMedia.camera) stopLocalMedia({ cameraOnly: true });
+
+      els.userMicToggle.disabled = micBlocked;
+      els.userCameraToggle.disabled = cameraBlocked;
+      els.userMicToggle.textContent = micBlocked ? "Mic muted by admin" : localMedia.mic ? "Turn mic off" : "Turn mic on";
+      els.userCameraToggle.textContent = cameraBlocked ? "Camera blocked by admin" : localMedia.camera ? "Turn camera off" : "Turn camera on";
+      els.mediaAccessLabel.textContent = micBlocked || cameraBlocked ? "Admin controlled" : "Ready";
+      els.mediaStatus.textContent = localMedia.status;
+      els.localMediaPreview.classList.toggle("hidden", !localMedia.camera);
+    }
+
+    function renderPresenterSlides() {
+      if (!currentUser || currentUser.role !== "presenter") return;
+      if (!state.schedule.length) {
+        els.presenterSlidesList.innerHTML = `<div class="empty-state">No sessions have been scheduled yet.</div>`;
+        return;
+      }
+
+      els.presenterSlidesList.innerHTML = state.schedule.map(item => `
+        <article class="editable-row">
+          <div>
+            <strong>${escapeHtml(item.topic)}</strong>
+            <p class="hint">${formatScheduleDate(item.date)} | ${escapeHtml(formatTimeRange(item))}<br>${item.slidesUrl || item.slidesData ? "Slides attached" : "No slides attached yet"}</p>
+            <div class="form-grid" style="margin-top: 10px;">
+              <div class="field">
+                <label>Slides link</label>
+                <input data-presenter-slide-url="${item.id}" type="url" value="${escapeHtml(item.slidesUrl || "")}" placeholder="PDF, Google Drive, OneDrive, Box...">
+              </div>
+              <div class="field">
+                <label>Upload slides</label>
+                <input data-presenter-slide-file="${item.id}" type="file" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
+              </div>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="btn secondary small" type="button" data-presenter-save-slides="${item.id}">Save link</button>
+            ${item.slidesUrl || item.slidesData ? `<button class="btn small" type="button" data-view-slides="${item.id}">View slides</button>` : ""}
+          </div>
+        </article>
+      `).join("");
+
+      els.presenterSlidesList.querySelectorAll("[data-view-slides]").forEach(button => {
+        button.addEventListener("click", () => {
+          showReport();
+          openSlides(button.dataset.viewSlides);
+        });
+      });
+    }
+
+    function renderPresentingMode() {
+      if (!els.presentingStatus) return;
+      els.presentingStatus.textContent = presenterMode.presenting ? "Live presenting" : "Not presenting";
+      els.presentingToggle.textContent = presenterMode.presenting ? "Stop presenting" : "Start presenting";
+      els.presenterMicToggle.textContent = presenterMode.mic ? "Mic on" : "Mic off";
+      els.presenterCameraToggle.textContent = presenterMode.camera ? "Camera on" : "Camera off";
+      els.presenterBackground.value = presenterMode.background;
+      els.presenterPreview.classList.toggle("blur-bg", presenterMode.background === "blur");
+      els.presenterPreview.classList.toggle("kidney-bg", presenterMode.background === "kidney");
+      els.presenterPreview.classList.toggle("conference-bg", presenterMode.background === "conference");
+      els.presenterPreviewText.textContent = presenterMode.camera
+        ? `${currentUser?.name || "Presenter"} camera preview`
+        : "Camera preview off";
+    }
+
+    function renderAdmin() {
+      if (!currentUser || currentUser.role !== "admin") return;
+      renderScheduleAdmin();
+      renderPeopleAdmin();
+      renderQuestionsAdmin();
+      renderUsersAdmin();
+      renderLiveRoomAdmin();
+      renderThankYouAdmin();
+      renderAnswers();
+    }
+
+    function renderUserShell() {
+      if (!currentUser) return;
+      els.profileName.textContent = currentUser.name;
+      const details = [
+        getRoleLabel(currentUser.role),
+        currentUser.discipline,
+        currentUser.university
+      ].filter(Boolean).join(" | ");
+      els.profileRole.textContent = details;
+    }
+
+    function renderProfile() {
+      if (!currentUser) return;
+      els.profileFullName.value = currentUser.name || "";
+      els.profileUsernameInput.value = currentUser.username || "";
+      els.profilePasswordInput.value = currentUser.password || "";
+      els.profileEmail.value = currentUser.email || "";
+      els.profileDiscipline.value = currentUser.discipline || "";
+      els.profileUniversity.value = currentUser.university || "";
+      els.profileLocation.value = currentUser.location || "";
+      els.profileBio.value = currentUser.bio || "";
+      els.profilePhotoData.value = currentUser.photo || "";
+      els.profilePhoto.value = "";
+    }
+
+    function renderScheduleAdmin() {
+      if (!state.schedule.length) {
+        els.scheduleAdminList.innerHTML = `<div class="empty-state">No schedule items yet.</div>`;
+        return;
+      }
+
+      els.scheduleAdminList.innerHTML = state.schedule.map(item => `
+        <article class="editable-row">
+          <div>
+            <strong>${escapeHtml(item.topic)}</strong>
+            <p class="hint">${formatScheduleDate(item.date)} | ${escapeHtml(formatTimeRange(item))}<br>${escapeHtml(item.notes || "")}${item.slidesUrl || item.slidesData ? "<br>Slides attached" : ""}${item.recordingUrl || item.recordingData ? "<br>Recording attached" : ""}</p>
+          </div>
+          <div class="row-actions">
+            <button class="btn secondary small" type="button" data-edit-schedule="${item.id}">Edit</button>
+            <button class="btn warn small" type="button" data-remove-schedule="${item.id}">Remove</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.scheduleAdminList.querySelectorAll("[data-edit-schedule]").forEach(button => {
+        button.addEventListener("click", () => editSchedule(button.dataset.editSchedule));
+      });
+      els.scheduleAdminList.querySelectorAll("[data-remove-schedule]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.schedule = state.schedule.filter(item => item.id !== button.dataset.removeSchedule);
+          saveState();
+          showToast("Schedule item removed.");
+          renderAll();
+        });
+      });
+    }
+
+    function renderPeopleAdmin() {
+      if (!state.people.length) {
+        els.peopleAdminList.innerHTML = `<div class="empty-state">No people yet.</div>`;
+        return;
+      }
+
+      els.peopleAdminList.innerHTML = state.people.map(person => `
+        <article class="editable-row">
+          <div class="person-card" style="border: 0; padding: 0; background: transparent;">
+            ${renderAvatar(person)}
+            <div>
+              <strong>${escapeHtml(person.name)}</strong>
+              <p class="hint">${escapeHtml(person.type)} | ${escapeHtml(person.role)}<br>${escapeHtml(person.institution)}${person.location ? ` | ${escapeHtml(person.location)}` : ""}<br>${escapeHtml(person.introduction || "")}</p>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="btn secondary small" type="button" data-edit-person="${person.id}">Edit</button>
+            <button class="btn warn small" type="button" data-remove-person="${person.id}">Remove</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.peopleAdminList.querySelectorAll("[data-edit-person]").forEach(button => {
+        button.addEventListener("click", () => editPerson(button.dataset.editPerson));
+      });
+      els.peopleAdminList.querySelectorAll("[data-remove-person]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.people = state.people.filter(person => person.id !== button.dataset.removePerson);
+          saveState();
+          showToast("Person removed.");
+          renderAll();
+        });
+      });
+    }
+
+    function renderQuestionsAdmin() {
+      if (!state.questions.length) {
+        els.questionsAdminList.innerHTML = `<div class="empty-state">No questions yet.</div>`;
+        return;
+      }
+
+      els.questionsAdminList.innerHTML = state.questions.map(question => `
+        <article class="editable-row">
+          <div>
+            <strong>${escapeHtml(question.text)}</strong>
+            <p class="hint">${question.options.map(escapeHtml).join(", ")}</p>
+          </div>
+          <div class="row-actions">
+            <button class="btn secondary small" type="button" data-edit-question="${question.id}">Edit</button>
+            <button class="btn warn small" type="button" data-remove-question="${question.id}">Remove</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.questionsAdminList.querySelectorAll("[data-edit-question]").forEach(button => {
+        button.addEventListener("click", () => editQuestion(button.dataset.editQuestion));
+      });
+      els.questionsAdminList.querySelectorAll("[data-remove-question]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.questions = state.questions.filter(question => question.id !== button.dataset.removeQuestion);
+          Object.values(state.answers).forEach(answer => delete answer.responses[button.dataset.removeQuestion]);
+          saveState();
+          showToast("Question removed.");
+          renderAll();
+        });
+      });
+    }
+
+    function renderUsersAdmin() {
+      if (!state.users.length) {
+        els.usersAdminList.innerHTML = `<div class="empty-state">No users yet.</div>`;
+        return;
+      }
+
+      els.usersAdminList.innerHTML = state.users.map(user => `
+        <article class="editable-row">
+          <div class="person-card" style="border: 0; padding: 0; background: transparent;">
+            ${renderAvatar(user)}
+            <div>
+              <strong>${escapeHtml(user.name)}</strong>
+              <p class="hint">
+                Username: ${escapeHtml(user.username)} | Password: ${escapeHtml(user.password)}<br>
+                Access: ${escapeHtml(user.role === "admin" ? "Admin / editor" : user.role === "presenter" ? "Presenter / temporary access" : "Clinician / respondent")}<br>
+                ${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}${user.location ? ` | ${escapeHtml(user.location)}` : ""}
+              </p>
+            </div>
+          </div>
+          <div class="row-actions">
+            <button class="btn secondary small" type="button" data-edit-user="${user.id}">Edit</button>
+            <button class="btn warn small" type="button" data-remove-user="${user.id}">Remove</button>
+          </div>
+        </article>
+      `).join("");
+
+      els.usersAdminList.querySelectorAll("[data-edit-user]").forEach(button => {
+        button.addEventListener("click", () => editUser(button.dataset.editUser));
+      });
+      els.usersAdminList.querySelectorAll("[data-remove-user]").forEach(button => {
+        button.addEventListener("click", () => removeUser(button.dataset.removeUser));
+      });
+    }
+
+    function renderLiveRoomAdmin() {
+      const handRaises = state.liveRoom.handRaises || [];
+      const messages = state.liveRoom.messages || [];
+      const mediaUsers = state.users.filter(user => user.role !== "admin");
+      els.liveRoomAdminList.innerHTML = `
+        <article class="editable-row">
+          <div>
+            <strong>Hand-raise requests</strong>
+            <p class="hint">${handRaises.filter(item => item.status === "pending").length} waiting for approval</p>
+          </div>
+          <button class="btn secondary small" type="button" data-clear-live-room="all">Clear live room</button>
+        </article>
+        ${handRaises.length ? handRaises.map(request => `
+          <article class="editable-row">
+            <div>
+              <strong>${escapeHtml(request.userName)}</strong>
+              <p class="hint">Status: ${escapeHtml(request.status)} | ${escapeHtml(formatDate(request.createdAt))}</p>
+            </div>
+            <div class="row-actions">
+              <button class="btn secondary small" type="button" data-hand-raise="${request.id}" data-hand-status="approved">Approve</button>
+              <button class="btn warn small" type="button" data-hand-raise="${request.id}" data-hand-status="declined">Decline</button>
+            </div>
+          </article>
+        `).join("") : `<div class="empty-state">No hand-raise requests yet.</div>`}
+        <article class="editable-row">
+          <div>
+            <strong>Live questions</strong>
+            <p class="hint">${messages.length} question${messages.length === 1 ? "" : "s"} received</p>
+          </div>
+        </article>
+        ${messages.length ? messages.map(message => `
+          <article class="chat-message">
+            <strong>${escapeHtml(message.userName)} <span class="hint">| ${escapeHtml(formatDate(message.createdAt))}</span></strong>
+            <div>${escapeHtml(message.text)}</div>
+          </article>
+        `).join("") : `<div class="empty-state">No live questions yet.</div>`}
+        <article class="editable-row">
+          <div>
+            <strong>Participant audio/video permissions</strong>
+            <p class="hint">Allow, mute, or block camera for participants and presenters.</p>
+          </div>
+        </article>
+        ${mediaUsers.map(user => {
+          const controls = getAvControls(user.id);
+          return `
+            <article class="editable-row">
+              <div>
+                <strong>${escapeHtml(user.name)}</strong>
+                <p class="hint">${escapeHtml(getRoleLabel(user.role))}<br>Mic: ${controls.micAllowed === false ? "Muted by admin" : "Allowed"} | Camera: ${controls.cameraAllowed === false ? "Blocked by admin" : "Allowed"}</p>
+              </div>
+              <div class="row-actions">
+                <button class="btn secondary small" type="button" data-media-user="${user.id}" data-media-control="mic">${controls.micAllowed === false ? "Allow mic" : "Mute mic"}</button>
+                <button class="btn secondary small" type="button" data-media-user="${user.id}" data-media-control="camera">${controls.cameraAllowed === false ? "Allow camera" : "Block camera"}</button>
+              </div>
+            </article>
+          `;
+        }).join("")}
+      `;
+
+      els.liveRoomAdminList.querySelectorAll("[data-hand-raise]").forEach(button => {
+        button.addEventListener("click", () => updateHandRaise(button.dataset.handRaise, button.dataset.handStatus));
+      });
+      els.liveRoomAdminList.querySelectorAll("[data-clear-live-room]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.liveRoom = { messages: [], handRaises: [], avControls: state.liveRoom.avControls || {} };
+          saveState();
+          showToast("Live room cleared.");
+          renderAll();
+        });
+      });
+      els.liveRoomAdminList.querySelectorAll("[data-media-user]").forEach(button => {
+        button.addEventListener("click", () => toggleMediaPermission(button.dataset.mediaUser, button.dataset.mediaControl));
+      });
+    }
+
+    function renderThankYouAdmin() {
+      const currentValue = els.thankYouSession.value;
+      els.thankYouSession.innerHTML = state.schedule.length
+        ? state.schedule.map(item => `<option value="${item.id}">${escapeHtml(item.topic)} - ${formatScheduleDate(item.date)}</option>`).join("")
+        : `<option value="">No sessions yet</option>`;
+      if (currentValue && state.schedule.some(item => item.id === currentValue)) {
+        els.thankYouSession.value = currentValue;
+      }
+      if (!els.thankYouList.innerHTML.trim()) {
+        renderThankYouCards();
+      }
+    }
+
+    function renderThankYouCards() {
+      const session = state.schedule.find(item => item.id === els.thankYouSession.value) || state.schedule[0];
+      if (!session) {
+        els.thankYouList.innerHTML = `<div class="empty-state">Add a schedule item before generating thank-you cards.</div>`;
+        return;
+      }
+
+      const recipients = state.users.filter(user => user.role !== "admin");
+      if (!recipients.length) {
+        els.thankYouList.innerHTML = `<div class="empty-state">No participant or presenter users yet.</div>`;
+        return;
+      }
+
+      els.thankYouList.innerHTML = recipients.map(user => {
+        const body = buildThankYouBody(user, session);
+        const mailto = user.email
+          ? `mailto:${encodeURIComponent(user.email)}?subject=${encodeURIComponent(els.thankYouSubject.value)}&body=${encodeURIComponent(body)}`
+          : "";
+        return `
+          <article class="editable-row">
+            <div>
+              <strong>${escapeHtml(user.name)}</strong>
+              <p class="hint">${escapeHtml(user.email || "No email saved")}<br>${escapeHtml(body)}</p>
+            </div>
+            <div class="row-actions">
+              ${mailto ? `<a class="btn secondary small" href="${mailto}">Open email</a>` : `<span class="pill">Add email first</span>`}
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function buildThankYouBody(user, session) {
+      return `Dear ${user.name},\n\n${els.thankYouMessage.value}\n\nThis confirms that you participated in: ${session.topic}\nDate: ${formatScheduleDate(session.date)}\nTime: ${formatTimeRange(session)}\n\nWith appreciation,\nNephroRounds Team`;
+    }
+
+    function renderAnswers() {
+      const entries = Object.entries(state.answers);
+      if (!entries.length) {
+        els.answersTable.innerHTML = `<div class="empty-state">No responses submitted yet.</div>`;
+        return;
+      }
+
+      els.answersTable.innerHTML = `
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th>User</th><th>Submitted</th><th>Answers</th></tr></thead>
+            <tbody>
+              ${entries.map(([, answer]) => `
+                <tr>
+                  <td>${escapeHtml(answer.user)}</td>
+                  <td>${formatDate(answer.submittedAt)}</td>
+                  <td>${renderResponseSummary(answer.responses)}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderResponseSummary(responses) {
+      return state.questions.map(question => {
+        const value = normalizeAnswer(responses[question.id]);
+        return `
+          <div>
+            <b>${escapeHtml(question.text)}</b><br>
+            Choice: ${escapeHtml(value.choice || "No answer")}<br>
+            Reason: ${escapeHtml(value.reason || "No reason provided")}
+          </div>
+        `;
+      }).join("<br>");
+    }
+
+    function editSchedule(id) {
+      const item = state.schedule.find(entry => entry.id === id);
+      if (!item) return;
+      els.scheduleId.value = item.id;
+      els.scheduleDate.value = item.date;
+      els.scheduleTime.value = item.time;
+      els.scheduleEndTime.value = item.endTime || "";
+      els.scheduleTopic.value = item.topic;
+      els.scheduleNotes.value = item.notes || "";
+      els.scheduleRecordingUrl.value = item.recordingUrl || "";
+      els.scheduleRecordingData.value = item.recordingData || "";
+      els.scheduleRecordingFile.value = "";
+      els.scheduleSlidesUrl.value = item.slidesUrl || "";
+      els.scheduleSlidesData.value = item.slidesData || "";
+      els.scheduleSlidesName.value = item.slidesName || "";
+      els.scheduleSlidesType.value = item.slidesType || "";
+      els.scheduleSlidesFile.value = "";
+      showToast("Schedule item loaded for editing.");
+    }
+
+    function editPerson(id) {
+      const person = state.people.find(entry => entry.id === id);
+      if (!person) return;
+      els.personId.value = person.id;
+      els.personType.value = person.type;
+      els.personName.value = person.name;
+      els.personRole.value = person.role;
+      els.personInstitution.value = person.institution;
+      els.personLocation.value = person.location || "";
+      els.personIntro.value = person.introduction || "";
+      els.personPhotoData.value = person.photo || "";
+      els.personPhoto.value = "";
+      showToast("Person loaded for editing.");
+    }
+
+    function editQuestion(id) {
+      const question = state.questions.find(entry => entry.id === id);
+      if (!question) return;
+      els.questionId.value = question.id;
+      els.questionText.value = question.text;
+      els.questionOptions.value = question.options.join(", ");
+      showToast("Question loaded for editing.");
+    }
+
+    function editUser(id) {
+      const user = state.users.find(entry => entry.id === id);
+      if (!user) return;
+      els.userId.value = user.id;
+      els.userFullName.value = user.name || "";
+      els.userUsername.value = user.username || "";
+      els.userPassword.value = user.password || "";
+      els.userEmail.value = user.email || "";
+      els.userRole.value = user.role || "user";
+      els.userDiscipline.value = user.discipline || "";
+      els.userUniversity.value = user.university || "";
+      els.userLocation.value = user.location || "";
+      els.userBio.value = user.bio || "";
+      els.userPhotoData.value = user.photo || "";
+      els.userPhoto.value = "";
+      showToast("User loaded for editing.");
+    }
+
+    function removeUser(id) {
+      const user = state.users.find(entry => entry.id === id);
+      if (!user) return;
+      const adminCount = state.users.filter(entry => entry.role === "admin").length;
+      if (user.role === "admin" && adminCount <= 1) {
+        showToast("Keep at least one admin user.");
+        return;
+      }
+      state.users = state.users.filter(entry => entry.id !== id);
+      delete state.answers[user.username];
+      if (currentUser && currentUser.id === id) {
+        currentUser = null;
+        els.appView.classList.add("hidden");
+        els.loginView.classList.remove("hidden");
+      }
+      saveState();
+      showToast("User removed.");
+      renderAll();
+    }
+
+    function clearScheduleForm() {
+      els.scheduleForm.reset();
+      els.scheduleId.value = "";
+      els.scheduleRecordingData.value = "";
+      els.scheduleSlidesData.value = "";
+      els.scheduleSlidesName.value = "";
+      els.scheduleSlidesType.value = "";
+    }
+
+    function clearPersonForm() {
+      els.personForm.reset();
+      els.personId.value = "";
+      els.personPhotoData.value = "";
+    }
+
+    function clearQuestionForm() {
+      els.questionForm.reset();
+      els.questionId.value = "";
+    }
+
+    function clearUserForm() {
+      els.userForm.reset();
+      els.userId.value = "";
+      els.userPhotoData.value = "";
+    }
+
+    function showReport() {
+      els.reportView.classList.remove("hidden");
+      els.profileView.classList.add("hidden");
+      els.presenterView.classList.add("hidden");
+      els.adminView.classList.add("hidden");
+      els.reportTab.classList.add("active");
+      els.profileTab.classList.remove("active");
+      els.presenterTab.classList.remove("active");
+      els.adminTab.classList.remove("active");
+    }
+
+    function showProfile() {
+      if (!currentUser) return;
+      els.reportView.classList.add("hidden");
+      els.profileView.classList.remove("hidden");
+      els.presenterView.classList.add("hidden");
+      els.adminView.classList.add("hidden");
+      els.reportTab.classList.remove("active");
+      els.profileTab.classList.add("active");
+      els.presenterTab.classList.remove("active");
+      els.adminTab.classList.remove("active");
+      renderProfile();
+    }
+
+    function showPresenter() {
+      if (!currentUser || currentUser.role !== "presenter") return;
+      els.reportView.classList.add("hidden");
+      els.profileView.classList.add("hidden");
+      els.presenterView.classList.remove("hidden");
+      els.adminView.classList.add("hidden");
+      els.reportTab.classList.remove("active");
+      els.profileTab.classList.remove("active");
+      els.presenterTab.classList.add("active");
+      els.adminTab.classList.remove("active");
+      renderPresenterSlides();
+      renderPresentingMode();
+    }
+
+    function showAdmin() {
+      if (!currentUser || currentUser.role !== "admin") return;
+      els.reportView.classList.add("hidden");
+      els.profileView.classList.add("hidden");
+      els.presenterView.classList.add("hidden");
+      els.adminView.classList.remove("hidden");
+      els.adminTab.classList.add("active");
+      els.profileTab.classList.remove("active");
+      els.presenterTab.classList.remove("active");
+      els.reportTab.classList.remove("active");
+      renderAdmin();
+    }
+
+    function upsertById(list, item) {
+      const index = list.findIndex(entry => entry.id === item.id);
+      if (index >= 0) {
+        list[index] = item;
+      } else {
+        list.push(item);
+      }
+    }
+
+    function moveAnswersToUsername(oldUsername, newUsername) {
+      if (!oldUsername || !newUsername || oldUsername === newUsername) return;
+      if (!state.answers[oldUsername]) return;
+      state.answers[newUsername] = {
+        ...state.answers[oldUsername],
+        user: state.users.find(user => user.username === newUsername)?.name || state.answers[oldUsername].user
+      };
+      delete state.answers[oldUsername];
+    }
+
+    function getCurrentHandRaise() {
+      if (!currentUser) return null;
+      return (state.liveRoom.handRaises || []).find(request => request.userId === currentUser.id) || null;
+    }
+
+    function getAvControls(userId) {
+      if (!state.liveRoom.avControls) state.liveRoom.avControls = {};
+      if (!state.liveRoom.avControls[userId]) {
+        state.liveRoom.avControls[userId] = { micAllowed: true, cameraAllowed: true };
+      }
+      return state.liveRoom.avControls[userId];
+    }
+
+    function toggleMediaPermission(userId, control) {
+      const controls = getAvControls(userId);
+      if (control === "mic") {
+        controls.micAllowed = controls.micAllowed === false;
+      }
+      if (control === "camera") {
+        controls.cameraAllowed = controls.cameraAllowed === false;
+      }
+      saveState();
+      showToast("Audio/video permission updated.");
+      renderAll();
+    }
+
+    function updateHandRaise(id, status) {
+      const request = state.liveRoom.handRaises.find(item => item.id === id);
+      if (!request) return;
+      request.status = status;
+      request.decidedAt = new Date().toISOString();
+      saveState();
+      showToast(status === "approved" ? "Participant approved to speak." : "Request declined.");
+      renderAll();
+    }
+
+    function getRoleLabel(role) {
+      if (role === "admin") return "Administrator";
+      if (role === "presenter") return "Presenter";
+      return "Clinician";
+    }
+
+    async function setLocalMedia({ mic, camera }) {
+      if (!currentUser) return;
+      const controls = getAvControls(currentUser.id);
+      if (mic && controls.micAllowed === false) {
+        showToast("Admin has muted your microphone.");
+        return;
+      }
+      if (camera && controls.cameraAllowed === false) {
+        showToast("Admin has blocked your camera.");
+        return;
+      }
+
+      stopLocalMedia();
+      if (!mic && !camera) {
+        renderMediaControls();
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: mic, video: camera });
+        localMedia.stream = stream;
+        localMedia.mic = mic;
+        localMedia.camera = camera;
+        els.localMediaPreview.srcObject = stream;
+        localMedia.status = `${mic ? "Mic on" : "Mic off"} | ${camera ? "Camera on" : "Camera off"}`;
+      } catch {
+        localMedia.status = "Browser permission failed. Allow camera/microphone, or use a hosted HTTPS version.";
+        showToast("Camera/microphone permission failed.");
+      }
+      renderMediaControls();
+    }
+
+    function stopLocalMedia(options = {}) {
+      if (localMedia.stream) {
+        localMedia.stream.getTracks().forEach(track => {
+          if (options.micOnly && track.kind !== "audio") return;
+          if (options.cameraOnly && track.kind !== "video") return;
+          track.stop();
+        });
+      }
+      if (!options.cameraOnly && !options.micOnly) {
+        localMedia.stream = null;
+        els.localMediaPreview.srcObject = null;
+        localMedia.mic = false;
+        localMedia.camera = false;
+        localMedia.status = "Mic and camera are off.";
+        return;
+      }
+      if (options.micOnly) localMedia.mic = false;
+      if (options.cameraOnly) {
+        localMedia.camera = false;
+        els.localMediaPreview.srcObject = null;
+      }
+      localMedia.status = `${localMedia.mic ? "Mic on" : "Mic off"} | ${localMedia.camera ? "Camera on" : "Camera off"}`;
+    }
+
+    function getBrandJustify(value) {
+      if (value === "center") return "center";
+      if (value === "right") return "flex-end";
+      return "flex-start";
+    }
+
+    function renderAvatar(person) {
+      const initials = getInitials(person.name);
+      const tone = person.tone || "";
+      if (person.photo) {
+        return `<div class="avatar ${escapeHtml(tone)}"><img src="${person.photo}" alt="${escapeHtml(person.name)}"></div>`;
+      }
+      return `<div class="avatar ${escapeHtml(tone)}">${escapeHtml(initials)}</div>`;
+    }
+
+    function notesToTasks(notes) {
+      const items = String(notes || "")
+        .split("\n")
+        .map(item => item.trim())
+        .filter(Boolean);
+      return items.map(item => `<div class="task">${escapeHtml(item)}</div>`).join("");
+    }
+
+    function renderRecordingButton(item) {
+      const href = item.recordingUrl || item.recordingData || "";
+      if (!href) return "";
+      return `<a class="recording-link" href="${href}" target="_blank" rel="noreferrer">Watch recording</a>`;
+    }
+
+    function renderSlidesButton(item) {
+      if (!item.slidesUrl && !item.slidesData) return "";
+      return `<button class="recording-link slides-link" type="button" data-view-slides="${item.id}">View slides</button>`;
+    }
+
+    function openSlides(id) {
+      const item = state.schedule.find(entry => entry.id === id);
+      const href = item?.slidesUrl || item?.slidesData || "";
+      if (!href) return;
+
+      els.slideViewerTitle.textContent = `${item.topic} slides`;
+      els.slideViewerPanel.classList.remove("hidden");
+      els.slideFrame.src = href;
+      els.slideOpenLink.href = href;
+      els.slideViewerPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function normalizeAnswer(answer) {
+      if (!answer) return { choice: "", reason: "" };
+      if (typeof answer === "string") return { choice: answer, reason: "" };
+      return { choice: answer.choice || "", reason: answer.reason || "" };
+    }
+
+    async function enableMeetingReminder() {
+      const start = getMeetingStartDate();
+      if (!start) {
+        showToast("Set a valid meeting time first.");
+        return;
+      }
+
+      const reminderAt = new Date(start.getTime() - 15 * 60000);
+      const delay = Math.max(0, reminderAt.getTime() - Date.now());
+      window.clearTimeout(reminderTimer);
+
+      if ("Notification" in window && Notification.permission === "default") {
+        try {
+          await Notification.requestPermission();
+        } catch {
+          showToast("Browser notification permission could not be requested.");
+        }
+      }
+
+      reminderTimer = window.setTimeout(() => {
+        const message = `${state.meeting.title} starts in 15 minutes.`;
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("NephroRounds reminder", { body: message });
+        }
+        showToast(message);
+        els.notificationTitle.textContent = "Meeting starts in 15 minutes";
+        els.notificationText.textContent = "Reminder sent. Join the video meeting when ready.";
+      }, delay);
+
+      showToast(delay === 0 ? "Reminder is active. The meeting is starting soon." : "15-minute reminder enabled.");
+    }
+
+    function getMeetingStartDate() {
+      const match = state.meeting.time.match(/(\d{1,2}):(\d{2})/);
+      if (!match) return null;
+      const start = new Date();
+      start.setHours(Number(match[1]), Number(match[2]), 0, 0);
+      return start;
+    }
+
+    function hasSubmitted() {
+      return Boolean(currentUser && state.answers[currentUser.username]);
+    }
+
+    function readFileAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function getInitials(name) {
+      return String(name || "NR")
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map(part => part[0])
+        .join("")
+        .toUpperCase();
+    }
+
+    function pickTone(index) {
+      return ["", "alt", "warm"][index % 3];
+    }
+
+    function toIsoDate(date) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function offsetDate(days) {
+      const date = new Date();
+      date.setDate(date.getDate() + days);
+      return date;
+    }
+
+    function formatScheduleDate(value) {
+      if (!value) return "No date";
+      return new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }).format(new Date(`${value}T00:00:00`));
+    }
+
+    function formatTimeRange(item) {
+      if (!item.time) return "No time";
+      return item.endTime ? `${item.time} - ${item.endTime}` : item.time;
+    }
+
+    function formatDate(value) {
+      return new Intl.DateTimeFormat("en-US", {
+        dateStyle: "short",
+        timeStyle: "short"
+      }).format(new Date(value));
+    }
+
+    function clampNumber(value, min, max, fallback) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return fallback;
+      return Math.min(max, Math.max(min, number));
+    }
+
+    function showToast(message) {
+      els.toast.textContent = message;
+      els.toast.classList.add("show");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 2600);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+  </script>
+</body>
+</html>
