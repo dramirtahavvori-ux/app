@@ -1,0 +1,17 @@
+{
+  "name": "nephrorounds-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "check": "node scripts/check-no-localstorage.mjs && vite build"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.45.0",
+    "vite": "latest"
+  },
+  "devDependencies": {}
+}

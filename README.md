@@ -1,51 +1,112 @@
-# NephroRounds Studio Demo
+# NephroRounds Studio
 
-Editable nephrology morning report demo for schedule management, presenters,
-guests, questions, locked responses, slide upload, live Q&A workflow, and
-role-based demo access.
+NephroRounds Studio is a Supabase-backed nephrology morning report app with
+role-based access for admins, presenters, and users.
 
-## Open Locally
+## What Is Online Now
 
-Open `index.html` in Google Chrome.
+- Supabase Authentication handles sign in.
+- Supabase Database stores schedules, presenters, guests, questions, answers,
+  announcements, profiles, app settings, live messages, hand raises, media
+  controls, and upload metadata.
+- Supabase Storage stores hero images, profile photos, presenter photos, slide
+  files, recording files, and shared uploads.
+- Admin Console changes save to Supabase and appear for every signed-in user.
+- Participant answers are locked after submission by a unique database rule.
+- Presenters can upload or link slides without getting Admin Console access.
 
-Keep the `assets` folder next to `index.html` so the default landing image
-loads correctly.
+## Environment Variables
 
-## Standalone Share File
+Create a local `.env` file with:
 
-If you want to send one file to someone, use:
+```bash
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_ANON_KEY=your-supabase-anon-key
+```
 
-`share/nephrorounds-standalone-share.html`
+Do not put any elevated Supabase server key in this app. Browser code must use
+only the anon key.
 
-This version embeds the default image inside the HTML file.
+## Supabase Setup
 
-## Demo Logins
+1. Create a Supabase project.
+2. Open the Supabase SQL Editor.
+3. Run `supabase/migrations/0001_initial_schema.sql`.
+4. In Authentication settings, enable Email/Password sign in.
+5. Create each real user in Supabase Authentication.
+6. For every Auth user, add a matching row in `public.profiles`.
 
-Admin:
+Example `profiles` row:
 
-- Username: `amiradmin`
-- Password: `nephro2026`
+```sql
+insert into public.profiles (
+  id,
+  username,
+  full_name,
+  email,
+  role,
+  discipline,
+  university,
+  location
+) values (
+  'AUTH_USER_UUID_HERE',
+  'amiradmin',
+  'Program Admin',
+  'admin@example.com',
+  'admin',
+  'Nephrology',
+  'Loma Linda University',
+  'Loma Linda, USA'
+);
+```
 
-Presenter:
+Allowed roles are `admin`, `presenter`, and `user`.
 
-- Username: `speaker`
-- Password: `slides2026`
+## Run Locally
 
-User:
+```bash
+npm install
+npm run dev
+```
 
-- Username: `ali`
-- Password: `1234`
+Then open the local URL shown in the terminal.
 
-User:
+## Build
 
-- Username: `sara`
-- Password: `1234`
+```bash
+npm run check
+npm run build
+```
 
-## Important Demo Limitation
+## Deployment
 
-This is an offline/static demo. Each browser stores its own data locally.
-Changes do not sync between computers until the app is converted to an online
-version with a database and backend.
+This app can be deployed to GitHub Pages with a build pipeline, Vercel, Netlify,
+or another static hosting service that supports build-time environment
+variables.
 
-For real shared use, deploy this as a web app with authentication, database,
-file storage, and real-time sync.
+Set these environment variables in the host:
+
+- `SUPABASE_URL`
+- `SUPABASE_ANON_KEY`
+
+## Role Permissions
+
+- Admins can edit settings, meeting details, schedules, people, questions,
+  announcements, media permissions, and profiles.
+- Presenters can view shared content and update schedule slide links/files
+  through the restricted `update_schedule_slides` database function.
+- Users can view shared content, update their own profile, send live messages,
+  raise their hand, and submit each answer once.
+- Unauthenticated visitors cannot modify application data.
+
+## Demo-Only Features
+
+The visual camera/microphone controls and video background selector are UI-level
+demo controls. Real multi-user audio/video requires a live meeting provider such
+as Zoom, Teams, Google Meet, Daily, Twilio, or WebRTC infrastructure.
+
+The thank-you postcard email opens the user's mail app with a prepared message.
+Automatic email sending requires an email provider or Supabase Edge Function.
+
+Browser reminders depend on browser notification permission and are local to the
+device.
