@@ -17,8 +17,7 @@ const defaults = {
     loginLead: "Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.",
     heroBadge: "Nephrology case conference",
     heroHeadline: "Schedule. Speakers. Guests. Questions. All editable.",
-    heroImage: "",
-    metrics: [
+heroImage: "https://vjyzwqiehyfzjnebtiwv.supabase.co/storage/v1/object/public/public-images/landing/db1ddd79-1807-42bd-8262-481ecdd62e56/16b4acb4-6484-47ab-848a-718287d5375e.jpeg",    metrics: [
       { value: "Edit", label: "Calendar" },
       { value: "Upload", label: "Photos" },
       { value: "Lock", label: "Answers" }
