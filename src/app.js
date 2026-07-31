@@ -470,6 +470,7 @@ async function loadSharedData() {
     meeting: { ...defaults.meeting, ...(settingsResult.data?.meeting || {}) },
     appearance: { ...defaults.appearance, ...(settingsResult.data?.appearance || {}) }
   };
+  applyLandingHeroImage(state.settings.landing);
   state.users = (usersResult.data || []).map(normalizeProfile);
   state.schedule = (schedulesResult.data || []).map(normalizeSchedule);
   state.people = (peopleResult.data || []).map(normalizePerson);
@@ -539,8 +540,7 @@ function renderLanding() {
   els.landingMetrics.classList.toggle("hidden", landing.metrics.length === 0);
   els.landingCards.innerHTML = landing.cards.map(item => `<div class="mini-card"><strong>${escapeHtml(item.title)}</strong><p class="hint">${escapeHtml(item.text)}</p></div>`).join("");
   els.landingCards.classList.toggle("hidden", landing.cards.length === 0);
-  const heroSrc = landing.heroImage || "assets/nephro-hero-kidneys.png";
-  els.landingHeroImage.src = heroSrc;
+  applyLandingHeroImage(landing);
   els.landingHeroImage.alt = landing.heroHeadline || "Landing hero image";
   els.adminLandingBrandName.value = landing.brandName || "";
   els.adminLandingBrandTagline.value = landing.brandTagline || "";
@@ -551,6 +551,18 @@ function renderLanding() {
   els.landingHeroImageData.value = landing.heroImage || "";
   renderLandingMetricsAdmin(landing.metrics);
   renderLandingCardsAdmin(landing.cards);
+}
+
+function applyLandingHeroImage(landing) {
+  const image = document.getElementById("landingHeroImage");
+  if (!image) return;
+  const src = landing?.heroImage || "";
+  image.classList.toggle("hidden", !src);
+  if (src) {
+    image.src = src;
+  } else {
+    image.removeAttribute("src");
+  }
 }
 
 function renderLandingMetricsAdmin(metrics) {
@@ -1117,8 +1129,19 @@ async function uploadLandingHero() {
   const url = await uploadFile(els.adminLandingHeroImage.files[0], "public-images", "landing");
   if (url) {
     els.landingHeroImageData.value = url;
-    state.settings.landing.heroImage = url;
-    renderLanding();
+    state.settings.landing = {
+      brandName: els.adminLandingBrandName.value.trim(),
+      brandTagline: els.adminLandingBrandTagline.value.trim(),
+      loginHeadline: els.adminLandingLoginHeadline.value.trim(),
+      loginLead: els.adminLandingLoginLead.value.trim(),
+      heroBadge: els.adminLandingHeroBadge.value.trim(),
+      heroHeadline: els.adminLandingHeroHeadline.value.trim(),
+      heroImage: url,
+      metrics: readLandingMetricsFromAdmin(),
+      cards: readLandingCardsFromAdmin()
+    };
+    applyLandingHeroImage(state.settings.landing);
+    await saveSettings();
   }
 }
 
