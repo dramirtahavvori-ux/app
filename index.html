@@ -1779,9 +1779,12 @@
       height: 16px;
     }
 
+    .login-view.designing [data-edit-box] {
+      cursor: pointer;
+    }
+
     .login-view.designing [data-edit-key],
     .login-view.designing [data-edit-box] {
-      cursor: text;
       outline: 1px dashed rgba(153, 246, 228, .0);
       outline-offset: 3px;
       transition: outline-color .15s ease;
@@ -2173,7 +2176,7 @@
 </div>
 <div class="metric-row" id="landingMetrics"></div>
 </div>
-<div class="auth-card" id="authCard">
+<div class="auth-card" data-edit-box="authCard" id="authCard">
 <h2 data-edit-key="loginHeadline" dir="auto" id="landingLoginHeadline">Build each round yourself.</h2>
 <div class="auth-tabs" role="tablist">
 <button class="active" data-auth-tab="signin" data-i18n="Sign in" id="signinTabBtn" type="button">Sign in</button>
