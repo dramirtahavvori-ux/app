@@ -53,7 +53,6 @@ let draftAnswers = {};
 let mediaStream = null;
 let localMedia = { mic: false, camera: false, status: "Mic and camera are off." };
 let presenterMode = { presenting: false, mic: false, camera: false, background: "clean" };
-let reminderTimer = null;
 
 let state = {
   settings: structuredClone(defaults),
@@ -111,6 +110,15 @@ const els = {
   notificationTitle: $("notificationTitle"),
   notificationText: $("notificationText"),
   enableReminder: $("enableReminder"),
+  enableReminderLabel: $("enableReminderLabel"),
+  reminderForm: $("reminderForm"),
+  reminderEnabled: $("reminderEnabled"),
+  reminderDayBefore: $("reminderDayBefore"),
+  reminderHourBefore: $("reminderHourBefore"),
+  reminderTimezone: $("reminderTimezone"),
+  sendTestReminder: $("sendTestReminder"),
+  reminderLog: $("reminderLog"),
+  reminderConnection: $("reminderConnection"),
   meetingTitle: $("meetingTitle"),
   meetingMeta: $("meetingMeta"),
   meetingNotes: $("meetingNotes"),
@@ -608,7 +616,10 @@ function bindEvents() {
   });
   els.programCertificate.addEventListener("click", openCertificate);
   els.copyMeetingLink.addEventListener("click", copyMeetingLink);
-  els.enableReminder.addEventListener("click", enableMeetingReminder);
+  els.enableReminder.addEventListener("click", toggleEmailReminders);
+  els.reminderForm.addEventListener("submit", saveReminderSettings);
+  els.sendTestReminder.addEventListener("click", sendTestReminder);
+  document.querySelector('[data-admin-section="updatesAdmin"]')?.addEventListener("click", () => loadReminderStatus());
   els.submitAnswers.addEventListener("click", submitAnswers);
   els.meetingForm.addEventListener("submit", saveMeeting);
   els.clearMeeting.addEventListener("click", clearMeeting);
@@ -1075,6 +1086,7 @@ function renderMeeting() {
 }
 
 function renderReminderStatus() {
+  renderReminderToggle();
   const next = getNextSession();
   const start = next ? sessionStart(next) : getMeetingStartDate();
   els.notificationTitle.textContent = t("Session reminders");
@@ -1090,7 +1102,9 @@ function renderReminderStatus() {
     els.notificationTitle.textContent = t("Starting soon");
     els.notificationText.textContent = `The next session starts in about ${minutes} minutes. Join video when ready.`;
   } else {
-    els.notificationText.textContent = t("Add sessions to your phone or computer calendar to get a reminder the day before and 15 minutes before each one.");
+    els.notificationText.textContent = currentUser?.emailReminders && remindersOn()
+      ? t("You will get an email the day before and about 1 hour before each session. You can also add the sessions to your calendar.")
+      : t("Turn on email reminders, or add the sessions to your phone or computer calendar.");
   }
 }
 
@@ -1254,6 +1268,7 @@ function renderAdmin() {
   renderTrainingAdmin();
   renderProjectsAdmin();
   renderAccessSettings();
+  renderReminderSettings();
 }
 
 function renderUserShell() {
@@ -1861,25 +1876,111 @@ function stopLocalMedia(options = {}) {
   }
 }
 
-async function enableMeetingReminder() {
-  const next = getNextSession();
-  const start = next ? sessionStart(next) : getMeetingStartDate();
-  if (!start || start.getTime() < Date.now()) return showToast(t("There is no upcoming session to remind you about."));
-  const title = next ? next.topic : state.settings.meeting.title;
-  const reminderAt = new Date(start.getTime() - 15 * 60000);
-  const delay = Math.max(0, reminderAt.getTime() - Date.now());
-  window.clearTimeout(reminderTimer);
-  if ("Notification" in window && Notification.permission === "default") {
-    await Notification.requestPermission();
+/* ---- email reminders ---- */
+function reminderSettings() {
+  const r = state.settings.access?.reminders || {};
+  const offsets = Array.isArray(r.offsets) ? r.offsets : [1440, 60];
+  return { enabled: r.enabled !== false, timezone: r.timezone || "America/Los_Angeles", offsets };
+}
+
+function remindersOn() {
+  const r = reminderSettings();
+  return r.enabled && r.offsets.length > 0;
+}
+
+function renderReminderToggle() {
+  if (!els.enableReminder || !currentUser) return;
+  const on = currentUser.emailReminders && remindersOn();
+  els.enableReminder.setAttribute("aria-pressed", String(on));
+  els.enableReminder.classList.toggle("hidden", !remindersOn());
+  els.enableReminderLabel.textContent = on ? t("Email reminders: On") : t("Email reminders: Off");
+}
+
+async function toggleEmailReminders() {
+  if (!currentUser) return;
+  if (!currentUser.hasReminderColumn) return showToast(t("Email reminders are not set up yet. Please ask the organizers."));
+  const next = !currentUser.emailReminders;
+  els.enableReminder.disabled = true;
+  const { error } = await supabase.from("profiles").update({ email_reminders: next }).eq("id", currentUser.id);
+  els.enableReminder.disabled = false;
+  if (error) return showToast(t("Could not save. Please try again."));
+  currentUser.emailReminders = next;
+  renderReminderStatus();
+  showToast(next ? t("Email reminders are on. We will email you before each session.") : t("Email reminders are off."));
+}
+
+function renderReminderSettings() {
+  if (!els.reminderForm) return;
+  const r = reminderSettings();
+  els.reminderEnabled.checked = r.enabled;
+  els.reminderDayBefore.checked = r.offsets.includes(1440);
+  els.reminderHourBefore.checked = r.offsets.includes(60);
+  if (![...els.reminderTimezone.options].some(o => o.value === r.timezone)) {
+    els.reminderTimezone.add(new Option(r.timezone, r.timezone));
   }
-  if (delay < 2147483647) {
-    reminderTimer = window.setTimeout(() => {
-      const message = `${title} starts in 15 minutes.`;
-      if ("Notification" in window && Notification.permission === "granted") new Notification(state.settings.landing?.brandName || "Reminder", { body: message });
-      showToast(message);
-    }, delay);
+  els.reminderTimezone.value = r.timezone;
+}
+
+async function saveReminderSettings(event) {
+  event.preventDefault();
+  if (!state.hasAccessColumn) return showToast(t("Run database update 0004 first."));
+  const offsets = [];
+  if (els.reminderDayBefore.checked) offsets.push(1440);
+  if (els.reminderHourBefore.checked) offsets.push(60);
+  state.settings.access = {
+    ...(state.settings.access || {}),
+    reminders: {
+      ...(state.settings.access?.reminders || {}),
+      enabled: els.reminderEnabled.checked,
+      timezone: els.reminderTimezone.value,
+      offsets
+    }
+  };
+  await saveSettings();
+  renderReminderStatus();
+}
+
+async function loadReminderStatus() {
+  if (currentUser?.role !== "admin" || !els.reminderLog) return;
+  const { data, error } = await supabase.rpc("reminder_status");
+  if (error) {
+    els.reminderConnection.textContent = t("Not set up");
+    els.reminderConnection.className = "pill bad";
+    els.reminderLog.innerHTML = `<div class="empty-state">${t("Database update 0005 has not been run yet.")}</div>`;
+    return;
   }
-  showToast("Reminder set while this page is open. For a reminder on your phone, add the session to your calendar.");
+  const ready = data.connected && data.scheduled;
+  els.reminderConnection.textContent = ready ? t("Connected") : t("Not connected");
+  els.reminderConnection.className = `pill ${ready ? "ok" : "bad"}`;
+  const rows = data.recent || [];
+  els.reminderLog.innerHTML = rows.length
+    ? `<p class="hint" style="margin:0">${t("Recently sent")}</p>` + rows.map(row => {
+        const ok = row.status >= 200 && row.status < 300;
+        const pending = row.status === null || row.status === undefined;
+        const when = new Date(row.sent_at).toLocaleString(currentLocale(), { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+        const result = pending ? `<span>${t("Sending…")}</span>` : ok ? `<span class="ok">${t("Delivered to Brevo")}</span>` : `<span class="bad" title="${escapeHtml(row.error || "")}">${t("Failed")}</span>`;
+        return `<div class="log-row"><span>${escapeHtml(when)} · ${escapeHtml(row.email)} · ${escapeHtml(row.topic)}</span>${result}</div>`;
+      }).join("")
+    : `<div class="empty-state">${data.connected ? t("No reminders sent yet. They go out automatically before each session.") : t("Add the Brevo API key in Supabase Vault (name: brevo_api_key) to start sending.")}</div>`;
+}
+
+async function sendTestReminder() {
+  els.sendTestReminder.disabled = true;
+  const { data, error } = await supabase.rpc("send_test_reminder");
+  if (error) {
+    els.sendTestReminder.disabled = false;
+    return showToast(error.message.includes("brevo_api_key") ? t("Add the Brevo API key in Supabase Vault (name: brevo_api_key) to start sending.") : t("Could not send the test reminder."));
+  }
+  showToast(`${t("Test reminder sent to")} ${data.email}`);
+  let result = null;
+  for (let i = 0; i < 6 && !(result && result.status); i += 1) {
+    await new Promise(resolve => window.setTimeout(resolve, 1500));
+    const check = await supabase.rpc("test_reminder_result", { request: data.request_id });
+    result = check.data;
+  }
+  els.sendTestReminder.disabled = false;
+  if (result?.status >= 200 && result.status < 300) showToast(`${t("Test reminder sent to")} ${data.email} ✓`);
+  else if (result?.status) showToast(`${t("Brevo refused the email:")} ${String(result.error || result.status).slice(0, 160)}`);
 }
 
 function readLandingMetricsFromAdmin() {
@@ -1922,6 +2023,8 @@ function normalizeProfile(row) {
     role: row.role || "user",
     status: row.status || "approved",
     updatesSeenAt: row.updates_seen_at || null,
+    emailReminders: row.email_reminders !== false,
+    hasReminderColumn: "email_reminders" in row,
     isOwner: row.is_owner === true,
     discipline: row.discipline || "",
     university: row.university || "",
