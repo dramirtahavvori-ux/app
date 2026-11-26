@@ -226,7 +226,6 @@ const els = {
   landingLoginLead: $("landingLoginLead"),
   landingHeroBadge: $("landingHeroBadge"),
   landingHeroHeadline: $("landingHeroHeadline"),
-  landingHeroImage: $("landingHeroImage"),
   landingMetrics: $("landingMetrics"),
   landingCards: $("landingCards"),
   landingForm: $("landingForm"),
@@ -324,9 +323,31 @@ const els = {
   lessonOrder: $("lessonOrder"),
   cancelLessonEdit: $("cancelLessonEdit"),
   lessonsAdminList: $("lessonsAdminList"),
-  trainingReport: $("trainingReport")
+  trainingReport: $("trainingReport"),
+  forgotLink: $("forgotLink"),
+  forgotForm: $("forgotForm"),
+  forgotEmail: $("forgotEmail"),
+  resetForm: $("resetForm"),
+  resetPassword: $("resetPassword"),
+  resetPassword2: $("resetPassword2"),
+  newUpdateBtn: $("newUpdateBtn"),
+  newProgramBtn: $("newProgramBtn"),
+  heroSlider: $("heroSlider"),
+  heroSlides: $("heroSlides"),
+  heroDots: $("heroDots"),
+  heroPrev: $("heroPrev"),
+  heroNext: $("heroNext"),
+  lightbox: $("lightbox"),
+  lightboxClose: $("lightboxClose"),
+  lightboxImage: $("lightboxImage"),
+  adminLandingHeroInterval: $("adminLandingHeroInterval"),
+  heroImagesAdmin: $("heroImagesAdmin")
 };
 
+let recoveryMode = /type=recovery/.test(`${window.location.hash}${window.location.search}`);
+let heroIndex = 0;
+let heroTimer = null;
+let heroPaused = false;
 const UPDATE_LABELS = { update: "Update", reminder: "Reminder", event: "Event", training: "Training" };
 const VIEWS = ["report", "updates", "training", "profile", "presenter", "admin"];
 
@@ -344,7 +365,19 @@ async function boot() {
   await loadPublicLanding();
   window.setInterval(updateCountdown, 1000);
 
+  supabase.auth.onAuthStateChange(event => {
+    if (event === "PASSWORD_RECOVERY") {
+      recoveryMode = true;
+      showAuthPanel("reset");
+    }
+  });
+
   const { data } = await supabase.auth.getSession();
+  if (recoveryMode && data.session) {
+    showAuthPanel("reset");
+    els.authCard.scrollIntoView({ block: "center" });
+    return;
+  }
   if (data.session) {
     await hydrateSession(data.session.user);
   }
@@ -490,9 +523,60 @@ function bindEvents() {
   });
   els.landingForm.addEventListener("submit", saveLanding);
   els.clearLandingHeroImage.addEventListener("click", () => {
-    state.settings.landing.heroImage = "";
-    els.landingHeroImageData.value = "";
-    renderLanding();
+    if (window.confirm("Remove all home page pictures?")) setHeroImages([]);
+  });
+  els.heroImagesAdmin.addEventListener("click", event => {
+    const remove = event.target.closest("[data-hero-remove]");
+    const move = event.target.closest("[data-hero-move]");
+    const images = [...heroImagesOf(state.settings.landing)];
+    if (remove) {
+      images.splice(Number(remove.dataset.heroRemove), 1);
+      setHeroImages(images);
+    } else if (move) {
+      const from = Number(move.dataset.heroMove);
+      const to = from + Number(move.dataset.dir);
+      if (to < 0 || to >= images.length) return;
+      [images[from], images[to]] = [images[to], images[from]];
+      setHeroImages(images);
+    }
+  });
+  els.heroPrev.addEventListener("click", event => {
+    event.stopPropagation();
+    showHeroSlide(heroIndex - 1);
+    restartHeroTimer();
+  });
+  els.heroNext.addEventListener("click", event => {
+    event.stopPropagation();
+    showHeroSlide(heroIndex + 1);
+    restartHeroTimer();
+  });
+  els.heroDots.addEventListener("click", event => {
+    const dot = event.target.closest("[data-hero-dot]");
+    if (!dot) return;
+    event.stopPropagation();
+    showHeroSlide(Number(dot.dataset.heroDot));
+    restartHeroTimer();
+  });
+  els.heroSlides.addEventListener("click", event => {
+    const img = event.target.closest(".hero-slide")?.querySelector("img");
+    if (img) openLightbox(img.src, img.alt);
+  });
+  els.heroSlider.addEventListener("mouseenter", () => { heroPaused = true; });
+  els.heroSlider.addEventListener("mouseleave", () => { heroPaused = false; });
+  els.lightbox.addEventListener("click", closeLightbox);
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !els.lightbox.classList.contains("hidden")) closeLightbox();
+  });
+  els.forgotLink.addEventListener("click", () => showAuthPanel("forgot"));
+  els.forgotForm.addEventListener("submit", sendResetLink);
+  els.resetForm.addEventListener("submit", saveNewPassword);
+  els.newUpdateBtn.addEventListener("click", () => {
+    clearUpdateForm();
+    openAdminSection("updatesAdmin", els.updateTitle);
+  });
+  els.newProgramBtn.addEventListener("click", () => {
+    clearProgramForm();
+    openAdminSection("trainingAdmin", els.programTitleInput);
   });
   els.presenterSlidesList.addEventListener("click", presenterSlidesClick);
   els.presenterSlidesList.addEventListener("change", presenterSlidesFileChange);
@@ -543,6 +627,8 @@ async function hydrateSession(user) {
   els.loginView.classList.add("hidden");
   els.appView.classList.remove("hidden");
   els.adminTab.classList.toggle("hidden", currentUser.role !== "admin");
+  els.newUpdateBtn.classList.toggle("hidden", currentUser.role !== "admin");
+  els.newProgramBtn.classList.toggle("hidden", currentUser.role !== "admin");
   els.presenterTab.classList.toggle("hidden", currentUser.role !== "presenter");
   await loadSharedData();
   subscribeToSharedData();
@@ -689,7 +775,6 @@ function renderLanding() {
   els.landingCards.innerHTML = landing.cards.map(item => `<div class="mini-card"><strong>${escapeHtml(item.title)}</strong><p class="hint">${escapeHtml(item.text)}</p></div>`).join("");
   els.landingCards.classList.toggle("hidden", landing.cards.length === 0);
   applyLandingHeroImage(landing);
-  els.landingHeroImage.alt = landing.heroHeadline || "Landing hero image";
   els.adminLandingBrandName.value = landing.brandName || "";
   els.adminLandingBrandTagline.value = landing.brandTagline || "";
   els.adminLandingLoginHeadline.value = landing.loginHeadline || "";
@@ -697,20 +782,13 @@ function renderLanding() {
   els.adminLandingHeroBadge.value = landing.heroBadge || "";
   els.adminLandingHeroHeadline.value = landing.heroHeadline || "";
   els.landingHeroImageData.value = landing.heroImage || "";
+  renderHeroImagesAdmin(landing);
   renderLandingMetricsAdmin(landing.metrics);
   renderLandingCardsAdmin(landing.cards);
 }
 
 function applyLandingHeroImage(landing) {
-  const image = document.getElementById("landingHeroImage");
-  if (!image) return;
-  const src = landing?.heroImage || "";
-  image.classList.toggle("hidden", !src);
-  if (src) {
-    image.src = src;
-  } else {
-    image.removeAttribute("src");
-  }
+  renderHeroSlider(landing);
 }
 
 function renderLandingMetricsAdmin(metrics) {
@@ -1064,17 +1142,7 @@ function renderAnswers() {
 
 async function saveLanding(event) {
   event.preventDefault();
-  state.settings.landing = {
-    brandName: els.adminLandingBrandName.value.trim(),
-    brandTagline: els.adminLandingBrandTagline.value.trim(),
-    loginHeadline: els.adminLandingLoginHeadline.value.trim(),
-    loginLead: els.adminLandingLoginLead.value.trim(),
-    heroBadge: els.adminLandingHeroBadge.value.trim(),
-    heroHeadline: els.adminLandingHeroHeadline.value.trim(),
-    heroImage: els.landingHeroImageData.value || state.settings.landing.heroImage || "",
-    metrics: readLandingMetricsFromAdmin(),
-    cards: readLandingCardsFromAdmin()
-  };
+  state.settings.landing = readLandingForm();
   await saveSettings();
 }
 
@@ -1307,38 +1375,19 @@ async function deleteRow(table, id) {
   renderAll();
 }
 
-async function uploadLandingHero() {
-  const url = await uploadFile(els.adminLandingHeroImage.files[0], "public-images", "landing");
-  if (url) {
-    els.landingHeroImageData.value = url;
-    state.settings.landing = {
-      brandName: els.adminLandingBrandName.value.trim(),
-      brandTagline: els.adminLandingBrandTagline.value.trim(),
-      loginHeadline: els.adminLandingLoginHeadline.value.trim(),
-      loginLead: els.adminLandingLoginLead.value.trim(),
-      heroBadge: els.adminLandingHeroBadge.value.trim(),
-      heroHeadline: els.adminLandingHeroHeadline.value.trim(),
-      heroImage: url,
-      metrics: readLandingMetricsFromAdmin(),
-      cards: readLandingCardsFromAdmin()
-    };
-    applyLandingHeroImage(state.settings.landing);
-    await saveSettings();
-  }
-}
 
 async function uploadPersonPhoto() {
-  const url = await uploadFile(els.personPhoto.files[0], "public-images", "people");
+  const url = await uploadFile(await enhanceImage(els.personPhoto.files[0], "people"), "public-images", "people");
   if (url) els.personPhotoData.value = url;
 }
 
 async function uploadProfilePhoto() {
-  const url = await uploadFile(els.profilePhoto.files[0], "public-images", "profiles");
+  const url = await uploadFile(await enhanceImage(els.profilePhoto.files[0], "profiles"), "public-images", "profiles");
   if (url) els.profilePhotoData.value = url;
 }
 
 async function uploadUserPhoto() {
-  const url = await uploadFile(els.userPhoto.files[0], "public-images", "profiles");
+  const url = await uploadFile(await enhanceImage(els.userPhoto.files[0], "profiles"), "public-images", "profiles");
   if (url) els.userPhotoData.value = url;
 }
 
@@ -1614,7 +1663,9 @@ function normalizeLanding(landing = {}) {
     ...defaults.landing,
     ...landing,
     metrics: Array.isArray(landing.metrics) ? landing.metrics : defaults.landing.metrics,
-    cards: Array.isArray(landing.cards) ? landing.cards : defaults.landing.cards
+    cards: Array.isArray(landing.cards) ? landing.cards : defaults.landing.cards,
+    heroImages: Array.isArray(landing.heroImages) ? landing.heroImages : (landing.heroImage ? [landing.heroImage] : (Object.keys(landing).length ? [] : [defaults.landing.heroImage])),
+    heroInterval: Number.isFinite(Number(landing.heroInterval)) ? Number(landing.heroInterval) : 6
   };
 }
 
@@ -2403,7 +2454,7 @@ function clearLessonForm() {
 }
 
 async function uploadProgramCover() {
-  const url = await uploadFile(els.programCover.files[0], "public-images", "training");
+  const url = await uploadFile(await enhanceImage(els.programCover.files[0], "training"), "public-images", "training");
   if (url) {
     els.programCoverData.value = url;
     showToast("Cover uploaded. Save the program to apply it.");
@@ -2462,6 +2513,256 @@ function formatRelative(value) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
+/* ------------------------------------------------------------------
+   Admin shortcuts
+------------------------------------------------------------------ */
+function openAdminSection(sectionId, focusEl) {
+  showView("admin");
+  document.querySelector(`[data-admin-section="${sectionId}"]`)?.click();
+  window.setTimeout(() => focusEl?.focus(), 300);
+}
+
+/* ------------------------------------------------------------------
+   Password reset
+------------------------------------------------------------------ */
+
+function showAuthPanel(panel) {
+  const panels = { signin: els.loginForm, signup: els.signupForm, forgot: els.forgotForm, reset: els.resetForm, pending: els.pendingNotice };
+  for (const [name, node] of Object.entries(panels)) node.classList.toggle("hidden", name !== panel);
+  document.querySelector(".auth-tabs")?.classList.toggle("hidden", panel === "forgot" || panel === "reset");
+  document.querySelectorAll(".auth-tabs [data-auth-tab]").forEach(button => {
+    button.classList.toggle("active", button.dataset.authTab === panel);
+  });
+}
+
+async function sendResetLink(event) {
+  event.preventDefault();
+  const submit = els.forgotForm.querySelector("button[type=submit]");
+  submit.disabled = true;
+  const email = els.forgotEmail.value.trim();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/` });
+  submit.disabled = false;
+  if (error) return showToast(error.message);
+  els.forgotForm.reset();
+  showPendingNotice("reset-sent");
+}
+
+async function saveNewPassword(event) {
+  event.preventDefault();
+  if (els.resetPassword.value !== els.resetPassword2.value) return showToast("The two passwords do not match.");
+  const { data, error } = await supabase.auth.updateUser({ password: els.resetPassword.value });
+  if (error) return showToast(error.message);
+  recoveryMode = false;
+  els.resetForm.reset();
+  history.replaceState(null, "", window.location.pathname);
+  showToast("Password changed.");
+  if (data?.user) await hydrateSession(data.user);
+}
+
+/* ------------------------------------------------------------------
+   Image enhancement on upload
+------------------------------------------------------------------ */
+const IMAGE_TARGETS = {
+  landing: { min: 1920, max: 2560 },
+  training: { min: 1200, max: 1600 },
+  people: { min: 600, max: 800 },
+  profiles: { min: 600, max: 800 }
+};
+
+async function enhanceImage(file, purpose) {
+  if (!file || !/^image\/(jpeg|png|webp|heic|heif|bmp)$/i.test(file.type)) return file;
+  const target = IMAGE_TARGETS[purpose] || { min: 1200, max: 2000 };
+  let bitmap;
+  try {
+    bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  } catch {
+    return file;
+  }
+  const longEdge = Math.max(bitmap.width, bitmap.height);
+  let scale = 1;
+  if (longEdge > target.max) scale = target.max / longEdge;
+  else if (longEdge < target.min) scale = Math.min(2, target.min / longEdge);
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+
+  // Resize in steps of at most 2x for smoother, cleaner results.
+  let source = bitmap;
+  let currentW = bitmap.width;
+  let currentH = bitmap.height;
+  while (currentW !== width || currentH !== height) {
+    const nextW = scale < 1 ? Math.max(width, Math.round(currentW / 2)) : Math.min(width, currentW * 2);
+    const nextH = scale < 1 ? Math.max(height, Math.round(currentH / 2)) : Math.min(height, currentH * 2);
+    const step = document.createElement("canvas");
+    step.width = nextW;
+    step.height = nextH;
+    const stepCtx = step.getContext("2d");
+    stepCtx.imageSmoothingEnabled = true;
+    stepCtx.imageSmoothingQuality = "high";
+    stepCtx.drawImage(source, 0, 0, nextW, nextH);
+    source = step;
+    currentW = nextW;
+    currentH = nextH;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(source, 0, 0, width, height);
+
+  const hasAlpha = /png|webp/i.test(file.type) && imageHasTransparency(ctx, width, height);
+  // Stronger sharpening when the picture was enlarged.
+  sharpen(ctx, width, height, scale > 1.2 ? 0.6 : 0.35);
+
+  const type = hasAlpha ? "image/png" : "image/jpeg";
+  const blob = await new Promise(resolve => canvas.toBlob(resolve, type, 0.92));
+  if (!blob) return file;
+  const name = file.name.replace(/\.[^.]+$/, "") + (hasAlpha ? ".png" : ".jpg");
+  return new File([blob], name, { type });
+}
+
+function imageHasTransparency(ctx, width, height) {
+  const data = ctx.getImageData(0, 0, width, height).data;
+  for (let i = 3; i < data.length; i += 4 * 16) if (data[i] < 250) return true;
+  return false;
+}
+
+// Unsharp mask: original + amount * (original - blurred), 3x3 kernel.
+function sharpen(ctx, width, height, amount) {
+  const image = ctx.getImageData(0, 0, width, height);
+  const src = image.data;
+  const out = new Uint8ClampedArray(src);
+  const row = width * 4;
+  for (let y = 1; y < height - 1; y++) {
+    for (let x = 1; x < width - 1; x++) {
+      const i = y * row + x * 4;
+      for (let c = 0; c < 3; c++) {
+        const k = i + c;
+        const blur = (src[k - row - 4] + 2 * src[k - row] + src[k - row + 4]
+          + 2 * src[k - 4] + 4 * src[k] + 2 * src[k + 4]
+          + src[k + row - 4] + 2 * src[k + row] + src[k + row + 4]) / 16;
+        out[k] = src[k] + amount * (src[k] - blur);
+      }
+    }
+  }
+  image.data.set(out);
+  ctx.putImageData(image, 0, 0);
+}
+
+/* ------------------------------------------------------------------
+   Home page picture slider
+------------------------------------------------------------------ */
+
+function heroImagesOf(landing) {
+  const list = Array.isArray(landing?.heroImages) ? landing.heroImages.filter(Boolean) : [];
+  if (list.length) return list;
+  return landing?.heroImage ? [landing.heroImage] : [];
+}
+
+function renderHeroSlider(landing) {
+  const images = heroImagesOf(landing).map(safeUrl).filter(Boolean);
+  const signature = images.join("|");
+  els.heroSlider.classList.toggle("hidden", images.length === 0);
+  els.heroSlider.classList.toggle("single", images.length < 2);
+  if (els.heroSlider.dataset.signature !== signature) {
+    els.heroSlider.dataset.signature = signature;
+    heroIndex = 0;
+    const alt = escapeHtml(landing.heroHeadline || landing.brandName || "");
+    els.heroSlides.innerHTML = images.map((src, index) => `
+      <figure class="hero-slide ${index === 0 ? "active" : ""}" data-hero-index="${index}" style="margin: 0;">
+        <div class="hero-slide-bg" style="background-image: url('${escapeHtml(src)}')"></div>
+        <img src="${escapeHtml(src)}" alt="${alt}" ${index === 0 ? "" : 'loading="lazy"'} decoding="async">
+      </figure>`).join("");
+    els.heroDots.innerHTML = images.map((_, index) => `<button type="button" class="${index === 0 ? "active" : ""}" data-hero-dot="${index}" aria-label="Show picture ${index + 1}"></button>`).join("");
+  }
+  restartHeroTimer(landing);
+}
+
+function showHeroSlide(index) {
+  const slides = els.heroSlides.querySelectorAll(".hero-slide");
+  if (!slides.length) return;
+  heroIndex = (index + slides.length) % slides.length;
+  slides.forEach((slide, i) => slide.classList.toggle("active", i === heroIndex));
+  els.heroDots.querySelectorAll("button").forEach((dot, i) => dot.classList.toggle("active", i === heroIndex));
+}
+
+function restartHeroTimer(landing = state.settings.landing) {
+  window.clearInterval(heroTimer);
+  const seconds = Number(landing?.heroInterval ?? 6);
+  const count = els.heroSlides.querySelectorAll(".hero-slide").length;
+  const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  if (count < 2 || !seconds || reduce) return;
+  heroTimer = window.setInterval(() => {
+    if (!heroPaused && !document.hidden && !els.loginView.classList.contains("hidden")) showHeroSlide(heroIndex + 1);
+  }, seconds * 1000);
+}
+
+function openLightbox(src, alt = "") {
+  els.lightboxImage.src = src;
+  els.lightboxImage.alt = alt;
+  els.lightbox.classList.remove("hidden");
+}
+
+function closeLightbox() {
+  els.lightbox.classList.add("hidden");
+  els.lightboxImage.removeAttribute("src");
+}
+
+function renderHeroImagesAdmin(landing) {
+  const images = heroImagesOf(landing);
+  els.heroImagesAdmin.innerHTML = images.length ? images.map((src, index) => `
+    <div class="hero-thumb">
+      <img src="${escapeHtml(safeUrl(src))}" alt="Picture ${index + 1}">
+      <div class="row-actions">
+        <span>
+          <button class="btn secondary small" type="button" data-hero-move="${index}" data-dir="-1" ${index === 0 ? "disabled" : ""} aria-label="Move earlier">←</button>
+          <button class="btn secondary small" type="button" data-hero-move="${index}" data-dir="1" ${index === images.length - 1 ? "disabled" : ""} aria-label="Move later">→</button>
+        </span>
+        <button class="btn warn small" type="button" data-hero-remove="${index}">Remove</button>
+      </div>
+    </div>`).join("") : `<div class="empty-state hero-thumb-empty">No pictures yet. Use “+ Add pictures”.</div>`;
+  els.adminLandingHeroInterval.value = String(landing.heroInterval ?? 6);
+}
+
+function readLandingForm() {
+  const current = state.settings.landing || {};
+  const images = heroImagesOf(current);
+  return {
+    ...current,
+    brandName: els.adminLandingBrandName.value.trim(),
+    brandTagline: els.adminLandingBrandTagline.value.trim(),
+    loginHeadline: els.adminLandingLoginHeadline.value.trim(),
+    loginLead: els.adminLandingLoginLead.value.trim(),
+    heroBadge: els.adminLandingHeroBadge.value.trim(),
+    heroHeadline: els.adminLandingHeroHeadline.value.trim(),
+    heroImages: images,
+    heroImage: images[0] || "",
+    heroInterval: Number(els.adminLandingHeroInterval.value),
+    metrics: readLandingMetricsFromAdmin(),
+    cards: readLandingCardsFromAdmin()
+  };
+}
+
+async function setHeroImages(images) {
+  state.settings.landing = { ...readLandingForm(), heroImages: images, heroImage: images[0] || "" };
+  renderLanding();
+  await saveSettings();
+}
+
+async function uploadLandingHero() {
+  const files = [...(els.adminLandingHeroImage.files || [])];
+  if (!files.length) return;
+  const added = [];
+  for (const [index, file] of files.entries()) {
+    showToast(`Optimizing picture ${index + 1} of ${files.length}…`);
+    const url = await uploadFile(await enhanceImage(file, "landing"), "public-images", "landing");
+    if (url) added.push(url);
+  }
+  els.adminLandingHeroImage.value = "";
+  if (!added.length) return;
+  await setHeroImages([...heroImagesOf(state.settings.landing), ...added]);
+}
+
 async function lookupEmailForUsername(username) {
   const { data, error } = await supabase.rpc("email_for_username", { lookup: username });
   if (!error) return data || "";
@@ -2478,20 +2779,15 @@ async function loadPublicLanding() {
 }
 
 function setAuthTab(tab) {
-  const signup = tab === "signup";
-  els.loginForm.classList.toggle("hidden", signup);
-  els.signupForm.classList.toggle("hidden", !signup);
-  els.pendingNotice.classList.add("hidden");
-  document.querySelectorAll(".auth-tabs [data-auth-tab]").forEach(button => {
-    button.classList.toggle("active", button.dataset.authTab === tab);
-  });
+  showAuthPanel(tab === "signup" ? "signup" : "signin");
 }
 
 function showPendingNotice(status) {
-  els.loginForm.classList.add("hidden");
-  els.signupForm.classList.add("hidden");
-  els.pendingNotice.classList.remove("hidden");
-  if (status === "rejected") {
+  showAuthPanel("pending");
+  if (status === "reset-sent") {
+    els.pendingTitle.textContent = "Check your email";
+    els.pendingText.textContent = "If an account exists for that email, a link to choose a new password is on its way. The link opens this page.";
+  } else if (status === "rejected") {
     els.pendingTitle.textContent = "Access not available";
     els.pendingText.textContent = "This account does not have access. Please contact the organizers if you think this is a mistake.";
   } else if (status === "confirm-email") {
