@@ -341,13 +341,67 @@ const els = {
   lightboxClose: $("lightboxClose"),
   lightboxImage: $("lightboxImage"),
   adminLandingHeroInterval: $("adminLandingHeroInterval"),
-  heroImagesAdmin: $("heroImagesAdmin")
+  heroImagesAdmin: $("heroImagesAdmin"),
+  landingCanvas: $("landingCanvas"),
+  landingBoxes: $("landingBoxes"),
+  designerBar: $("designerBar"),
+  dAddBox: $("dAddBox"),
+  dAddMetric: $("dAddMetric"),
+  dAddCard: $("dAddCard"),
+  dThemeBtn: $("dThemeBtn"),
+  dUndo: $("dUndo"),
+  dCancel: $("dCancel"),
+  dSave: $("dSave"),
+  dFormat: $("dFormat"),
+  dSelLabel: $("dSelLabel"),
+  dFont: $("dFont"),
+  dSize: $("dSize"),
+  dBold: $("dBold"),
+  dItalic: $("dItalic"),
+  dColor: $("dColor"),
+  dFill: $("dFill"),
+  dNoFill: $("dNoFill"),
+  dRadius: $("dRadius"),
+  dFront: $("dFront"),
+  dBack: $("dBack"),
+  dReset: $("dReset"),
+  dHide: $("dHide"),
+  dTheme: $("dTheme"),
+  tBg1: $("tBg1"),
+  tBg2: $("tBg2"),
+  tAccent: $("tAccent"),
+  tFont: $("tFont"),
+  tGradient: $("tGradient"),
+  tReset: $("tReset"),
+  appCopyright: $("appCopyright"),
+  openDesigner: $("openDesigner"),
+  adminLandingCopyright: $("adminLandingCopyright")
 };
 
 let recoveryMode = /type=recovery/.test(`${window.location.hash}${window.location.search}`);
 let heroIndex = 0;
 let heroTimer = null;
 let heroPaused = false;
+const FONT_STACKS = {
+  Inter: "Inter, system-ui, sans-serif",
+  Montserrat: "Montserrat, system-ui, sans-serif",
+  "Playfair Display": "'Playfair Display', Georgia, serif",
+  Georgia: "Georgia, 'Times New Roman', serif",
+  Vazirmatn: "Vazirmatn, Tahoma, sans-serif",
+  "Courier New": "'Courier New', monospace"
+};
+const MULTILINE_KEYS = /^(heroHeadline|loginLead|card:\d+:text|copyright)$/;
+const KEY_LABELS = {
+  brandName: "App name", brandTagline: "Tagline", heroBadge: "Badge", heroHeadline: "Main headline",
+  loginLead: "Description", loginHeadline: "Sign-in title", copyright: "Copyright"
+};
+const designer = {
+  active: false,
+  draft: null,
+  undo: [],
+  selected: null,
+  drag: null
+};
 const UPDATE_LABELS = { update: "Update", reminder: "Reminder", event: "Event", training: "Training" };
 const VIEWS = ["report", "updates", "training", "profile", "presenter", "admin"];
 
@@ -558,6 +612,7 @@ function bindEvents() {
     restartHeroTimer();
   });
   els.heroSlides.addEventListener("click", event => {
+    if (designer.active) return;
     const img = event.target.closest(".hero-slide")?.querySelector("img");
     if (img) openLightbox(img.src, img.alt);
   });
@@ -567,6 +622,7 @@ function bindEvents() {
   document.addEventListener("keydown", event => {
     if (event.key === "Escape" && !els.lightbox.classList.contains("hidden")) closeLightbox();
   });
+  bindDesigner();
   els.forgotLink.addEventListener("click", () => showAuthPanel("forgot"));
   els.forgotForm.addEventListener("submit", sendResetLink);
   els.resetForm.addEventListener("submit", saveNewPassword);
@@ -624,6 +680,7 @@ async function hydrateSession(user) {
   }
 
   currentUser = normalizeProfile(profile);
+  els.password.value = "";
   els.loginView.classList.add("hidden");
   els.appView.classList.remove("hidden");
   els.adminTab.classList.toggle("hidden", currentUser.role !== "admin");
@@ -725,7 +782,7 @@ function subscribeToSharedData() {
 
 function renderAll() {
   applyAppearance();
-  renderLanding();
+  if (!designer.active) renderLanding();
   renderMeeting();
   renderReminderStatus();
   renderSchedule();
@@ -761,30 +818,35 @@ function applyAppearance() {
 function renderLanding() {
   const landing = normalizeLanding(state.settings.landing || defaults.landing);
   state.settings.landing = landing;
-  els.landingBrandName.textContent = landing.brandName || "";
-  document.title = landing.brandName || "NephroRounds Studio";
-  els.appShellName.textContent = landing.brandName || "NephroRounds";
-  els.landingBrandTagline.textContent = landing.brandTagline || "";
-  els.landingFooterName.textContent = `© ${new Date().getFullYear()} ${landing.brandName || ""}`;
-  els.landingLoginHeadline.textContent = landing.loginHeadline || "";
-  els.landingLoginLead.textContent = landing.loginLead || "";
-  els.landingHeroBadge.textContent = landing.heroBadge || "";
-  els.landingHeroHeadline.textContent = landing.heroHeadline || "";
-  els.landingMetrics.innerHTML = landing.metrics.map(item => `<div class="metric"><b>${escapeHtml(item.value)}</b><span>${escapeHtml(item.label)}</span></div>`).join("");
-  els.landingMetrics.classList.toggle("hidden", landing.metrics.length === 0);
-  els.landingCards.innerHTML = landing.cards.map(item => `<div class="mini-card"><strong>${escapeHtml(item.title)}</strong><p class="hint">${escapeHtml(item.text)}</p></div>`).join("");
-  els.landingCards.classList.toggle("hidden", landing.cards.length === 0);
-  applyLandingHeroImage(landing);
+  renderLandingView(landing);
+  applyLandingDesign(landing);
   els.adminLandingBrandName.value = landing.brandName || "";
   els.adminLandingBrandTagline.value = landing.brandTagline || "";
   els.adminLandingLoginHeadline.value = landing.loginHeadline || "";
   els.adminLandingLoginLead.value = landing.loginLead || "";
   els.adminLandingHeroBadge.value = landing.heroBadge || "";
   els.adminLandingHeroHeadline.value = landing.heroHeadline || "";
+  els.adminLandingCopyright.value = landing.copyright ?? defaultCopyright(landing);
   els.landingHeroImageData.value = landing.heroImage || "";
   renderHeroImagesAdmin(landing);
   renderLandingMetricsAdmin(landing.metrics);
   renderLandingCardsAdmin(landing.cards);
+}
+
+function renderLandingView(landing) {
+  els.landingBrandName.textContent = landing.brandName || "";
+  document.title = landing.brandName || "NephroRounds Studio";
+  els.appShellName.textContent = landing.brandName || "NephroRounds";
+  els.landingBrandTagline.textContent = landing.brandTagline || "";
+  els.landingLoginHeadline.textContent = landing.loginHeadline || "";
+  els.landingLoginLead.textContent = landing.loginLead || "";
+  els.landingHeroBadge.textContent = landing.heroBadge || "";
+  els.landingHeroHeadline.textContent = landing.heroHeadline || "";
+  els.landingMetrics.innerHTML = landing.metrics.map((item, i) => `<div class="metric" data-edit-box="metric:${i}"><b data-edit-key="metric:${i}:value" dir="auto">${escapeHtml(item.value)}</b><span data-edit-key="metric:${i}:label" dir="auto">${escapeHtml(item.label)}</span></div>`).join("");
+  els.landingMetrics.classList.toggle("hidden", landing.metrics.length === 0);
+  els.landingCards.innerHTML = landing.cards.map((item, i) => `<div class="mini-card" data-edit-box="card:${i}"><strong data-edit-key="card:${i}:title" dir="auto">${escapeHtml(item.title)}</strong><p class="hint" data-edit-key="card:${i}:text" dir="auto">${escapeHtml(item.text)}</p></div>`).join("");
+  els.landingCards.classList.toggle("hidden", landing.cards.length === 0);
+  applyLandingHeroImage(landing);
 }
 
 function applyLandingHeroImage(landing) {
@@ -2738,6 +2800,7 @@ function readLandingForm() {
     heroImages: images,
     heroImage: images[0] || "",
     heroInterval: Number(els.adminLandingHeroInterval.value),
+    copyright: els.adminLandingCopyright.value.trim(),
     metrics: readLandingMetricsFromAdmin(),
     cards: readLandingCardsFromAdmin()
   };
@@ -2761,6 +2824,668 @@ async function uploadLandingHero() {
   els.adminLandingHeroImage.value = "";
   if (!added.length) return;
   await setHeroImages([...heroImagesOf(state.settings.landing), ...added]);
+}
+
+/* ------------------------------------------------------------------
+   Home page design: styles, free text boxes, theme, copyright
+------------------------------------------------------------------ */
+
+function cleanColor(value) {
+  return /^#[0-9a-f]{6}$/i.test(String(value || "")) ? value : "";
+}
+
+function cleanStyle(style = {}) {
+  const num = (value, min, max) => {
+    const n = Number(value);
+    return Number.isFinite(n) && value !== "" && value !== null ? Math.min(max, Math.max(min, n)) : null;
+  };
+  return {
+    font: FONT_STACKS[style.font] ? style.font : "",
+    size: num(style.size, 10, 120),
+    bold: style.bold === true ? true : style.bold === false ? false : null,
+    italic: style.italic === true,
+    align: ["left", "center", "right"].includes(style.align) ? style.align : "",
+    color: cleanColor(style.color),
+    fill: style.fill === "none" ? "none" : cleanColor(style.fill),
+    radius: num(style.radius, 0, 40),
+    hidden: style.hidden === true
+  };
+}
+
+function applyElementStyle(el, raw, { text = true, box = true } = {}) {
+  const st = cleanStyle(raw);
+  if (box) {
+    if (st.fill === "none") {
+      el.style.background = "transparent";
+      el.style.borderColor = "transparent";
+    } else if (st.fill) {
+      el.style.background = st.fill;
+      el.style.backgroundImage = "none";
+    } else {
+      el.style.background = "";
+      el.style.borderColor = "";
+    }
+    el.style.borderRadius = st.radius === null ? "" : `${st.radius}px`;
+  }
+  if (text) {
+    el.style.fontFamily = st.font ? FONT_STACKS[st.font] : "";
+    el.style.fontSize = st.size ? `${st.size}px` : "";
+    el.style.fontWeight = st.bold === null ? "" : st.bold ? "800" : "400";
+    el.style.fontStyle = st.italic ? "italic" : "";
+    el.style.textAlign = st.align;
+    el.style.color = st.color;
+    el.style.webkitTextFillColor = st.color ? st.color : "";
+    if (st.color) el.style.backgroundImage = "none";
+    else if (!st.fill) el.style.backgroundImage = "";
+  }
+  el.classList.toggle("is-hidden-el", st.hidden);
+}
+
+function formatCopyright(template, brand) {
+  return String(template || "").replaceAll("{year}", String(new Date().getFullYear())).replaceAll("{name}", brand || "");
+}
+
+function defaultCopyright(landing) {
+  return `© {year} ${landing.brandName || ""}. All rights reserved.`;
+}
+
+function applyLandingDesign(landing, { editing = false } = {}) {
+  const styles = landing.styles && typeof landing.styles === "object" ? landing.styles : {};
+  const copyright = landing.copyright ?? defaultCopyright(landing);
+  els.landingFooterName.textContent = editing ? copyright : formatCopyright(copyright, landing.brandName);
+  els.appCopyright.textContent = formatCopyright(copyright, landing.brandName);
+
+  els.loginView.querySelectorAll("[data-edit-key]").forEach(el => {
+    const key = el.dataset.editKey;
+    const isBox = el.hasAttribute("data-edit-box");
+    applyElementStyle(el, styles[key], { text: true, box: !isBox && !el.closest("[data-edit-box]") });
+  });
+  els.loginView.querySelectorAll("[data-edit-box]").forEach(el => {
+    if (el.classList.contains("free-box")) return;
+    applyElementStyle(el, styles[el.dataset.editBox], { text: false, box: true });
+  });
+
+  renderFreeBoxes(landing, editing);
+
+  const theme = landing.theme || {};
+  const bg1 = cleanColor(theme.bg1);
+  const bg2 = cleanColor(theme.bg2);
+  els.loginView.style.background = bg1 && bg2 ? `linear-gradient(160deg, ${bg1}, ${bg2})` : bg1 || bg2 || "";
+  const accent = cleanColor(theme.accent);
+  els.loginView.style.setProperty("--lp-accent", accent || "");
+  els.loginView.style.setProperty("--lp-accent-dark", accent || "");
+  els.loginView.style.fontFamily = FONT_STACKS[theme.font] || "";
+  els.loginView.classList.toggle("plain-headline", theme.gradient === false);
+}
+
+function renderFreeBoxes(landing, editing) {
+  const boxes = Array.isArray(landing.boxes) ? landing.boxes : [];
+  els.landingBoxes.innerHTML = "";
+  for (const box of boxes) {
+    const el = document.createElement("div");
+    el.className = "free-box";
+    el.dataset.freeBox = box.id;
+    el.dataset.editBox = `box:${box.id}`;
+    el.dir = "auto";
+    const x = Math.min(98, Math.max(0, Number(box.x) || 0));
+    const y = Math.min(98, Math.max(0, Number(box.y) || 0));
+    const w = Math.min(100, Math.max(4, Number(box.w) || 25));
+    const h = Math.min(900, Math.max(24, Number(box.h) || 60));
+    el.style.left = `${x}%`;
+    el.style.top = `${y}%`;
+    el.style.width = `${w}%`;
+    el.style.minHeight = `${h}px`;
+    el.style.zIndex = String(Math.min(999, Math.max(1, Number(box.z) || 1)));
+    const text = document.createElement("div");
+    text.className = "free-box-text";
+    text.textContent = String(box.text || "");
+    el.appendChild(text);
+    applyElementStyle(el, box.style, { text: true, box: true });
+    if (editing) {
+      for (const dir of ["nw", "ne", "sw", "se", "e", "w"]) {
+        const handle = document.createElement("span");
+        handle.className = `handle ${dir}`;
+        handle.dataset.handle = dir;
+        el.appendChild(handle);
+      }
+    }
+    els.landingBoxes.appendChild(el);
+  }
+}
+
+/* ---------------- Editor ---------------- */
+
+function startDesigner() {
+  if (currentUser?.role !== "admin") return;
+  designer.active = true;
+  designer.draft = structuredClone(normalizeLanding(state.settings.landing));
+  designer.draft.styles ||= {};
+  designer.draft.boxes ||= [];
+  designer.draft.theme ||= {};
+  designer.draft.copyright ??= defaultCopyright(designer.draft);
+  designer.undo = [];
+  designer.selected = null;
+  els.appView.classList.add("hidden");
+  els.loginView.classList.remove("hidden");
+  els.loginView.classList.add("designing");
+  els.designerBar.classList.remove("hidden");
+  showAuthPanel("signin");
+  renderDesigner();
+  window.scrollTo({ top: 0 });
+  showDesignerHint("Click any text to edit it. Drag text boxes to move them, pull the corners to resize.");
+}
+
+function stopDesigner() {
+  designer.active = false;
+  deselect();
+  els.loginView.classList.remove("designing");
+  els.designerBar.classList.add("hidden");
+  els.dTheme.classList.add("hidden");
+  els.loginView.classList.add("hidden");
+  els.appView.classList.remove("hidden");
+  renderLanding();
+  showView("admin");
+  document.querySelector('[data-admin-section="landingAdmin"]')?.click();
+}
+
+async function saveDesigner() {
+  commitEditingText();
+  state.settings.landing = structuredClone(designer.draft);
+  els.dSave.disabled = true;
+  await saveSettings();
+  els.dSave.disabled = false;
+  stopDesigner();
+}
+
+function cancelDesigner() {
+  if (designer.undo.length && !window.confirm("Discard your changes to the home page?")) return;
+  stopDesigner();
+}
+
+function renderDesigner() {
+  const keepKey = designer.selected?.key;
+  renderLandingView(designer.draft);
+  applyLandingDesign(designer.draft, { editing: true });
+  syncThemeControls();
+  designer.selected = null;
+  if (keepKey) {
+    const el = keepKey.startsWith("box:")
+      ? els.landingBoxes.querySelector(`[data-edit-box="${keepKey}"]`)
+      : els.loginView.querySelector(`[data-edit-key="${keepKey}"]`);
+    if (el) select(el, { focusText: false });
+  }
+  if (!designer.selected) updateFormatBar();
+}
+
+function pushUndo() {
+  const now = Date.now();
+  if (now - (pushUndo.last || 0) < 400) return;
+  pushUndo.last = now;
+  designer.undo.push(JSON.stringify(designer.draft));
+  if (designer.undo.length > 60) designer.undo.shift();
+}
+
+function undoDesigner() {
+  const last = designer.undo.pop();
+  if (!last) return showToast("Nothing to undo.");
+  designer.draft = JSON.parse(last);
+  renderDesigner();
+}
+
+function showDesignerHint(text) {
+  let hint = document.querySelector(".designer-hint");
+  if (!hint) {
+    hint = document.createElement("div");
+    hint.className = "designer-hint";
+    document.body.appendChild(hint);
+  }
+  hint.textContent = text;
+  window.clearTimeout(showDesignerHint.timer);
+  hint.style.display = "block";
+  showDesignerHint.timer = window.setTimeout(() => { hint.style.display = "none"; }, 5000);
+}
+
+/* ---- selection ---- */
+function selectionFor(el) {
+  if (el.classList.contains("free-box")) {
+    return { el, key: el.dataset.editBox, boxKey: el.dataset.editBox, kind: "free", boxEl: el };
+  }
+  const key = el.dataset.editKey;
+  const boxEl = el.closest("[data-edit-box]") || el;
+  return { el, key, boxKey: boxEl.dataset.editBox || key, kind: "text", boxEl };
+}
+
+function select(el, { focusText = true } = {}) {
+  if (designer.selected?.el === el) return;
+  deselect();
+  designer.selected = selectionFor(el);
+  el.classList.add("is-selected");
+  if (designer.selected.boxEl !== el) designer.selected.boxEl.classList.add("is-selected");
+  if (designer.selected.kind === "text" && focusText) startTextEdit(el);
+  updateFormatBar();
+}
+
+function deselect() {
+  commitEditingText();
+  els.loginView.querySelectorAll(".is-selected").forEach(node => node.classList.remove("is-selected"));
+  designer.selected = null;
+  updateFormatBar();
+}
+
+function startTextEdit(el) {
+  const target = el.classList.contains("free-box") ? el.querySelector(".free-box-text") : el;
+  if (!target) return;
+  pushUndo();
+  try {
+    target.contentEditable = "plaintext-only";
+  } catch {
+    target.contentEditable = "true";
+  }
+  if (target.contentEditable !== "plaintext-only") target.contentEditable = "true";
+  if (el.classList.contains("free-box")) el.classList.add("editing");
+  target.focus();
+  const range = document.createRange();
+  range.selectNodeContents(target);
+  range.collapse(false);
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(range);
+  designer.editing = { el, target };
+}
+
+function commitEditingText() {
+  const editing = designer.editing;
+  if (!editing) return;
+  designer.editing = null;
+  const text = editing.target.innerText.replace(/\n$/, "");
+  editing.target.removeAttribute("contenteditable");
+  editing.el.classList.remove("editing");
+  setDraftText(editing.el, text);
+}
+
+function setDraftText(el, text) {
+  const draft = designer.draft;
+  if (el.classList.contains("free-box")) {
+    const box = draft.boxes.find(item => item.id === el.dataset.freeBox);
+    if (box) box.text = text.slice(0, 2000);
+    return;
+  }
+  const key = el.dataset.editKey;
+  const value = text.slice(0, 1000);
+  let match;
+  if ((match = key.match(/^metric:(\d+):(value|label)$/))) draft.metrics[Number(match[1])][match[2]] = value;
+  else if ((match = key.match(/^card:(\d+):(title|text)$/))) draft.cards[Number(match[1])][match[2]] = value;
+  else draft[key] = value;
+}
+
+/* ---- format bar ---- */
+function styleOf(key) {
+  if (!key) return {};
+  if (key.startsWith("box:")) return designer.draft.boxes.find(box => `box:${box.id}` === key)?.style || {};
+  return designer.draft.styles[key] || {};
+}
+
+function setStyle(key, patch, { rerender = false } = {}) {
+  if (!key) return;
+  commitEditingText();
+  pushUndo();
+  if (key.startsWith("box:")) {
+    const box = designer.draft.boxes.find(item => `box:${item.id}` === key);
+    if (!box) return;
+    box.style = { ...(box.style || {}), ...patch };
+  } else {
+    designer.draft.styles[key] = { ...(designer.draft.styles[key] || {}), ...patch };
+  }
+  if (rerender) renderDesigner();
+  else {
+    applyLandingDesign(designer.draft, { editing: true });
+    reapplySelectionClasses();
+  }
+  updateFormatBar();
+}
+
+function reapplySelectionClasses() {
+  const sel = designer.selected;
+  if (!sel) return;
+  if (sel.kind === "free") {
+    // free boxes were re-rendered; find the new node
+    const el = els.landingBoxes.querySelector(`[data-edit-box="${sel.key}"]`);
+    if (el) {
+      designer.selected = selectionFor(el);
+      el.classList.add("is-selected");
+    }
+  } else {
+    sel.el.classList.add("is-selected");
+    sel.boxEl.classList.add("is-selected");
+  }
+}
+
+function labelFor(sel) {
+  if (!sel) return "Click any text or box to edit it";
+  if (sel.kind === "free") return "Text box";
+  const key = sel.key;
+  if (/^metric:/.test(key)) return "Small box";
+  if (/^card:/.test(key)) return "Card";
+  return KEY_LABELS[key] || "Text";
+}
+
+function updateFormatBar() {
+  const sel = designer.selected;
+  els.dFormat.classList.toggle("disabled", !sel);
+  els.dSelLabel.textContent = labelFor(sel);
+  if (!sel) return;
+  const textStyle = cleanStyle(styleOf(sel.key));
+  const boxStyle = cleanStyle(styleOf(sel.boxKey));
+  const computed = window.getComputedStyle(sel.kind === "free" ? sel.el : sel.el);
+  els.dFont.value = textStyle.font || "";
+  els.dSize.value = textStyle.size || Math.round(parseFloat(computed.fontSize));
+  els.dBold.classList.toggle("on", textStyle.bold === true || (textStyle.bold === null && Number(computed.fontWeight) >= 700));
+  els.dItalic.classList.toggle("on", textStyle.italic);
+  document.querySelectorAll("[data-align]").forEach(button => button.classList.toggle("on", (textStyle.align || "") === button.dataset.align));
+  els.dColor.value = textStyle.color || rgbToHex(computed.color) || "#ffffff";
+  els.dFill.value = boxStyle.fill && boxStyle.fill !== "none" ? boxStyle.fill : rgbToHex(window.getComputedStyle(sel.boxEl).backgroundColor) || "#ffffff";
+  els.dRadius.value = boxStyle.radius ?? (parseFloat(window.getComputedStyle(sel.boxEl).borderTopLeftRadius) || 0);
+  const removable = sel.kind === "free" || /^(metric|card):/.test(sel.key);
+  els.dHide.textContent = removable ? "Delete" : textStyle.hidden ? "Show" : "Hide";
+  els.dFront.classList.toggle("hidden", sel.kind !== "free");
+  els.dBack.classList.toggle("hidden", sel.kind !== "free");
+}
+
+function rgbToHex(value) {
+  const match = String(value || "").match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/);
+  if (!match || (match[4] !== undefined && Number(match[4]) === 0)) return "";
+  return `#${[match[1], match[2], match[3]].map(n => Number(n).toString(16).padStart(2, "0")).join("")}`;
+}
+
+function deleteOrHideSelected() {
+  const sel = designer.selected;
+  if (!sel) return;
+  let match;
+  if (sel.kind === "free") {
+    pushUndo();
+    designer.draft.boxes = designer.draft.boxes.filter(box => `box:${box.id}` !== sel.key);
+    designer.selected = null;
+    renderDesigner();
+  } else if ((match = sel.key.match(/^(metric|card):(\d+)/))) {
+    pushUndo();
+    const [, kind, idx] = match;
+    const list = kind === "metric" ? designer.draft.metrics : designer.draft.cards;
+    list.splice(Number(idx), 1);
+    shiftStyleKeys(kind, Number(idx));
+    designer.selected = null;
+    renderDesigner();
+  } else {
+    setStyle(sel.key, { hidden: !cleanStyle(styleOf(sel.key)).hidden });
+  }
+}
+
+function shiftStyleKeys(kind, removed) {
+  const styles = designer.draft.styles;
+  const next = {};
+  for (const [key, value] of Object.entries(styles)) {
+    const match = key.match(new RegExp(`^${kind}:(\\d+)(.*)$`));
+    if (!match) { next[key] = value; continue; }
+    const i = Number(match[1]);
+    if (i === removed) continue;
+    next[`${kind}:${i > removed ? i - 1 : i}${match[2]}`] = value;
+  }
+  designer.draft.styles = next;
+}
+
+function addFreeBox() {
+  pushUndo();
+  const canvas = els.landingCanvas.getBoundingClientRect();
+  const viewMid = window.innerHeight / 2 - canvas.top;
+  const y = Math.min(90, Math.max(2, (viewMid / canvas.height) * 100 - 4));
+  const id = crypto.randomUUID().slice(0, 8);
+  const z = Math.max(1, ...designer.draft.boxes.map(box => Number(box.z) || 1)) + 1;
+  designer.draft.boxes.push({ id, text: "New text", x: 36, y, w: 28, h: 60, z, style: { size: 24, bold: true, color: "#ffffff", fill: "#0f766e", radius: 12, align: "center" } });
+  designer.selected = null;
+  renderDesigner();
+  const el = els.landingBoxes.querySelector(`[data-free-box="${id}"]`);
+  if (el) {
+    select(el);
+    startTextEdit(el);
+    document.execCommand?.("selectAll");
+  }
+}
+
+function addMetric() {
+  pushUndo();
+  designer.draft.metrics.push({ value: "New", label: "Small box" });
+  renderDesigner();
+}
+
+function addCard() {
+  pushUndo();
+  designer.draft.cards.push({ title: "New card", text: "Write the card text here." });
+  renderDesigner();
+}
+
+function syncThemeControls() {
+  const theme = designer.draft.theme || {};
+  els.tBg1.value = cleanColor(theme.bg1) || "#0b2421";
+  els.tBg2.value = cleanColor(theme.bg2) || "#132d4a";
+  els.tAccent.value = cleanColor(theme.accent) || "#0f766e";
+  els.tFont.value = FONT_STACKS[theme.font] ? theme.font : "";
+  els.tGradient.checked = theme.gradient !== false;
+}
+
+function setTheme(patch) {
+  commitEditingText();
+  pushUndo();
+  designer.draft.theme = { ...(designer.draft.theme || {}), ...patch };
+  applyLandingDesign(designer.draft, { editing: true });
+  reapplySelectionClasses();
+}
+
+/* ---- pointer: select, drag, resize ---- */
+function onDesignerPointerDown(event) {
+  if (!designer.active || event.button !== 0) return;
+  if (event.target.closest("#designerBar")) return;
+  const freeBox = event.target.closest(".free-box");
+  if (freeBox) {
+    if (freeBox.classList.contains("editing")) return;
+    event.preventDefault();
+    select(freeBox, { focusText: false });
+    const handle = event.target.closest("[data-handle]")?.dataset.handle || null;
+    const box = designer.draft.boxes.find(item => item.id === freeBox.dataset.freeBox);
+    const canvas = els.landingCanvas.getBoundingClientRect();
+    designer.drag = {
+      el: freeBox, box, handle, canvas,
+      startX: event.clientX, startY: event.clientY,
+      orig: { x: Number(box.x) || 0, y: Number(box.y) || 0, w: Number(box.w) || 25, h: freeBox.offsetHeight },
+      moved: false
+    };
+    freeBox.setPointerCapture?.(event.pointerId);
+    return;
+  }
+  const editable = event.target.closest("[data-edit-key]");
+  if (editable && els.loginView.contains(editable)) {
+    if (designer.editing?.el === editable) return;
+    event.preventDefault();
+    select(editable);
+    return;
+  }
+  if (els.loginView.contains(event.target)) deselect();
+}
+
+function onDesignerPointerMove(event) {
+  const drag = designer.drag;
+  if (!drag) return;
+  const dxPx = event.clientX - drag.startX;
+  const dyPx = event.clientY - drag.startY;
+  if (!drag.moved && Math.abs(dxPx) + Math.abs(dyPx) < 3) return;
+  if (!drag.moved) {
+    pushUndo();
+    drag.moved = true;
+  }
+  const dx = (dxPx / drag.canvas.width) * 100;
+  const dy = (dyPx / drag.canvas.height) * 100;
+  const { orig, box, el, handle } = drag;
+  if (!handle) {
+    box.x = clampPct(orig.x + dx, 0, 100 - orig.w);
+    box.y = clampPct(orig.y + dy, 0, 98);
+  } else {
+    if (handle.includes("e")) box.w = clampPct(orig.w + dx, 4, 100 - orig.x);
+    if (handle.includes("w")) {
+      const w = clampPct(orig.w - dx, 4, orig.x + orig.w);
+      box.x = orig.x + orig.w - w;
+      box.w = w;
+    }
+    if (handle.includes("s")) box.h = Math.max(24, Math.round(orig.h + dyPx));
+    if (handle.includes("n")) {
+      const h = Math.max(24, Math.round(orig.h - dyPx));
+      box.y = clampPct(orig.y + ((orig.h - h) / drag.canvas.height) * 100, 0, 98);
+      box.h = h;
+    }
+  }
+  el.style.left = `${box.x}%`;
+  el.style.top = `${box.y}%`;
+  el.style.width = `${box.w}%`;
+  el.style.minHeight = `${box.h || orig.h}px`;
+}
+
+function onDesignerPointerUp() {
+  designer.drag = null;
+}
+
+function clampPct(value, min, max) {
+  return Math.round(Math.min(max, Math.max(min, value)) * 10) / 10;
+}
+
+function onDesignerDoubleClick(event) {
+  if (!designer.active) return;
+  const freeBox = event.target.closest(".free-box");
+  if (!freeBox) return;
+  select(freeBox, { focusText: false });
+  startTextEdit(freeBox);
+}
+
+function onDesignerKeyDown(event) {
+  if (!designer.active) return;
+  const mod = event.metaKey || event.ctrlKey;
+  if (mod && event.key.toLowerCase() === "z" && !designer.editing) {
+    event.preventDefault();
+    undoDesigner();
+    return;
+  }
+  if (mod && event.key.toLowerCase() === "s") {
+    event.preventDefault();
+    saveDesigner();
+    return;
+  }
+  if (designer.editing) {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      commitEditingText();
+    } else if (event.key === "Enter" && !event.shiftKey) {
+      const key = designer.editing.el.dataset.editKey;
+      const multiline = designer.editing.el.classList.contains("free-box") || MULTILINE_KEYS.test(key || "");
+      if (!multiline) {
+        event.preventDefault();
+        commitEditingText();
+      }
+    }
+    return;
+  }
+  const sel = designer.selected;
+  if (!sel) return;
+  if (event.key === "Escape") return deselect();
+  if (sel.kind === "free" && (event.key === "Delete" || event.key === "Backspace")) {
+    event.preventDefault();
+    deleteOrHideSelected();
+    return;
+  }
+  if (sel.kind === "free" && event.key.startsWith("Arrow")) {
+    event.preventDefault();
+    const box = designer.draft.boxes.find(item => `box:${item.id}` === sel.key);
+    if (!box) return;
+    pushUndo();
+    const step = event.shiftKey ? 2 : 0.5;
+    if (event.key === "ArrowLeft") box.x = clampPct(box.x - step, 0, 100 - box.w);
+    if (event.key === "ArrowRight") box.x = clampPct(box.x + step, 0, 100 - box.w);
+    if (event.key === "ArrowUp") box.y = clampPct(box.y - step, 0, 98);
+    if (event.key === "ArrowDown") box.y = clampPct(box.y + step, 0, 98);
+    sel.el.style.left = `${box.x}%`;
+    sel.el.style.top = `${box.y}%`;
+  }
+}
+
+function bindDesigner() {
+  els.openDesigner.addEventListener("click", startDesigner);
+  els.dSave.addEventListener("click", saveDesigner);
+  els.dCancel.addEventListener("click", cancelDesigner);
+  els.dUndo.addEventListener("click", undoDesigner);
+  els.dAddBox.addEventListener("click", addFreeBox);
+  els.dAddMetric.addEventListener("click", addMetric);
+  els.dAddCard.addEventListener("click", addCard);
+  els.dThemeBtn.addEventListener("click", () => {
+    els.dTheme.classList.toggle("hidden");
+    els.dThemeBtn.classList.toggle("on", !els.dTheme.classList.contains("hidden"));
+  });
+  els.dFont.addEventListener("change", () => setStyle(designer.selected?.key, { font: els.dFont.value }));
+  els.dSize.addEventListener("change", () => setStyle(designer.selected?.key, { size: Number(els.dSize.value) || null }));
+  els.dBold.addEventListener("click", () => setStyle(designer.selected?.key, { bold: !els.dBold.classList.contains("on") }));
+  els.dItalic.addEventListener("click", () => setStyle(designer.selected?.key, { italic: !els.dItalic.classList.contains("on") }));
+  document.querySelectorAll("[data-align]").forEach(button => button.addEventListener("click", () => setStyle(designer.selected?.key, { align: button.dataset.align })));
+  els.dColor.addEventListener("input", () => setStyle(designer.selected?.key, { color: els.dColor.value }));
+  els.dFill.addEventListener("input", () => setStyle(designer.selected?.boxKey, { fill: els.dFill.value }));
+  els.dNoFill.addEventListener("click", () => setStyle(designer.selected?.boxKey, { fill: "none" }));
+  els.dRadius.addEventListener("input", () => setStyle(designer.selected?.boxKey, { radius: Number(els.dRadius.value) }));
+  els.dReset.addEventListener("click", () => {
+    const sel = designer.selected;
+    if (!sel) return;
+    pushUndo();
+    if (sel.kind === "free") {
+      const box = designer.draft.boxes.find(item => `box:${item.id}` === sel.key);
+      if (box) box.style = { size: 24, bold: true, color: "#ffffff", fill: "#0f766e", radius: 12, align: "center" };
+    } else {
+      delete designer.draft.styles[sel.key];
+      if (sel.boxKey !== sel.key) delete designer.draft.styles[sel.boxKey];
+    }
+    renderDesigner();
+  });
+  els.dHide.addEventListener("click", deleteOrHideSelected);
+  els.dFront.addEventListener("click", () => {
+    const sel = designer.selected;
+    const box = sel && designer.draft.boxes.find(item => `box:${item.id}` === sel.key);
+    if (!box) return;
+    pushUndo();
+    box.z = Math.max(...designer.draft.boxes.map(item => Number(item.z) || 1)) + 1;
+    renderDesigner();
+  });
+  els.dBack.addEventListener("click", () => {
+    const sel = designer.selected;
+    const box = sel && designer.draft.boxes.find(item => `box:${item.id}` === sel.key);
+    if (!box) return;
+    pushUndo();
+    designer.draft.boxes.forEach(item => { item.z = (Number(item.z) || 1) + 1; });
+    box.z = 1;
+    renderDesigner();
+  });
+  els.tBg1.addEventListener("input", () => setTheme({ bg1: els.tBg1.value, bg2: els.tBg2.value }));
+  els.tBg2.addEventListener("input", () => setTheme({ bg1: els.tBg1.value, bg2: els.tBg2.value }));
+  els.tAccent.addEventListener("input", () => setTheme({ accent: els.tAccent.value }));
+  els.tFont.addEventListener("change", () => setTheme({ font: els.tFont.value }));
+  els.tGradient.addEventListener("change", () => setTheme({ gradient: els.tGradient.checked }));
+  els.tReset.addEventListener("click", () => {
+    pushUndo();
+    designer.draft.theme = {};
+    renderDesigner();
+  });
+  // Keep the format bar's own clicks from stealing the text selection.
+  els.designerBar.addEventListener("pointerdown", event => {
+    if (event.target.closest("button")) event.preventDefault();
+  });
+  document.addEventListener("pointerdown", onDesignerPointerDown, true);
+  document.addEventListener("pointermove", onDesignerPointerMove);
+  document.addEventListener("pointerup", onDesignerPointerUp);
+  document.addEventListener("dblclick", onDesignerDoubleClick);
+  document.addEventListener("keydown", onDesignerKeyDown);
+  els.loginView.addEventListener("click", event => {
+    if (designer.active && event.target.closest("a, button, form") && !event.target.closest("#designerBar")) event.preventDefault();
+  }, true);
 }
 
 async function lookupEmailForUsername(username) {
