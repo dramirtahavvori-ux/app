@@ -32,35 +32,39 @@ only the anon key.
 1. Create a Supabase project.
 2. Open the Supabase SQL Editor.
 3. Run `supabase/migrations/0001_initial_schema.sql`.
-4. In Authentication settings, enable Email/Password sign in.
-5. Create each real user in Supabase Authentication.
-6. For every Auth user, add a matching row in `public.profiles`.
+4. Run `supabase/migrations/0002_signup_approval.sql`.
+5. Run `supabase/migrations/0003_updates_training_access.sql`.
+6. In Authentication settings, enable Email/Password sign in.
 
-Example `profiles` row:
+## Features
+
+- **Morning report**: schedule, next-session countdown, presenters and guests,
+  locked audience questions, live Q&A and hand raise, slides and recordings.
+- **Reminders**: every session can be added to Google Calendar or Apple /
+  Outlook (.ics) with alerts the day before and 15 minutes before. All
+  upcoming sessions can be added at once.
+- **Updates**: admins post updates, reminders, events and training news.
+  Pinned posts appear on the morning report; users see an unread badge.
+- **Training programs**: courses with lessons (text, YouTube/Vimeo video,
+  files), per-user progress, printable certificate of completion, and an admin
+  progress report.
+
+## Accounts and Access
+
+- Anyone can create an account from the home page (**Create account**).
+- New accounts start as **Waiting for approval** and cannot use the app yet.
+- An admin opens **Admin console → Users / Access**, chooses the access level
+  and presses **Approve** (or **Reject**).
+- Access levels: `admin` (panelist, full control), `presenter` (speaker),
+  `user` (clinician / attendee).
+- Admins can change any user's access level or block them later from the same page.
+
+The first admin must be set once in the Supabase SQL Editor:
 
 ```sql
-insert into public.profiles (
-  id,
-  username,
-  full_name,
-  email,
-  role,
-  discipline,
-  university,
-  location
-) values (
-  'AUTH_USER_UUID_HERE',
-  'amiradmin',
-  'Program Admin',
-  'admin@example.com',
-  'admin',
-  'Nephrology',
-  'Loma Linda University',
-  'Loma Linda, USA'
-);
+update public.profiles set role = 'admin', status = 'approved'
+where email = 'you@example.com';
 ```
-
-Allowed roles are `admin`, `presenter`, and `user`.
 
 ## Run Locally
 
