@@ -443,7 +443,19 @@ export const DICT = {
     "Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.": "Gracias por asistir a nuestro reporte matutino de nefrología. Agradecemos su participación.",
     "Language": "Idioma",
     "Mic and camera are off.": "El micrófono y la cámara están apagados.",
-    "Browser permission failed. Use HTTPS and allow camera/microphone.": "El navegador no dio permiso. Use HTTPS y permita la cámara y el micrófono."
+    "Browser permission failed. Use HTTPS and allow camera/microphone.": "El navegador no dio permiso. Use HTTPS y permita la cámara y el micrófono.",
+    "Box selected: change its fill color, corners, font or text color. Click the text inside to edit the words.": "Recuadro seleccionado: cambie el relleno, las esquinas, la fuente o el color del texto. Haga clic en el texto para editar las palabras.",
+    "Sign-in card": "Tarjeta de acceso",
+    "Text box": "Cuadro de texto",
+    "Small box": "Recuadro",
+    "Card": "Tarjeta",
+    "Click any text or box to edit it": "Haga clic en un texto o recuadro para editarlo",
+    "Tagline": "Eslogan",
+    "Badge": "Etiqueta",
+    "Main headline": "Titular principal",
+    "Description": "Descripción",
+    "Sign-in title": "Título de acceso",
+    "Copyright": "Copyright"
   },
   "fr": {
     "Home page editor": "Éditeur de la page d'accueil",
@@ -879,7 +891,19 @@ export const DICT = {
     "Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.": "Merci d'avoir assisté à notre rapport du matin de néphrologie. Nous apprécions votre participation.",
     "Language": "Langue",
     "Mic and camera are off.": "Micro et caméra désactivés.",
-    "Browser permission failed. Use HTTPS and allow camera/microphone.": "Autorisation refusée par le navigateur. Utilisez HTTPS et autorisez caméra et micro."
+    "Browser permission failed. Use HTTPS and allow camera/microphone.": "Autorisation refusée par le navigateur. Utilisez HTTPS et autorisez caméra et micro.",
+    "Box selected: change its fill color, corners, font or text color. Click the text inside to edit the words.": "Encadré sélectionné : modifiez le fond, les coins, la police ou la couleur du texte. Cliquez sur le texte pour modifier les mots.",
+    "Sign-in card": "Carte de connexion",
+    "Text box": "Zone de texte",
+    "Small box": "Petit encadré",
+    "Card": "Carte",
+    "Click any text or box to edit it": "Cliquez sur un texte ou un encadré pour le modifier",
+    "Tagline": "Slogan",
+    "Badge": "Badge",
+    "Main headline": "Titre principal",
+    "Description": "Description",
+    "Sign-in title": "Titre de connexion",
+    "Copyright": "Copyright"
   },
   "fa": {
     "Home page editor": "ویرایشگر صفحه اول",
@@ -1315,7 +1339,19 @@ export const DICT = {
     "Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.": "از حضور شما در گزارش صبحگاهی نفرولوژی سپاسگزاریم. مشارکت شما برای ما ارزشمند است.",
     "Language": "زبان",
     "Mic and camera are off.": "میکروفون و دوربین خاموش است.",
-    "Browser permission failed. Use HTTPS and allow camera/microphone.": "مرورگر اجازه نداد. از HTTPS استفاده کنید و به دوربین و میکروفون اجازه دهید."
+    "Browser permission failed. Use HTTPS and allow camera/microphone.": "مرورگر اجازه نداد. از HTTPS استفاده کنید و به دوربین و میکروفون اجازه دهید.",
+    "Box selected: change its fill color, corners, font or text color. Click the text inside to edit the words.": "کادر انتخاب شد: رنگ پس‌زمینه، گوشه‌ها، فونت یا رنگ متن را تغییر دهید. برای تغییر نوشته، روی خود متن کلیک کنید.",
+    "Sign-in card": "کارت ورود",
+    "Text box": "کادر متن",
+    "Small box": "کادر کوچک",
+    "Card": "کارت",
+    "Click any text or box to edit it": "روی هر متن یا کادری کلیک کنید تا ویرایشش کنید",
+    "Tagline": "شعار",
+    "Badge": "برچسب",
+    "Main headline": "تیتر اصلی",
+    "Description": "توضیحات",
+    "Sign-in title": "عنوان ورود",
+    "Copyright": "کپی‌رایت"
   },
   "tr": {
     "Home page editor": "Ana sayfa düzenleyici",
@@ -1751,6 +1787,18 @@ export const DICT = {
     "Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.": "Nefroloji sabah raporumuza katıldığınız için teşekkür ederiz. Katılımınız için minnettarız.",
     "Language": "Dil",
     "Mic and camera are off.": "Mikrofon ve kamera kapalı.",
-    "Browser permission failed. Use HTTPS and allow camera/microphone.": "Tarayıcı izni alınamadı. HTTPS kullanın ve kamera/mikrofona izin verin."
+    "Browser permission failed. Use HTTPS and allow camera/microphone.": "Tarayıcı izni alınamadı. HTTPS kullanın ve kamera/mikrofona izin verin.",
+    "Box selected: change its fill color, corners, font or text color. Click the text inside to edit the words.": "Kutu seçildi: dolgu rengini, köşeleri, yazı tipini veya metin rengini değiştirin. Kelimeleri düzenlemek için metne tıklayın.",
+    "Sign-in card": "Giriş kartı",
+    "Text box": "Metin kutusu",
+    "Small box": "Küçük kutu",
+    "Card": "Kart",
+    "Click any text or box to edit it": "Düzenlemek için herhangi bir metne veya kutuya tıklayın",
+    "Tagline": "Slogan",
+    "Badge": "Rozet",
+    "Main headline": "Ana başlık",
+    "Description": "Açıklama",
+    "Sign-in title": "Giriş başlığı",
+    "Copyright": "Telif hakkı"
   }
 };

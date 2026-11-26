@@ -745,6 +745,7 @@ async function hydrateSession(user) {
 
   currentUser = normalizeProfile(profile);
   els.password.value = "";
+  els.username.value = "";
   els.loginView.classList.add("hidden");
   els.appView.classList.remove("hidden");
   els.adminTab.classList.toggle("hidden", currentUser.role !== "admin");
@@ -768,6 +769,7 @@ async function signOut() {
   els.appView.classList.add("hidden");
   els.loginView.classList.remove("hidden");
   els.password.value = "";
+  els.username.value = "";
 }
 
 async function loadSharedData() {
@@ -2967,7 +2969,7 @@ function applyLandingDesign(landing, { editing = false } = {}) {
   });
   els.loginView.querySelectorAll("[data-edit-box]").forEach(el => {
     if (el.classList.contains("free-box")) return;
-    applyElementStyle(el, styles[el.dataset.editBox], { text: false, box: true });
+    applyElementStyle(el, styles[el.dataset.editBox], { text: true, box: true });
   });
 
   renderFreeBoxes(landing, editing);
@@ -3112,6 +3114,9 @@ function showDesignerHint(text) {
 
 /* ---- selection ---- */
 function selectionFor(el) {
+  if (!el.hasAttribute("data-edit-key") && el.hasAttribute("data-edit-box") && !el.classList.contains("free-box")) {
+    return { el, key: el.dataset.editBox, boxKey: el.dataset.editBox, kind: "box", boxEl: el };
+  }
   if (el.classList.contains("free-box")) {
     return { el, key: el.dataset.editBox, boxKey: el.dataset.editBox, kind: "free", boxEl: el };
   }
@@ -3127,6 +3132,7 @@ function select(el, { focusText = true } = {}) {
   el.classList.add("is-selected");
   if (designer.selected.boxEl !== el) designer.selected.boxEl.classList.add("is-selected");
   if (designer.selected.kind === "text" && focusText) startTextEdit(el);
+  if (designer.selected.kind === "box") showDesignerHint(t("Box selected: change its fill color, corners, font or text color. Click the text inside to edit the words."));
   updateFormatBar();
 }
 
@@ -3226,12 +3232,17 @@ function reapplySelectionClasses() {
 }
 
 function labelFor(sel) {
-  if (!sel) return "Click any text or box to edit it";
-  if (sel.kind === "free") return "Text box";
+  if (!sel) return t("Click any text or box to edit it");
+  if (sel.kind === "free") return t("Text box");
+  if (sel.kind === "box") {
+    if (sel.key === "authCard") return t("Sign-in card");
+    if (/^metric:/.test(sel.key)) return t("Small box");
+    return t("Card");
+  }
   const key = sel.key;
-  if (/^metric:/.test(key)) return "Small box";
-  if (/^card:/.test(key)) return "Card";
-  return KEY_LABELS[key] || "Text";
+  if (/^metric:/.test(key)) return t("Small box");
+  if (/^card:/.test(key)) return t("Card");
+  return t(KEY_LABELS[key] || "Text");
 }
 
 function updateFormatBar() {
@@ -3252,6 +3263,7 @@ function updateFormatBar() {
   els.dRadius.value = boxStyle.radius ?? (parseFloat(window.getComputedStyle(sel.boxEl).borderTopLeftRadius) || 0);
   const removable = sel.kind === "free" || /^(metric|card):/.test(sel.key);
   els.dHide.textContent = removable ? t("Delete") : textStyle.hidden ? t("Show") : t("Hide");
+  els.dHide.classList.toggle("hidden", sel.key === "authCard");
   els.dFront.classList.toggle("hidden", sel.kind !== "free");
   els.dBack.classList.toggle("hidden", sel.kind !== "free");
 }
@@ -3370,6 +3382,12 @@ function onDesignerPointerDown(event) {
     if (designer.editing?.el === editable) return;
     event.preventDefault();
     select(editable);
+    return;
+  }
+  const boxEl = event.target.closest("[data-edit-box]");
+  if (boxEl && els.loginView.contains(boxEl)) {
+    event.preventDefault();
+    select(boxEl, { focusText: false });
     return;
   }
   if (els.loginView.contains(event.target)) deselect();
