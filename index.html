@@ -143,23 +143,6 @@
       margin: 0;
     }
 
-    .login-view {
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: minmax(340px, 460px) 1fr;
-    }
-
-    .login-panel {
-      background: rgba(255, 255, 255, .95);
-      border-right: 1px solid rgba(15, 118, 110, .14);
-      padding: 42px;
-      display: grid;
-      align-content: center;
-      gap: 26px;
-      box-shadow: var(--shadow);
-      z-index: 1;
-    }
-
     .brand {
       display: flex;
       align-items: center;
@@ -192,93 +175,247 @@
       font-size: 13px;
     }
 
-    .login-panel h2 {
-      margin: 0;
-      font-size: 31px;
-      line-height: 1.18;
-      letter-spacing: 0;
-    }
-
-    .hero {
+    .login-view {
       min-height: 100vh;
-      padding: 44px;
-      display: grid;
-      place-items: center;
+      display: flex;
+      flex-direction: column;
+      color: #eef8f6;
+      background:
+        radial-gradient(circle at 15% 20%, rgba(45, 212, 191, .28), transparent 34%),
+        radial-gradient(circle at 85% 10%, rgba(96, 165, 250, .25), transparent 30%),
+        radial-gradient(circle at 70% 90%, rgba(201, 144, 44, .18), transparent 32%),
+        linear-gradient(160deg, #0b2421 0%, #0f3a36 45%, #132d4a 100%);
     }
 
-    .hero-board {
-      width: min(900px, 94%);
+    .landing-nav {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 26px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .login-view .brand p {
+      color: rgba(238, 248, 246, .68);
+    }
+
+    .landing-nav-actions,
+    .landing-cta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn.light {
+      background: #ffffff;
+      color: #0a4a45;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, .25);
+    }
+
+    .btn.light:hover {
+      background: #e7f5f2;
+    }
+
+    .btn.ghost {
+      background: rgba(255, 255, 255, .08);
+      color: #eef8f6;
+      border: 1px solid rgba(255, 255, 255, .24);
+      box-shadow: none;
+    }
+
+    .btn.ghost:hover {
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .landing-hero {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 40px 32px 56px;
       display: grid;
-      grid-template-columns: 1.08fr .82fr;
+      grid-template-columns: 1.15fr minmax(340px, 440px);
+      gap: 48px;
+      align-items: center;
+    }
+
+    .landing-copy {
+      display: grid;
+      gap: 22px;
+      animation: rise .7s ease both;
+    }
+
+    .pill.glow {
+      justify-self: start;
+      background: rgba(45, 212, 191, .16);
+      color: #99f6e4;
+      border: 1px solid rgba(153, 246, 228, .35);
+    }
+
+    .landing-copy h2 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 58px);
+      line-height: 1.05;
+      letter-spacing: -1px;
+      background: linear-gradient(90deg, #ffffff, #a7f3d0 60%, #93c5fd);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .landing-lead {
+      margin: 0;
+      max-width: 580px;
+      font-size: 17px;
+      line-height: 1.7;
+      color: rgba(238, 248, 246, .78);
+    }
+
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      max-width: 580px;
+    }
+
+    .metric {
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid rgba(255, 255, 255, .14);
+      padding: 14px 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .metric b {
+      display: block;
+      color: #ffffff;
+      font-size: 22px;
+    }
+
+    .metric span {
+      color: rgba(238, 248, 246, .65);
+      font-size: 12px;
+    }
+
+    .auth-card {
+      background: rgba(255, 255, 255, .97);
+      color: var(--ink);
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .35);
+      display: grid;
       gap: 18px;
-      align-items: stretch;
+      animation: rise .7s .12s ease both;
     }
 
-    .hero-card,
-    .hero-side {
+    .auth-card h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: #eef4f3;
+      border-radius: 10px;
+      padding: 4px;
+    }
+
+    .auth-tabs button {
+      min-height: 36px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, .78);
-      border: 1px solid rgba(15, 118, 110, .16);
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
     }
 
-    .hero-card {
-      padding: 28px;
+    .auth-tabs button.active {
+      background: #ffffff;
+      color: var(--brand-dark);
+      box-shadow: 0 4px 12px rgba(20, 33, 31, .1);
+    }
+
+    .pending-notice {
+      border-radius: 12px;
+      background: var(--soft);
+      border: 1px solid rgba(15, 118, 110, .25);
+      padding: 18px;
+    }
+
+    .pending-notice strong {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--brand-dark);
+    }
+
+    .landing-showcase {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 0 32px 56px;
       display: grid;
-      gap: 18px;
+      gap: 22px;
     }
 
     .hero-image {
       width: 100%;
       height: var(--hero-image-height);
-      max-height: 430px;
+      max-height: 460px;
       object-fit: cover;
-      border-radius: 8px;
-      border: 1px solid rgba(15, 118, 110, .16);
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .3);
     }
 
-    .hero-side {
-      padding: 20px;
+    .feature-grid {
       display: grid;
-      gap: 12px;
-      align-content: start;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 16px;
     }
 
     .mini-card {
-      border-radius: 8px;
-      background: #fbfcfc;
-      border: 1px solid var(--line);
-      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .07);
+      border: 1px solid rgba(255, 255, 255, .14);
+      padding: 20px;
+      transition: transform .2s ease, background .2s ease;
+    }
+
+    .mini-card:hover {
+      transform: translateY(-3px);
+      background: rgba(255, 255, 255, .11);
     }
 
     .mini-card strong {
       display: block;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      color: #ffffff;
+      font-size: 16px;
     }
 
-    .metric-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 10px;
+    .login-view .mini-card .hint {
+      color: rgba(238, 248, 246, .7);
     }
 
-    .metric {
-      border-radius: 8px;
-      background: #f7fbfa;
-      border: 1px solid var(--line);
-      padding: 12px;
+    .landing-footer {
+      margin-top: auto;
+      padding: 22px 32px;
+      text-align: center;
+      font-size: 13px;
+      color: rgba(238, 248, 246, .5);
+      border-top: 1px solid rgba(255, 255, 255, .08);
     }
 
-    .metric b {
-      display: block;
-      color: var(--brand-dark);
-      font-size: 20px;
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: none; }
     }
 
-    .metric span {
-      color: var(--muted);
-      font-size: 12px;
+    @media (prefers-reduced-motion: reduce) {
+      .landing-copy,
+      .auth-card {
+        animation: none;
+      }
     }
 
     .app-shell {
@@ -339,6 +476,13 @@
       display: grid;
       gap: 18px;
       align-content: start;
+    }
+
+    .main > section {
+      display: grid;
+      gap: 18px;
+      align-content: start;
+      min-width: 0;
     }
 
     .topbar {
@@ -831,9 +975,415 @@
       display: block;
     }
 
+    .nav-badge {
+      min-width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      background: #f97316;
+      color: #fff;
+      font-size: 12px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0 6px;
+    }
+
+    .next-session {
+      border-radius: 14px;
+      padding: 20px 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 18px;
+      color: #eef8f6;
+      background: linear-gradient(135deg, #0f3a36, #13457a);
+      box-shadow: 0 18px 40px rgba(15, 58, 54, .25);
+    }
+
+    .next-session .pill {
+      background: rgba(255, 255, 255, .14);
+      color: #a7f3d0;
+    }
+
+    .next-session h3 {
+      margin: 10px 0 4px;
+      font-size: 22px;
+    }
+
+    .next-session .hint {
+      color: rgba(238, 248, 246, .75);
+    }
+
+    .countdown {
+      display: flex;
+      gap: 8px;
+    }
+
+    .countdown div {
+      min-width: 64px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, .1);
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .countdown b {
+      display: block;
+      font-size: 24px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .countdown span {
+      font-size: 11px;
+      opacity: .7;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+
+    .pinned-updates {
+      display: grid;
+      gap: 10px;
+    }
+
+    .updates-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .update-card {
+      border: 1px solid var(--line);
+      border-left: 5px solid var(--brand);
+      border-radius: 12px;
+      background: #ffffff;
+      padding: 16px 18px;
+      box-shadow: 0 10px 28px rgba(17, 32, 31, .05);
+    }
+
+    .update-card.reminder { border-left-color: var(--amber); }
+    .update-card.event { border-left-color: var(--blue); }
+    .update-card.training { border-left-color: var(--violet); }
+
+    .update-card.unread {
+      background: linear-gradient(90deg, #f0fbf8, #ffffff 40%);
+    }
+
+    .update-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      flex-wrap: wrap;
+    }
+
+    .update-card h4 {
+      margin: 6px 0 6px;
+      font-size: 17px;
+    }
+
+    .update-card p {
+      margin: 0;
+      white-space: pre-wrap;
+      line-height: 1.6;
+      color: #2b3a38;
+    }
+
+    .update-card .update-link {
+      display: inline-block;
+      margin-top: 10px;
+      color: var(--brand);
+      font-weight: 800;
+    }
+
+    .tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      background: var(--soft);
+      color: var(--brand-dark);
+    }
+
+    .tag.reminder { background: #fdf3e1; color: #8a5a10; }
+    .tag.event { background: #e6eef9; color: #234a7a; }
+    .tag.training { background: #efebf8; color: #4f3f86; }
+    .tag.pin { background: #fff1e6; color: #b45309; }
+
+    .chip {
+      min-height: 34px;
+      border-radius: 999px;
+      padding: 6px 13px;
+      background: #f5f8f7;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .chip.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #ffffff;
+    }
+
+    .checks {
+      align-content: end;
+      gap: 10px;
+    }
+
+    .checks label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .checks input {
+      width: 18px;
+      min-height: 18px;
+      height: 18px;
+    }
+
+    .calendar-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .training-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      border-radius: 12px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      padding: 16px;
+    }
+
+    .stat b {
+      display: block;
+      font-size: 26px;
+      color: var(--brand-dark);
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .program-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .program-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #ffffff;
+      overflow: hidden;
+      display: grid;
+      grid-template-rows: 140px 1fr;
+      text-align: left;
+      padding: 0;
+      color: var(--ink);
+      box-shadow: 0 10px 28px rgba(17, 32, 31, .06);
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+    .program-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 18px 40px rgba(17, 32, 31, .12);
+    }
+
+    .program-cover {
+      background: linear-gradient(135deg, #0f766e, #2f5f98);
+      background-size: cover;
+      background-position: center;
+      display: grid;
+      place-items: center;
+      color: rgba(255, 255, 255, .9);
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .program-body {
+      padding: 16px;
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .program-body strong {
+      font-size: 16px;
+    }
+
+    .progress-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: #e6eeec;
+      overflow: hidden;
+    }
+
+    .progress-bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #14b8a6, #0f766e);
+      transition: width .4s ease;
+    }
+
+    .progress-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .program-hero {
+      margin: 14px 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .program-hero h3 {
+      margin: 10px 0 6px;
+      font-size: 24px;
+    }
+
+    .program-progress {
+      display: grid;
+      justify-items: center;
+      gap: 10px;
+    }
+
+    .progress-ring {
+      --value: 0;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--brand) calc(var(--value) * 1%), #e6eeec 0);
+    }
+
+    .progress-ring span {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      background: #ffffff;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      font-size: 18px;
+    }
+
+    .lesson-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .lesson {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .lesson summary {
+      list-style: none;
+      cursor: pointer;
+      padding: 14px 16px;
+      display: grid;
+      grid-template-columns: 34px 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .lesson summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .lesson-num {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 900;
+      background: #eef4f3;
+      color: var(--muted);
+    }
+
+    .lesson.done .lesson-num {
+      background: var(--brand);
+      color: #ffffff;
+    }
+
+    .lesson-content {
+      padding: 0 16px 16px 62px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .lesson-content p {
+      margin: 0;
+      white-space: pre-wrap;
+      line-height: 1.7;
+    }
+
+    .video-embed {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #0b1f1d;
+    }
+
+    .video-embed iframe,
+    .video-embed video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    @media (max-width: 660px) {
+      .next-session,
+      .program-hero {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .countdown div {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .lesson-content {
+        padding-left: 16px;
+      }
+
+      .filter-chips {
+        flex-wrap: wrap;
+      }
+    }
+
     @media (max-width: 1020px) {
-      .login-view,
-      .hero-board,
+      .landing-hero {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
       .app-shell,
       .grid {
         grid-template-columns: 1fr;
@@ -841,16 +1391,88 @@
 
       .sidebar {
         min-height: auto;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 12px 16px;
+        gap: 10px;
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
       }
 
-      .hero {
-        min-height: auto;
+      .sidebar .brand-mark {
+        width: 38px;
+        height: 38px;
       }
+
+      .sidebar .brand h1 {
+        font-size: 17px;
+      }
+
+      .sidebar .brand p {
+        display: none;
+      }
+
+      .sidebar .nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        margin: 0 -16px;
+        padding: 0 16px 2px;
+      }
+
+      .sidebar .nav::-webkit-scrollbar {
+        display: none;
+      }
+
+      .sidebar .nav button {
+        width: auto;
+        min-height: 36px;
+        flex: 0 0 auto;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .06);
+      }
+
+      .sidebar .nav button.active {
+        background: #ffffff;
+        color: #0f3a36;
+      }
+
+      .profile-strip {
+        grid-column: 2;
+        grid-row: 1;
+        margin: 0;
+        padding: 0;
+        border: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .profile-strip > div {
+        display: none;
+      }
+
+      .profile-strip .btn {
+        min-height: 34px;
+        padding: 6px 12px;
+        font-size: 13px;
+        width: auto;
+      }
+
     }
 
     @media (max-width: 660px) {
-      .login-panel,
-      .hero,
+      .landing-nav,
+      .landing-hero,
+      .landing-showcase,
       .sidebar,
       .main {
         padding: 18px;
@@ -874,8 +1496,39 @@
         width: 100%;
       }
 
+      .landing-nav-actions {
+        display: none;
+      }
+
+      .landing-hero {
+        gap: 28px;
+      }
+
+      .metric-row {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .metric {
+        padding: 12px;
+      }
+
+      .metric b {
+        font-size: 18px;
+      }
+
+      .auth-card {
+        padding: 22px;
+      }
+
+      .hero-image {
+        height: 220px;
+      }
+
+      .auth-card .form-grid {
+        grid-template-columns: 1fr;
+      }
+
       .form-grid,
-      .metric-row,
       .editable-row,
       .chat-compose {
         grid-template-columns: 1fr;
@@ -885,7 +1538,7 @@
 </head>
 <body>
   <div id="loginView" class="login-view">
-    <section class="login-panel">
+    <header class="landing-nav">
       <div class="brand">
         <div class="brand-mark">NR</div>
         <div>
@@ -893,40 +1546,90 @@
           <p id="landingBrandTagline">Editable nephrology morning report</p>
         </div>
       </div>
+      <div class="landing-nav-actions">
+        <button class="btn ghost" type="button" data-auth-tab="signin">Sign in</button>
+        <button class="btn light" type="button" data-auth-tab="signup">Create account</button>
+      </div>
+    </header>
 
-      <div>
+    <section class="landing-hero">
+      <div class="landing-copy">
+        <span id="landingHeroBadge" class="pill glow">Nephrology case conference</span>
+        <h2 id="landingHeroHeadline">Schedule. Speakers. Guests. Questions. All editable.</h2>
+        <p id="landingLoginLead" class="landing-lead">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
+        <div class="landing-cta">
+          <button class="btn light" type="button" data-auth-tab="signup">Join the rounds</button>
+          <button class="btn ghost" type="button" data-auth-tab="signin">I already have an account</button>
+        </div>
+        <div id="landingMetrics" class="metric-row"></div>
+      </div>
+
+      <div id="authCard" class="auth-card">
         <h2 id="landingLoginHeadline">Build each round yourself.</h2>
-        <p id="landingLoginLead" class="hint">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
-      </div>
-
-      <form id="loginForm">
-        <div class="field">
-          <label for="username">Username</label>
-          <input id="username" autocomplete="username" required>
+        <div class="auth-tabs" role="tablist">
+          <button id="signinTabBtn" class="active" type="button" data-auth-tab="signin">Sign in</button>
+          <button id="signupTabBtn" type="button" data-auth-tab="signup">Create account</button>
         </div>
-        <div class="field" style="margin-top: 12px;">
-          <label for="password">Password</label>
-          <input id="password" type="password" autocomplete="current-password" required>
-        </div>
-        <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Sign in</button>
-      </form>
 
-    </section>
-
-    <section class="hero" aria-hidden="true">
-      <div class="hero-board">
-        <div class="hero-card">
-          <div>
-            <span id="landingHeroBadge" class="pill">Nephrology case conference</span>
-            <h2 id="landingHeroHeadline" style="margin: 14px 0 0; font-size: 28px;">Schedule. Speakers. Guests. Questions. All editable.</h2>
+        <form id="loginForm">
+          <div class="field">
+            <label for="username">Username or email</label>
+            <input id="username" autocomplete="username" required>
           </div>
-          <img id="landingHeroImage" class="hero-image hidden" alt="Nephrology hero image">
-          <div id="landingMetrics" class="metric-row"></div>
-        </div>
+          <div class="field" style="margin-top: 12px;">
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" required>
+          </div>
+          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Sign in</button>
+        </form>
 
-        <div id="landingCards" class="hero-side"></div>
+        <form id="signupForm" class="hidden">
+          <div class="form-grid">
+            <div class="field full">
+              <label for="signupFullName">Full name</label>
+              <input id="signupFullName" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="signupUsername">Username</label>
+              <input id="signupUsername" autocomplete="off" pattern="[A-Za-z0-9._-]{3,30}" title="3-30 letters, numbers, dot, dash or underscore" required>
+            </div>
+            <div class="field">
+              <label for="signupEmail">Email</label>
+              <input id="signupEmail" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="signupDiscipline">Specialty</label>
+              <input id="signupDiscipline" placeholder="Nephrology, Internal Medicine...">
+            </div>
+            <div class="field">
+              <label for="signupUniversity">University / hospital</label>
+              <input id="signupUniversity">
+            </div>
+            <div class="field full">
+              <label for="signupPassword">Password</label>
+              <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required>
+            </div>
+          </div>
+          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Create account</button>
+          <p class="hint" style="margin-top: 10px;">New accounts are reviewed by the organizers before access is granted.</p>
+        </form>
+
+        <div id="pendingNotice" class="pending-notice hidden">
+          <strong id="pendingTitle">Request received</strong>
+          <p id="pendingText" class="hint">Your account is waiting for approval. You will be able to sign in once an organizer approves it.</p>
+          <button id="pendingBack" class="btn secondary" type="button" style="margin-top: 12px;">Back to sign in</button>
+        </div>
       </div>
     </section>
+
+    <section class="landing-showcase">
+      <img id="landingHeroImage" class="hero-image hidden" alt="Hero image">
+      <div id="landingCards" class="feature-grid"></div>
+    </section>
+
+    <footer class="landing-footer">
+      <span id="landingFooterName">NephroRounds Studio</span>
+    </footer>
   </div>
 
   <div id="appView" class="app-shell hidden">
@@ -940,10 +1643,12 @@
       </div>
 
       <nav class="nav">
-        <button id="reportTab" class="active" type="button">Morning report <span>01</span></button>
-        <button id="profileTab" type="button">My profile <span>02</span></button>
-        <button id="presenterTab" class="hidden" type="button">My presentation <span>03</span></button>
-        <button id="adminTab" class="hidden" type="button">Admin console <span>04</span></button>
+        <button id="reportTab" class="active" type="button">Morning report</button>
+        <button id="updatesTab" type="button">Updates <span id="updatesBadge" class="nav-badge hidden">0</span></button>
+        <button id="trainingTab" type="button">Training</button>
+        <button id="profileTab" type="button">My profile</button>
+        <button id="presenterTab" class="hidden" type="button">My presentation</button>
+        <button id="adminTab" class="hidden" type="button">Admin console</button>
       </nav>
 
       <div class="profile-strip">
@@ -973,8 +1678,22 @@
             <strong id="notificationTitle">15-minute meeting reminder</strong>
             <p id="notificationText" class="hint">Enable reminders to receive a browser notification before the round starts.</p>
           </div>
-          <button id="enableReminder" class="btn secondary" type="button">Enable reminder</button>
+          <div class="actions">
+            <button id="enableReminder" class="btn secondary" type="button">Remind me here</button>
+            <button id="addAllToCalendar" class="btn" type="button">Add all sessions to my calendar</button>
+          </div>
         </div>
+
+        <div id="nextSessionCard" class="next-session hidden">
+          <div>
+            <span class="pill">Next session</span>
+            <h3 id="nextSessionTitle"></h3>
+            <p id="nextSessionMeta" class="hint"></p>
+          </div>
+          <div class="countdown" id="nextSessionCountdown"></div>
+        </div>
+
+        <div id="pinnedUpdates" class="pinned-updates hidden"></div>
 
         <div class="panel">
           <div class="split-title">
@@ -1072,6 +1791,51 @@
         </div>
       </section>
 
+      <section id="updatesView" class="hidden">
+        <div class="topbar">
+          <div>
+            <h2>Updates</h2>
+            <p>Announcements, reminders, and news from the organizers.</p>
+          </div>
+          <div class="actions filter-chips" id="updatesFilter">
+            <button class="chip active" type="button" data-update-filter="all">All</button>
+            <button class="chip" type="button" data-update-filter="update">Updates</button>
+            <button class="chip" type="button" data-update-filter="reminder">Reminders</button>
+            <button class="chip" type="button" data-update-filter="event">Events</button>
+            <button class="chip" type="button" data-update-filter="training">Training</button>
+          </div>
+        </div>
+        <div id="updatesList" class="updates-list"></div>
+      </section>
+
+      <section id="trainingView" class="hidden">
+        <div class="topbar">
+          <div>
+            <h2>Training programs</h2>
+            <p>Structured learning modules. Track your progress and earn a certificate when you finish.</p>
+          </div>
+        </div>
+        <div id="trainingOverview">
+          <div id="trainingStats" class="training-stats"></div>
+          <div id="trainingPrograms" class="program-grid"></div>
+        </div>
+        <div id="trainingDetail" class="hidden">
+          <button id="trainingBack" class="btn secondary small" type="button">← All programs</button>
+          <div class="panel program-hero">
+            <div>
+              <span id="programLevel" class="pill"></span>
+              <h3 id="programTitle"></h3>
+              <p id="programSummary" class="hint"></p>
+            </div>
+            <div class="program-progress">
+              <div class="progress-ring" id="programRing"><span id="programPercent">0%</span></div>
+              <button id="programCertificate" class="btn hidden" type="button">View certificate</button>
+            </div>
+          </div>
+          <div id="lessonList" class="lesson-list"></div>
+        </div>
+      </section>
+
       <section id="profileView" class="hidden">
         <div class="topbar">
           <div>
@@ -1091,8 +1855,8 @@
               <input id="profileUsernameInput" autocomplete="off" required>
             </div>
             <div class="field">
-              <label for="profilePasswordInput">Password</label>
-              <input id="profilePasswordInput" autocomplete="new-password" required>
+              <label for="profilePasswordInput">New password</label>
+              <input id="profilePasswordInput" type="password" autocomplete="new-password" placeholder="Leave empty to keep current password">
             </div>
             <div class="field">
               <label for="profileEmail">Email</label>
@@ -1159,7 +1923,7 @@
                   <option value="conference">Conference pattern</option>
                 </select>
               </div>
-              <p class="hint">Demo controls only. A production version can connect these controls to Zoom/Teams SDK or WebRTC.</p>
+              <p class="hint">Use this to check your camera and slides before you go live. The session itself runs through the video link (Zoom, Teams, or Google Meet).</p>
             </div>
           </div>
         </div>
@@ -1172,9 +1936,8 @@
         <div class="topbar">
           <div>
             <h2>Admin Console</h2>
-            <p>Edit everything in the demo: meeting, calendar, people, photos, questions, and responses.</p>
+            <p>Manage meetings, schedule, people, updates, training, and who has access.</p>
           </div>
-          <button id="resetDemo" class="btn warn" type="button">Reset demo data</button>
         </div>
 
         <div class="panel">
@@ -1187,6 +1950,8 @@
             <button data-admin-section="liveRoomAdmin" type="button">Live room</button>
             <button data-admin-section="appearanceAdmin" type="button">Design</button>
             <button data-admin-section="usersAdmin" type="button">Users / Access</button>
+            <button data-admin-section="updatesAdmin" type="button">Updates</button>
+            <button data-admin-section="trainingAdmin" type="button">Training</button>
             <button data-admin-section="thankYouAdmin" type="button">Thank-you cards</button>
             <button data-admin-section="responsesAdmin" type="button">Responses</button>
           </div>
@@ -1408,8 +2173,16 @@
 
           <section id="usersAdmin" class="admin-section hidden">
             <h3>Users and access</h3>
-            <p class="hint" style="margin-bottom: 12px;">Create usernames and passwords for people who should enter the demo. Admin users can edit content; clinician users can answer questions.</p>
-            <form id="userForm" class="form-grid">
+            <p class="hint" style="margin-bottom: 12px;">People create their own account from the home page. Approve them here and choose their access: Admin (panelist), Presenter (speaker), or Clinician (attendee).</p>
+            <div class="panel pending-panel" style="margin-bottom: 14px;">
+              <div class="split-title">
+                <h3 style="margin: 0;">Waiting for approval</h3>
+                <span id="pendingCount" class="pill">0</span>
+              </div>
+              <div id="pendingUsersList" class="list" style="margin-top: 10px;"></div>
+            </div>
+            <h3 id="userFormTitle" class="hidden" style="margin-top: 6px;">Edit user</h3>
+            <form id="userForm" class="form-grid hidden">
               <input id="userId" type="hidden">
               <input id="userPhotoData" type="hidden">
               <div class="field">
@@ -1420,9 +2193,14 @@
                 <label for="userUsername">Username</label>
                 <input id="userUsername" autocomplete="off" required>
               </div>
+              <input id="userPassword" type="hidden">
               <div class="field">
-                <label for="userPassword">Password</label>
-                <input id="userPassword" autocomplete="new-password" required>
+                <label for="userStatus">Account status</label>
+                <select id="userStatus">
+                  <option value="approved">Approved</option>
+                  <option value="pending">Waiting for approval</option>
+                  <option value="rejected">Rejected / blocked</option>
+                </select>
               </div>
               <div class="field">
                 <label for="userEmail">Email</label>
@@ -1431,9 +2209,9 @@
               <div class="field">
                 <label for="userRole">Access level</label>
                 <select id="userRole">
-                  <option value="user">Clinician / respondent</option>
-                  <option value="presenter">Presenter / temporary access</option>
-                  <option value="admin">Admin / editor</option>
+                  <option value="user">Clinician / attendee</option>
+                  <option value="presenter">Presenter / speaker</option>
+                  <option value="admin">Admin / panelist</option>
                 </select>
               </div>
               <div class="field">
@@ -1458,7 +2236,7 @@
               </div>
               <div class="full actions">
                 <button class="btn" type="submit">Save user</button>
-                <button id="cancelUserEdit" class="btn secondary" type="button">Clear form</button>
+                <button id="cancelUserEdit" class="btn secondary" type="button">Cancel</button>
               </div>
             </form>
             <div id="usersAdminList" class="list" style="margin-top: 14px;"></div>
@@ -1502,6 +2280,139 @@
                 <button id="resetAppearance" class="btn secondary" type="button">Reset design</button>
               </div>
             </form>
+          </section>
+
+          <section id="updatesAdmin" class="admin-section hidden">
+            <h3>Updates and reminders</h3>
+            <p class="hint" style="margin-bottom: 12px;">Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report.</p>
+            <form id="updateForm" class="form-grid">
+              <input id="updateId" type="hidden">
+              <div class="field">
+                <label for="updateTitle">Title</label>
+                <input id="updateTitle" required>
+              </div>
+              <div class="field">
+                <label for="updateCategory">Type</label>
+                <select id="updateCategory">
+                  <option value="update">Update / news</option>
+                  <option value="reminder">Reminder</option>
+                  <option value="event">Event</option>
+                  <option value="training">Training</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="updateBody">Message</label>
+                <textarea id="updateBody"></textarea>
+              </div>
+              <div class="field">
+                <label for="updateLink">Link (optional)</label>
+                <input id="updateLink" type="url" placeholder="https://...">
+              </div>
+              <div class="field checks">
+                <label><input id="updatePinned" type="checkbox"> Pin to top</label>
+                <label><input id="updateActive" type="checkbox" checked> Visible to everyone</label>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Publish</button>
+                <button id="cancelUpdateEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="updatesAdminList" class="list" style="margin-top: 14px;"></div>
+          </section>
+
+          <section id="trainingAdmin" class="admin-section hidden">
+            <h3>Training programs</h3>
+            <form id="programForm" class="form-grid">
+              <input id="programId" type="hidden">
+              <input id="programCoverData" type="hidden">
+              <div class="field">
+                <label for="programTitleInput">Program title</label>
+                <input id="programTitleInput" placeholder="Fluid and electrolytes essentials" required>
+              </div>
+              <div class="field">
+                <label for="programLevelInput">Level / tag</label>
+                <input id="programLevelInput" placeholder="Beginner, PGY-1, CME...">
+              </div>
+              <div class="field full">
+                <label for="programSummaryInput">Summary</label>
+                <textarea id="programSummaryInput"></textarea>
+              </div>
+              <div class="field">
+                <label for="programAudience">Who can see it</label>
+                <select id="programAudience">
+                  <option value="all">Everyone</option>
+                  <option value="user">Clinicians / attendees only</option>
+                  <option value="presenter">Presenters only</option>
+                  <option value="admin">Admins only (draft)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="programCover">Cover image</label>
+                <input id="programCover" type="file" accept="image/*">
+              </div>
+              <div class="field">
+                <label for="programOrder">Order</label>
+                <input id="programOrder" type="number" value="0">
+              </div>
+              <div class="field checks">
+                <label><input id="programActive" type="checkbox" checked> Published</label>
+              </div>
+              <div class="full actions">
+                <button class="btn" type="submit">Save program</button>
+                <button id="cancelProgramEdit" class="btn secondary" type="button">Clear form</button>
+              </div>
+            </form>
+            <div id="programsAdminList" class="list" style="margin-top: 14px;"></div>
+
+            <div id="lessonsAdmin" class="panel hidden" style="margin-top: 18px;">
+              <div class="split-title">
+                <h3 id="lessonsAdminTitle" style="margin: 0;">Lessons</h3>
+                <button id="closeLessonsAdmin" class="btn secondary small" type="button">Close</button>
+              </div>
+              <form id="lessonForm" class="form-grid" style="margin-top: 12px;">
+                <input id="lessonId" type="hidden">
+                <input id="lessonResourceData" type="hidden">
+                <input id="lessonResourceName" type="hidden">
+                <div class="field">
+                  <label for="lessonTitle">Lesson title</label>
+                  <input id="lessonTitle" required>
+                </div>
+                <div class="field">
+                  <label for="lessonDuration">Duration (minutes)</label>
+                  <input id="lessonDuration" type="number" min="0" value="10">
+                </div>
+                <div class="field full">
+                  <label for="lessonBody">Lesson content</label>
+                  <textarea id="lessonBody" placeholder="Key points, reading, case discussion..." style="min-height: 140px;"></textarea>
+                </div>
+                <div class="field">
+                  <label for="lessonVideo">Video link (YouTube, Vimeo, or file)</label>
+                  <input id="lessonVideo" type="url">
+                </div>
+                <div class="field">
+                  <label for="lessonResourceUrl">Resource link</label>
+                  <input id="lessonResourceUrl" type="url" placeholder="Article, guideline, Google Drive...">
+                </div>
+                <div class="field">
+                  <label for="lessonResourceFile">Or upload a file (PDF, slides)</label>
+                  <input id="lessonResourceFile" type="file">
+                </div>
+                <div class="field">
+                  <label for="lessonOrder">Order</label>
+                  <input id="lessonOrder" type="number" value="0">
+                </div>
+                <div class="full actions">
+                  <button class="btn" type="submit">Save lesson</button>
+                  <button id="cancelLessonEdit" class="btn secondary" type="button">Clear form</button>
+                </div>
+              </form>
+              <div id="lessonsAdminList" class="list" style="margin-top: 14px;"></div>
+            </div>
+
+            <div class="panel" style="margin-top: 18px;">
+              <h3 style="margin-top: 0;">Progress report</h3>
+              <div id="trainingReport" class="table-wrap"></div>
+            </div>
           </section>
 
           <section id="thankYouAdmin" class="admin-section hidden">

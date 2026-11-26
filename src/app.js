@@ -63,7 +63,14 @@ let state = {
   announcements: [],
   liveMessages: [],
   handRaises: [],
-  mediaControls: []
+  mediaControls: [],
+  programs: [],
+  lessons: [],
+  progress: [],
+  trainingReady: false,
+  updateFilter: "all",
+  selectedProgramId: null,
+  adminProgramId: null
 };
 
 const $ = id => document.getElementById(id);
@@ -212,7 +219,6 @@ const els = {
   thankYouMessage: $("thankYouMessage"),
   thankYouList: $("thankYouList"),
   answersTable: $("answersTable"),
-  resetDemo: $("resetDemo"),
   toast: $("toast"),
   landingBrandName: $("landingBrandName"),
   landingBrandTagline: $("landingBrandTagline"),
@@ -238,8 +244,91 @@ const els = {
   clearLandingMetrics: $("clearLandingMetrics"),
   addLandingCard: $("addLandingCard"),
   clearLandingCards: $("clearLandingCards"),
-  clearLandingHeroImage: $("clearLandingHeroImage")
+  clearLandingHeroImage: $("clearLandingHeroImage"),
+  signupForm: $("signupForm"),
+  signupFullName: $("signupFullName"),
+  signupUsername: $("signupUsername"),
+  signupEmail: $("signupEmail"),
+  signupDiscipline: $("signupDiscipline"),
+  signupUniversity: $("signupUniversity"),
+  signupPassword: $("signupPassword"),
+  pendingNotice: $("pendingNotice"),
+  pendingTitle: $("pendingTitle"),
+  pendingText: $("pendingText"),
+  pendingBack: $("pendingBack"),
+  authCard: $("authCard"),
+  landingFooterName: $("landingFooterName"),
+  userStatus: $("userStatus"),
+  userFormTitle: $("userFormTitle"),
+  pendingUsersList: $("pendingUsersList"),
+  pendingCount: $("pendingCount"),
+  updatesTab: $("updatesTab"),
+  trainingTab: $("trainingTab"),
+  updatesView: $("updatesView"),
+  trainingView: $("trainingView"),
+  updatesBadge: $("updatesBadge"),
+  addAllToCalendar: $("addAllToCalendar"),
+  nextSessionCard: $("nextSessionCard"),
+  nextSessionTitle: $("nextSessionTitle"),
+  nextSessionMeta: $("nextSessionMeta"),
+  nextSessionCountdown: $("nextSessionCountdown"),
+  pinnedUpdates: $("pinnedUpdates"),
+  updatesList: $("updatesList"),
+  trainingOverview: $("trainingOverview"),
+  trainingStats: $("trainingStats"),
+  trainingPrograms: $("trainingPrograms"),
+  trainingDetail: $("trainingDetail"),
+  trainingBack: $("trainingBack"),
+  programLevel: $("programLevel"),
+  programTitle: $("programTitle"),
+  programSummary: $("programSummary"),
+  programRing: $("programRing"),
+  programPercent: $("programPercent"),
+  programCertificate: $("programCertificate"),
+  lessonList: $("lessonList"),
+  updateForm: $("updateForm"),
+  updateId: $("updateId"),
+  updateTitle: $("updateTitle"),
+  updateCategory: $("updateCategory"),
+  updateBody: $("updateBody"),
+  updateLink: $("updateLink"),
+  updatePinned: $("updatePinned"),
+  updateActive: $("updateActive"),
+  cancelUpdateEdit: $("cancelUpdateEdit"),
+  updatesAdminList: $("updatesAdminList"),
+  programForm: $("programForm"),
+  programId: $("programId"),
+  programCoverData: $("programCoverData"),
+  programTitleInput: $("programTitleInput"),
+  programLevelInput: $("programLevelInput"),
+  programSummaryInput: $("programSummaryInput"),
+  programAudience: $("programAudience"),
+  programCover: $("programCover"),
+  programOrder: $("programOrder"),
+  programActive: $("programActive"),
+  cancelProgramEdit: $("cancelProgramEdit"),
+  programsAdminList: $("programsAdminList"),
+  lessonsAdmin: $("lessonsAdmin"),
+  lessonsAdminTitle: $("lessonsAdminTitle"),
+  closeLessonsAdmin: $("closeLessonsAdmin"),
+  lessonForm: $("lessonForm"),
+  lessonId: $("lessonId"),
+  lessonResourceData: $("lessonResourceData"),
+  lessonResourceName: $("lessonResourceName"),
+  lessonTitle: $("lessonTitle"),
+  lessonDuration: $("lessonDuration"),
+  lessonBody: $("lessonBody"),
+  lessonVideo: $("lessonVideo"),
+  lessonResourceUrl: $("lessonResourceUrl"),
+  lessonResourceFile: $("lessonResourceFile"),
+  lessonOrder: $("lessonOrder"),
+  cancelLessonEdit: $("cancelLessonEdit"),
+  lessonsAdminList: $("lessonsAdminList"),
+  trainingReport: $("trainingReport")
 };
+
+const UPDATE_LABELS = { update: "Update", reminder: "Reminder", event: "Event", training: "Training" };
+const VIEWS = ["report", "updates", "training", "profile", "presenter", "admin"];
 
 boot();
 
@@ -252,6 +341,8 @@ async function boot() {
 
   renderLanding();
   bindEvents();
+  await loadPublicLanding();
+  window.setInterval(updateCountdown, 1000);
 
   const { data } = await supabase.auth.getSession();
   if (data.session) {
@@ -261,11 +352,44 @@ async function boot() {
 
 function bindEvents() {
   els.loginForm.addEventListener("submit", signIn);
+  els.signupForm.addEventListener("submit", signUp);
+  els.pendingBack.addEventListener("click", () => setAuthTab("signin"));
+  document.querySelectorAll("[data-auth-tab]").forEach(button => {
+    button.addEventListener("click", () => {
+      setAuthTab(button.dataset.authTab);
+      els.authCard.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
   els.logoutBtn.addEventListener("click", signOut);
-  els.reportTab.addEventListener("click", showReport);
-  els.profileTab.addEventListener("click", showProfile);
-  els.presenterTab.addEventListener("click", showPresenter);
-  els.adminTab.addEventListener("click", showAdmin);
+  for (const view of VIEWS) els[`${view}Tab`].addEventListener("click", () => showView(view));
+  document.querySelectorAll("[data-update-filter]").forEach(button => button.addEventListener("click", () => {
+    state.updateFilter = button.dataset.updateFilter;
+    renderUpdates();
+  }));
+  els.addAllToCalendar.addEventListener("click", () => downloadIcs(upcomingSessions(), "all-sessions.ics"));
+  els.schedule.addEventListener("click", event => {
+    const button = event.target.closest("[data-ics]");
+    if (!button) return;
+    const item = state.schedule.find(entry => entry.id === button.dataset.ics);
+    if (item) downloadIcs([item], "session.ics");
+  });
+  els.updateForm.addEventListener("submit", saveUpdate);
+  els.cancelUpdateEdit.addEventListener("click", clearUpdateForm);
+  els.programForm.addEventListener("submit", saveProgram);
+  els.cancelProgramEdit.addEventListener("click", clearProgramForm);
+  els.lessonForm.addEventListener("submit", saveLesson);
+  els.cancelLessonEdit.addEventListener("click", clearLessonForm);
+  els.closeLessonsAdmin.addEventListener("click", () => {
+    state.adminProgramId = null;
+    els.lessonsAdmin.classList.add("hidden");
+  });
+  els.programCover.addEventListener("change", () => uploadProgramCover());
+  els.lessonResourceFile.addEventListener("change", () => uploadLessonResource());
+  els.trainingBack.addEventListener("click", () => {
+    state.selectedProgramId = null;
+    renderTraining();
+  });
+  els.programCertificate.addEventListener("click", openCertificate);
   els.copyMeetingLink.addEventListener("click", copyMeetingLink);
   els.enableReminder.addEventListener("click", enableMeetingReminder);
   els.submitAnswers.addEventListener("click", submitAnswers);
@@ -381,16 +505,11 @@ async function signIn(event) {
   let email = identifier;
 
   if (!identifier.includes("@")) {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("email")
-      .eq("username", identifier)
-      .maybeSingle();
-    if (error || !data?.email) {
-      showToast("No Supabase profile found for that username.");
+    email = await lookupEmailForUsername(identifier);
+    if (!email) {
+      showToast("No account found for that username.");
       return;
     }
-    email = data.email;
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -409,7 +528,14 @@ async function hydrateSession(user) {
     .single();
   if (error || !profile) {
     await supabase.auth.signOut();
-    showToast("Your auth user does not have a profile row.");
+    showToast("Your account does not have a profile yet. Please contact the organizers.");
+    return;
+  }
+
+  const status = profile.status || "approved";
+  if (status !== "approved") {
+    await supabase.auth.signOut();
+    showPendingNotice(status);
     return;
   }
 
@@ -430,6 +556,8 @@ async function signOut() {
   await supabase.auth.signOut();
   currentUser = null;
   draftAnswers = {};
+  state.selectedProgramId = null;
+  state.adminProgramId = null;
   els.appView.classList.add("hidden");
   els.loginView.classList.remove("hidden");
   els.password.value = "";
@@ -479,18 +607,33 @@ async function loadSharedData() {
   state.liveMessages = messagesResult.data || [];
   state.handRaises = handRaisesResult.data || [];
   state.mediaControls = mediaResult.data || [];
+  await loadExtraData();
 }
 
 let subscribed = false;
+let realtimeTimer = null;
+function scheduleRealtimeRefresh() {
+  // Many rows can change at once; refresh once per burst.
+  window.clearTimeout(realtimeTimer);
+  realtimeTimer = window.setTimeout(async () => {
+    if (!currentUser) return;
+    const previousIds = new Set(state.announcements.map(item => item.id));
+    try {
+      await loadSharedData();
+    } catch (error) {
+      console.warn(error);
+      return;
+    }
+    renderAll();
+    notifyNewUpdates(previousIds);
+  }, 400);
+}
 function subscribeToSharedData() {
   if (subscribed) return;
   subscribed = true;
   supabase
     .channel("nephrorounds-shared-data")
-    .on("postgres_changes", { event: "*", schema: "public" }, async () => {
-      await loadSharedData();
-      renderAll();
-    })
+    .on("postgres_changes", { event: "*", schema: "public" }, scheduleRealtimeRefresh)
     .subscribe();
 }
 
@@ -507,6 +650,11 @@ function renderAll() {
   renderPresenterSlides();
   renderPresentingMode();
   renderUserShell();
+  renderNextSession();
+  renderPinnedUpdates();
+  renderUpdatesBadge();
+  if (!els.updatesView.classList.contains("hidden")) renderUpdates();
+  if (!els.trainingView.classList.contains("hidden")) renderTraining();
   renderAdmin();
 }
 
@@ -531,6 +679,7 @@ function renderLanding() {
   document.title = landing.brandName || "NephroRounds Studio";
   els.appShellName.textContent = landing.brandName || "NephroRounds";
   els.landingBrandTagline.textContent = landing.brandTagline || "";
+  els.landingFooterName.textContent = `© ${new Date().getFullYear()} ${landing.brandName || ""}`;
   els.landingLoginHeadline.textContent = landing.loginHeadline || "";
   els.landingLoginLead.textContent = landing.loginLead || "";
   els.landingHeroBadge.textContent = landing.heroBadge || "";
@@ -610,22 +759,22 @@ function renderMeeting() {
 }
 
 function renderReminderStatus() {
-  const start = getMeetingStartDate();
+  const next = getNextSession();
+  const start = next ? sessionStart(next) : getMeetingStartDate();
+  els.notificationTitle.textContent = "Session reminders";
   if (!start) {
-    els.notificationTitle.textContent = "15-minute meeting reminder";
-    els.notificationText.textContent = "Add a meeting time like 08:30 - 09:00 to enable the reminder.";
+    els.notificationText.textContent = "Reminders will be available once the next session is on the schedule.";
     return;
   }
   const minutes = Math.round((start.getTime() - Date.now()) / 60000);
-  if (minutes > 15) {
-    els.notificationTitle.textContent = "15-minute meeting reminder";
-    els.notificationText.textContent = `Round starts in about ${minutes} minutes. Enable reminders to be notified 15 minutes before start.`;
-  } else if (minutes >= 0) {
-    els.notificationTitle.textContent = "Round starting soon";
-    els.notificationText.textContent = `The meeting starts in about ${minutes} minutes. Join video when ready.`;
+  if (minutes < 0) {
+    els.notificationTitle.textContent = "Session in progress";
+    els.notificationText.textContent = "Join video to take part now.";
+  } else if (minutes <= 15) {
+    els.notificationTitle.textContent = "Starting soon";
+    els.notificationText.textContent = `The next session starts in about ${minutes} minutes. Join video when ready.`;
   } else {
-    els.notificationTitle.textContent = "Round time has passed";
-    els.notificationText.textContent = "Update the meeting time in Admin Console for the next round reminder.";
+    els.notificationText.textContent = "Add sessions to your phone or computer calendar to get a reminder the day before and 15 minutes before each one.";
   }
 }
 
@@ -641,6 +790,7 @@ function renderSchedule() {
       ${notesToTasks(item.notes)}
       ${renderSlidesButton(item)}
       ${renderRecordingButton(item)}
+      ${sessionEnd(item) && sessionEnd(item).getTime() > Date.now() ? calendarButtons(item) : ""}
     </article>`).join("");
   els.schedule.querySelectorAll("[data-view-slides]").forEach(button => {
     button.addEventListener("click", () => openSlides(button.dataset.viewSlides));
@@ -783,6 +933,8 @@ function renderAdmin() {
   renderLiveRoomAdmin();
   renderThankYouAdmin();
   renderAnswers();
+  renderUpdatesAdmin();
+  renderTrainingAdmin();
 }
 
 function renderUserShell() {
@@ -827,9 +979,35 @@ function renderQuestionsAdmin() {
 }
 
 function renderUsersAdmin() {
-  els.usersAdminList.innerHTML = state.users.length ? state.users.map(user => `
-    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>Access: ${escapeHtml(getRoleLabel(user.role))}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-user="${user.id}">Edit profile</button></div></article>`).join("") : `<div class="empty-state">No users yet.</div>`;
+  const pending = state.users.filter(user => user.status === "pending");
+  els.pendingCount.textContent = String(pending.length);
+  els.pendingUsersList.innerHTML = pending.length ? pending.map(user => `
+    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions">
+      <select data-approve-role="${user.id}" aria-label="Access level"><option value="user">Clinician / attendee</option><option value="presenter">Presenter / speaker</option><option value="admin">Admin / panelist</option></select>
+      <button class="btn small" type="button" data-approve-user="${user.id}">Approve</button>
+      <button class="btn warn small" type="button" data-reject-user="${user.id}">Reject</button>
+    </div></article>`).join("") : `<div class="empty-state">No one is waiting for approval.</div>`;
+  els.pendingUsersList.querySelectorAll("[data-approve-user]").forEach(button => button.addEventListener("click", () => {
+    const role = els.pendingUsersList.querySelector(`[data-approve-role="${button.dataset.approveUser}"]`)?.value || "user";
+    setUserAccess(button.dataset.approveUser, "approved", role);
+  }));
+  els.pendingUsersList.querySelectorAll("[data-reject-user]").forEach(button => button.addEventListener("click", () => setUserAccess(button.dataset.rejectUser, "rejected")));
+
+  const others = state.users.filter(user => user.status !== "pending");
+  els.usersAdminList.innerHTML = others.length ? others.map(user => `
+    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>Access: ${escapeHtml(getRoleLabel(user.role))}${user.status === "rejected" ? " (blocked)" : ""}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-user="${user.id}">Edit profile</button></div></article>`).join("") : `<div class="empty-state">No users yet.</div>`;
   els.usersAdminList.querySelectorAll("[data-edit-user]").forEach(button => button.addEventListener("click", () => editUser(button.dataset.editUser)));
+}
+
+async function setUserAccess(id, status, role) {
+  if (id === currentUser?.id) return showToast("You cannot change your own access.");
+  const payload = { status };
+  if (role) payload.role = role;
+  const { error } = await supabase.from("profiles").update(payload).eq("id", id);
+  if (error) return showToast(error.message);
+  await loadSharedData();
+  renderAll();
+  showToast(status === "approved" ? "Account approved." : "Account rejected.");
 }
 
 function renderLiveRoomAdmin() {
@@ -1014,7 +1192,11 @@ async function saveQuestion(event) {
 async function saveProfileFromAdmin(event) {
   event.preventDefault();
   if (!els.userId.value) {
-    showToast("Create Auth users in Supabase first, then edit their profile here. No elevated server key is used in browser.");
+    showToast("Choose a user from the list below to edit. New people create their own account from the home page.");
+    return;
+  }
+  if (els.userId.value === currentUser?.id && (els.userRole.value !== currentUser.role || els.userStatus.value !== "approved")) {
+    showToast("You cannot change your own access level or status.");
     return;
   }
   const payload = {
@@ -1023,6 +1205,7 @@ async function saveProfileFromAdmin(event) {
     full_name: els.userFullName.value.trim(),
     email: els.userEmail.value.trim(),
     role: els.userRole.value,
+    status: els.userStatus.value,
     discipline: els.userDiscipline.value.trim(),
     university: els.userUniversity.value.trim(),
     location: els.userLocation.value.trim(),
@@ -1280,6 +1463,11 @@ function editUser(id) {
   els.userPassword.value = "";
   els.userEmail.value = user.email || "";
   els.userRole.value = user.role || "user";
+  els.userStatus.value = user.status || "approved";
+  els.userForm.classList.remove("hidden");
+  els.userFormTitle.classList.remove("hidden");
+  els.userFormTitle.textContent = `Edit user — ${user.name}`;
+  els.userFormTitle.scrollIntoView({ behavior: "smooth", block: "start" });
   els.userDiscipline.value = user.discipline || "";
   els.userUniversity.value = user.university || "";
   els.userLocation.value = user.location || "";
@@ -1309,57 +1497,26 @@ function clearQuestionForm() {
 
 function clearUserForm() {
   els.userForm.reset();
+  els.userForm.classList.add("hidden");
+  els.userFormTitle.classList.add("hidden");
   els.userId.value = "";
   els.userPhotoData.value = "";
 }
 
 function showReport() {
-  els.reportView.classList.remove("hidden");
-  els.profileView.classList.add("hidden");
-  els.presenterView.classList.add("hidden");
-  els.adminView.classList.add("hidden");
-  els.reportTab.classList.add("active");
-  els.profileTab.classList.remove("active");
-  els.presenterTab.classList.remove("active");
-  els.adminTab.classList.remove("active");
+  showView("report");
 }
 
 function showProfile() {
-  if (!currentUser) return;
-  els.reportView.classList.add("hidden");
-  els.profileView.classList.remove("hidden");
-  els.presenterView.classList.add("hidden");
-  els.adminView.classList.add("hidden");
-  els.reportTab.classList.remove("active");
-  els.profileTab.classList.add("active");
-  els.presenterTab.classList.remove("active");
-  els.adminTab.classList.remove("active");
-  renderProfile();
+  showView("profile");
 }
 
 function showPresenter() {
-  if (!currentUser || currentUser.role !== "presenter") return;
-  els.reportView.classList.add("hidden");
-  els.profileView.classList.add("hidden");
-  els.presenterView.classList.remove("hidden");
-  els.adminView.classList.add("hidden");
-  els.reportTab.classList.remove("active");
-  els.profileTab.classList.remove("active");
-  els.presenterTab.classList.add("active");
-  els.adminTab.classList.remove("active");
+  showView("presenter");
 }
 
 function showAdmin() {
-  if (!currentUser || currentUser.role !== "admin") return;
-  els.reportView.classList.add("hidden");
-  els.profileView.classList.add("hidden");
-  els.presenterView.classList.add("hidden");
-  els.adminView.classList.remove("hidden");
-  els.reportTab.classList.remove("active");
-  els.profileTab.classList.remove("active");
-  els.presenterTab.classList.remove("active");
-  els.adminTab.classList.add("active");
-  renderAdmin();
+  showView("admin");
 }
 
 async function copyMeetingLink() {
@@ -1412,20 +1569,24 @@ function stopLocalMedia(options = {}) {
 }
 
 async function enableMeetingReminder() {
-  const start = getMeetingStartDate();
-  if (!start) return showToast("Set a valid meeting time first.");
+  const next = getNextSession();
+  const start = next ? sessionStart(next) : getMeetingStartDate();
+  if (!start || start.getTime() < Date.now()) return showToast("There is no upcoming session to remind you about.");
+  const title = next ? next.topic : state.settings.meeting.title;
   const reminderAt = new Date(start.getTime() - 15 * 60000);
   const delay = Math.max(0, reminderAt.getTime() - Date.now());
   window.clearTimeout(reminderTimer);
   if ("Notification" in window && Notification.permission === "default") {
     await Notification.requestPermission();
   }
-  reminderTimer = window.setTimeout(() => {
-    const message = `${state.settings.meeting.title} starts in 15 minutes.`;
-    if ("Notification" in window && Notification.permission === "granted") new Notification("NephroRounds reminder", { body: message });
-    showToast(message);
-  }, delay);
-  showToast("15-minute reminder enabled.");
+  if (delay < 2147483647) {
+    reminderTimer = window.setTimeout(() => {
+      const message = `${title} starts in 15 minutes.`;
+      if ("Notification" in window && Notification.permission === "granted") new Notification(state.settings.landing?.brandName || "Reminder", { body: message });
+      showToast(message);
+    }, delay);
+  }
+  showToast("Reminder set while this page is open. For a reminder on your phone, use \"Add to my calendar\".");
 }
 
 function readLandingMetricsFromAdmin() {
@@ -1464,6 +1625,8 @@ function normalizeProfile(row) {
     name: row.full_name || row.username || "Unnamed user",
     email: row.email || "",
     role: row.role || "user",
+    status: row.status || "approved",
+    updatesSeenAt: row.updates_seen_at || null,
     discipline: row.discipline || "",
     university: row.university || "",
     location: row.location || "",
@@ -1546,7 +1709,9 @@ function renderSlidesButton(item) {
 function renderRecordingButton(item) {
   const href = item.recordingUrl || item.recordingData || "";
   if (!href) return "";
-  return `<a class="recording-link" href="${href}" target="_blank" rel="noreferrer">Watch recording</a>`;
+  const safe = safeUrl(href);
+  if (!safe) return "";
+  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">Watch recording</a>`;
 }
 
 function renderAvatar(person) {
@@ -1613,6 +1778,764 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+/* ------------------------------------------------------------------
+   Views / navigation
+------------------------------------------------------------------ */
+
+function showView(name) {
+  if (!currentUser) return;
+  if (name === "presenter" && currentUser.role !== "presenter") return;
+  if (name === "admin" && currentUser.role !== "admin") return;
+  for (const view of VIEWS) {
+    els[`${view}View`].classList.toggle("hidden", view !== name);
+    els[`${view}Tab`].classList.toggle("active", view === name);
+  }
+  if (name === "profile") renderProfile();
+  if (name === "admin") renderAdmin();
+  if (name === "training") renderTraining();
+  if (name === "updates") {
+    renderUpdates();
+    markUpdatesSeen();
+  }
+  els[`${name}Tab`].scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/* ------------------------------------------------------------------
+   Extra data (tolerant: app keeps working before migration 0003)
+------------------------------------------------------------------ */
+async function loadExtraData() {
+  const [programs, lessons, progress] = await Promise.all([
+    supabase.from("training_programs").select("*").order("sort_order").order("created_at"),
+    supabase.from("training_lessons").select("*").order("sort_order").order("created_at"),
+    supabase.from("training_progress").select("*")
+  ]);
+  state.trainingReady = !programs.error;
+  state.programs = programs.error ? [] : programs.data || [];
+  state.lessons = lessons.error ? [] : lessons.data || [];
+  state.progress = progress.error ? [] : progress.data || [];
+}
+
+/* ------------------------------------------------------------------
+   Updates
+------------------------------------------------------------------ */
+
+function visibleUpdates() {
+  return state.announcements
+    .filter(item => item.active !== false)
+    .sort((a, b) => Number(Boolean(b.pinned)) - Number(Boolean(a.pinned)) || new Date(b.created_at) - new Date(a.created_at));
+}
+
+function isUnread(item) {
+  if (!currentUser) return false;
+  if (!currentUser.updatesSeenAt) return true;
+  return new Date(item.created_at) > new Date(currentUser.updatesSeenAt);
+}
+
+function renderUpdateCard(item, { compact = false } = {}) {
+  const category = UPDATE_LABELS[item.category] ? item.category : "update";
+  const link = safeUrl(item.link_url);
+  return `<article class="update-card ${category} ${!compact && isUnread(item) ? "unread" : ""}">
+    <div class="update-head">
+      <div>
+        <span class="tag ${category}">${UPDATE_LABELS[category]}</span>
+        ${item.pinned ? `<span class="tag pin">Pinned</span>` : ""}
+        ${!compact && isUnread(item) ? `<span class="tag">New</span>` : ""}
+      </div>
+      <small class="hint">${formatRelative(item.created_at)}</small>
+    </div>
+    <h4>${escapeHtml(item.title)}</h4>
+    ${item.body ? `<p>${escapeHtml(compact && item.body.length > 220 ? `${item.body.slice(0, 220)}…` : item.body)}</p>` : ""}
+    ${link ? `<a class="update-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Open link →</a>` : ""}
+  </article>`;
+}
+
+function renderUpdates() {
+  const filter = state.updateFilter || "all";
+  const items = visibleUpdates().filter(item => filter === "all" || (item.category || "update") === filter);
+  els.updatesList.innerHTML = items.length
+    ? items.map(item => renderUpdateCard(item)).join("")
+    : `<div class="empty-state">No ${filter === "all" ? "updates" : `${UPDATE_LABELS[filter].toLowerCase()}s`} yet.</div>`;
+  document.querySelectorAll("[data-update-filter]").forEach(button => {
+    button.classList.toggle("active", button.dataset.updateFilter === filter);
+  });
+}
+
+function renderUpdatesBadge() {
+  const unread = visibleUpdates().filter(isUnread).length;
+  els.updatesBadge.textContent = unread > 9 ? "9+" : String(unread);
+  els.updatesBadge.classList.toggle("hidden", unread === 0);
+}
+
+function renderPinnedUpdates() {
+  const pinned = visibleUpdates().filter(item => item.pinned).slice(0, 3);
+  els.pinnedUpdates.innerHTML = pinned.map(item => renderUpdateCard(item, { compact: true })).join("");
+  els.pinnedUpdates.classList.toggle("hidden", pinned.length === 0);
+}
+
+async function markUpdatesSeen() {
+  if (!currentUser) return;
+  const now = new Date().toISOString();
+  const { error } = await supabase.from("profiles").update({ updates_seen_at: now }).eq("id", currentUser.id);
+  if (error) return;
+  // Keep the "New" highlight visible for this visit, clear the badge.
+  window.setTimeout(() => {
+    currentUser.updatesSeenAt = now;
+    renderUpdatesBadge();
+  }, 1500);
+}
+
+function notifyNewUpdates(previousIds) {
+  if (!previousIds) return;
+  const fresh = visibleUpdates().filter(item => !previousIds.has(item.id));
+  if (!fresh.length) return;
+  const first = fresh[0];
+  showToast(`New ${UPDATE_LABELS[first.category] ? UPDATE_LABELS[first.category].toLowerCase() : "update"}: ${first.title}`);
+  if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
+    new Notification(first.title, { body: first.body?.slice(0, 140) || "" });
+  }
+}
+
+function renderUpdatesAdmin() {
+  const items = [...state.announcements].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  els.updatesAdminList.innerHTML = items.length ? items.map(item => `
+    <article class="editable-row"><div><span class="tag ${escapeHtml(item.category || "update")}">${UPDATE_LABELS[item.category] || "Update"}</span>${item.pinned ? ` <span class="tag pin">Pinned</span>` : ""}${item.active === false ? ` <span class="tag">Hidden</span>` : ""}<br><strong>${escapeHtml(item.title)}</strong><p class="hint">${formatDate(item.created_at)}<br>${escapeHtml((item.body || "").slice(0, 160))}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-update="${item.id}">Edit</button><button class="btn warn small" type="button" data-remove-update="${item.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">Nothing published yet.</div>`;
+  els.updatesAdminList.querySelectorAll("[data-edit-update]").forEach(button => button.addEventListener("click", () => editUpdate(button.dataset.editUpdate)));
+  els.updatesAdminList.querySelectorAll("[data-remove-update]").forEach(button => button.addEventListener("click", () => confirmDelete("announcements", button.dataset.removeUpdate, "this update")));
+}
+
+async function saveUpdate(event) {
+  event.preventDefault();
+  const payload = {
+    title: els.updateTitle.value.trim(),
+    body: els.updateBody.value.trim(),
+    category: els.updateCategory.value,
+    link_url: els.updateLink.value.trim(),
+    pinned: els.updatePinned.checked,
+    active: els.updateActive.checked
+  };
+  if (els.updateId.value) payload.id = els.updateId.value;
+  else payload.created_by = currentUser.id;
+  const { error } = await supabase.from("announcements").upsert(payload);
+  if (error) return showToast(friendlyError(error));
+  clearUpdateForm();
+  await refresh();
+  showToast("Published.");
+}
+
+function editUpdate(id) {
+  const item = state.announcements.find(entry => entry.id === id);
+  if (!item) return;
+  els.updateId.value = item.id;
+  els.updateTitle.value = item.title || "";
+  els.updateBody.value = item.body || "";
+  els.updateCategory.value = item.category || "update";
+  els.updateLink.value = item.link_url || "";
+  els.updatePinned.checked = Boolean(item.pinned);
+  els.updateActive.checked = item.active !== false;
+  els.updateTitle.focus();
+}
+
+function clearUpdateForm() {
+  els.updateForm.reset();
+  els.updateId.value = "";
+  els.updateActive.checked = true;
+}
+
+/* ------------------------------------------------------------------
+   Sessions, countdown, calendar reminders
+------------------------------------------------------------------ */
+function sessionStart(item) {
+  if (!item?.date || !item.time) return null;
+  return new Date(`${item.date}T${item.time}:00`);
+}
+
+function sessionEnd(item) {
+  const start = sessionStart(item);
+  if (!start) return null;
+  if (item.endTime) return new Date(`${item.date}T${item.endTime}:00`);
+  return new Date(start.getTime() + 60 * 60000);
+}
+
+function upcomingSessions() {
+  const now = Date.now();
+  return state.schedule
+    .filter(item => {
+      const end = sessionEnd(item);
+      return end && end.getTime() > now;
+    })
+    .sort((a, b) => sessionStart(a) - sessionStart(b));
+}
+
+function getNextSession() {
+  return upcomingSessions()[0] || null;
+}
+
+function renderNextSession() {
+  const next = getNextSession();
+  els.nextSessionCard.classList.toggle("hidden", !next);
+  if (!next) return;
+  els.nextSessionTitle.textContent = next.topic;
+  els.nextSessionMeta.textContent = `${formatScheduleDate(next.date)} · ${formatTimeRange(next)}`;
+  updateCountdown();
+}
+
+function updateCountdown() {
+  const next = getNextSession();
+  if (!next || els.nextSessionCard.classList.contains("hidden")) return;
+  const diff = sessionStart(next).getTime() - Date.now();
+  if (diff <= 0) {
+    els.nextSessionCountdown.innerHTML = `<div><b>Live</b><span>now</span></div>`;
+    return;
+  }
+  const days = Math.floor(diff / 86400000);
+  const hours = Math.floor((diff % 86400000) / 3600000);
+  const minutes = Math.floor((diff % 3600000) / 60000);
+  const seconds = Math.floor((diff % 60000) / 1000);
+  const parts = days > 0
+    ? [[days, "days"], [hours, "hrs"], [minutes, "min"]]
+    : [[hours, "hrs"], [minutes, "min"], [seconds, "sec"]];
+  els.nextSessionCountdown.innerHTML = parts.map(([value, label]) => `<div><b>${String(value).padStart(2, "0")}</b><span>${label}</span></div>`).join("");
+}
+
+function calendarButtons(item) {
+  if (!sessionStart(item)) return "";
+  return `<div class="calendar-actions">
+    <a class="recording-link" href="${escapeHtml(googleCalendarUrl(item))}" target="_blank" rel="noreferrer">+ Google Calendar</a>
+    <button class="recording-link" type="button" data-ics="${item.id}">+ Apple / Outlook</button>
+  </div>`;
+}
+
+function sessionDescription(item) {
+  const meeting = state.settings.meeting || {};
+  return [item.notes, meeting.url ? `Join: ${meeting.url}` : ""].filter(Boolean).join("\n\n");
+}
+
+function icsStamp(date) {
+  const pad = value => String(value).padStart(2, "0");
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}00`;
+}
+
+function utcStamp(date) {
+  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+}
+
+function googleCalendarUrl(item) {
+  const brand = state.settings.landing?.brandName || "Morning report";
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${brand}: ${item.topic}`,
+    dates: `${utcStamp(sessionStart(item))}/${utcStamp(sessionEnd(item))}`,
+    details: sessionDescription(item),
+    location: state.settings.meeting?.url || ""
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function icsEscape(value) {
+  return String(value || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\;");
+}
+
+function buildIcs(items) {
+  const brand = state.settings.landing?.brandName || "Morning report";
+  const events = items.filter(sessionStart).map(item => [
+    "BEGIN:VEVENT",
+    `UID:${item.id}@${location.hostname || "rounds"}`,
+    `DTSTAMP:${utcStamp(new Date())}`,
+    `DTSTART:${utcStamp(sessionStart(item))}`,
+    `DTEND:${utcStamp(sessionEnd(item))}`,
+    `SUMMARY:${icsEscape(`${brand}: ${item.topic}`)}`,
+    `DESCRIPTION:${icsEscape(sessionDescription(item))}`,
+    state.settings.meeting?.url ? `URL:${icsEscape(state.settings.meeting.url)}` : "",
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${icsEscape(item.topic)} starts in 15 minutes`,
+    "TRIGGER:-PT15M",
+    "END:VALARM",
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${icsEscape(item.topic)} is tomorrow`,
+    "TRIGGER:-P1D",
+    "END:VALARM",
+    "END:VEVENT"
+  ].filter(Boolean).join("\r\n"));
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", `PRODID:-//${icsEscape(brand)}//EN`, "CALSCALE:GREGORIAN", "METHOD:PUBLISH", ...events, "END:VCALENDAR"].join("\r\n");
+}
+
+function downloadIcs(items, filename) {
+  if (!items.length) return showToast("There are no upcoming sessions to add.");
+  const blob = new Blob([buildIcs(items)], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+  showToast("Calendar file ready. Open it to add the reminder to your calendar.");
+}
+
+/* ------------------------------------------------------------------
+   Training
+------------------------------------------------------------------ */
+function lessonsFor(programId) {
+  return state.lessons.filter(lesson => lesson.program_id === programId)
+    .sort((a, b) => a.sort_order - b.sort_order || new Date(a.created_at) - new Date(b.created_at));
+}
+
+function isLessonDone(lessonId, userId = currentUser?.id) {
+  return state.progress.some(entry => entry.lesson_id === lessonId && entry.user_id === userId);
+}
+
+function programProgress(programId, userId = currentUser?.id) {
+  const lessons = lessonsFor(programId);
+  const done = lessons.filter(lesson => isLessonDone(lesson.id, userId)).length;
+  return { done, total: lessons.length, percent: lessons.length ? Math.round((done / lessons.length) * 100) : 0 };
+}
+
+function visiblePrograms() {
+  if (currentUser?.role === "admin") return state.programs;
+  return state.programs.filter(program => program.active !== false && (program.audience === "all" || program.audience === currentUser?.role));
+}
+
+function renderTraining() {
+  if (state.selectedProgramId && state.programs.some(program => program.id === state.selectedProgramId)) {
+    renderProgramDetail(state.selectedProgramId);
+    return;
+  }
+  state.selectedProgramId = null;
+  els.trainingOverview.classList.remove("hidden");
+  els.trainingDetail.classList.add("hidden");
+  const programs = visiblePrograms();
+  const progressList = programs.map(program => programProgress(program.id));
+  const completed = progressList.filter(item => item.total && item.done === item.total).length;
+  const inProgress = progressList.filter(item => item.done > 0 && item.done < item.total).length;
+  const lessonsDone = progressList.reduce((sum, item) => sum + item.done, 0);
+  const minutes = programs.flatMap(program => lessonsFor(program.id)).filter(lesson => isLessonDone(lesson.id)).reduce((sum, lesson) => sum + (lesson.duration_minutes || 0), 0);
+  els.trainingStats.innerHTML = [
+    [programs.length, "Programs available"],
+    [inProgress, "In progress"],
+    [completed, "Completed"],
+    [lessonsDone, "Lessons finished"],
+    [minutes ? `${Math.round(minutes / 6) / 10} h` : "0 h", "Learning time"]
+  ].map(([value, label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
+
+  if (!state.trainingReady) {
+    els.trainingPrograms.innerHTML = `<div class="empty-state">Training programs will appear here soon.</div>`;
+    return;
+  }
+  els.trainingPrograms.innerHTML = programs.length ? programs.map(program => {
+    const progress = programProgress(program.id);
+    const cover = safeUrl(program.cover_url);
+    return `<button class="program-card" type="button" data-open-program="${program.id}">
+      <div class="program-cover" style="${cover ? `background-image: url('${escapeHtml(cover)}')` : ""}">${cover ? "" : escapeHtml(getInitials(program.title.replace(/[^\p{L}\p{N}\s]/gu, " ")))}</div>
+      <div class="program-body">
+        <div>${program.level ? `<span class="tag">${escapeHtml(program.level)}</span>` : ""}${program.active === false ? ` <span class="tag">Draft</span>` : ""}</div>
+        <strong>${escapeHtml(program.title)}</strong>
+        <p class="hint">${escapeHtml((program.summary || "").slice(0, 140))}</p>
+        <div class="progress-bar"><i style="width: ${progress.percent}%"></i></div>
+        <div class="progress-meta"><span>${progress.done}/${progress.total} lessons</span><span>${progress.total && progress.done === progress.total ? "Completed ✓" : `${progress.percent}%`}</span></div>
+      </div>
+    </button>`;
+  }).join("") : `<div class="empty-state">No training programs yet.</div>`;
+  els.trainingPrograms.querySelectorAll("[data-open-program]").forEach(button => button.addEventListener("click", () => {
+    state.selectedProgramId = button.dataset.openProgram;
+    els.lessonList.innerHTML = "";
+    renderTraining();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }));
+}
+
+function renderProgramDetail(programId) {
+  const program = state.programs.find(entry => entry.id === programId);
+  if (!program) return;
+  els.trainingOverview.classList.add("hidden");
+  els.trainingDetail.classList.remove("hidden");
+  const progress = programProgress(programId);
+  els.programLevel.textContent = program.level || "Program";
+  els.programTitle.textContent = program.title;
+  els.programSummary.textContent = program.summary || "";
+  els.programRing.style.setProperty("--value", progress.percent);
+  els.programPercent.textContent = `${progress.percent}%`;
+  els.programCertificate.classList.toggle("hidden", !(progress.total && progress.done === progress.total));
+
+  const lessons = lessonsFor(programId);
+  const openLessons = new Set([...els.lessonList.querySelectorAll("details[open]")].map(node => node.dataset.lesson));
+  const firstOpen = lessons.find(lesson => !isLessonDone(lesson.id))?.id;
+  els.lessonList.innerHTML = lessons.length ? lessons.map((lesson, index) => {
+    const done = isLessonDone(lesson.id);
+    const video = renderVideo(lesson.video_url);
+    const resource = safeUrl(lesson.resource_url);
+    const open = lesson.id === state.focusLessonId || (openLessons.size ? openLessons.has(lesson.id) : lesson.id === firstOpen);
+    return `<details class="lesson ${done ? "done" : ""}" data-lesson="${lesson.id}" ${open ? "open" : ""}>
+      <summary>
+        <span class="lesson-num">${done ? "✓" : index + 1}</span>
+        <span><strong>${escapeHtml(lesson.title)}</strong><br><small class="hint">${lesson.duration_minutes ? `${lesson.duration_minutes} min` : ""}</small></span>
+        <span class="tag">${done ? "Done" : "To do"}</span>
+      </summary>
+      <div class="lesson-content">
+        ${video}
+        ${lesson.body ? `<p>${escapeHtml(lesson.body)}</p>` : ""}
+        ${resource ? `<a class="recording-link" href="${escapeHtml(resource)}" target="_blank" rel="noreferrer">Open ${escapeHtml(lesson.resource_name || "resource")}</a>` : ""}
+        <div><button class="btn ${done ? "secondary" : ""}" type="button" data-toggle-lesson="${lesson.id}">${done ? "Mark as not done" : "Mark as complete"}</button></div>
+      </div>
+    </details>`;
+  }).join("") : `<div class="empty-state">Lessons will be added soon.</div>`;
+  els.lessonList.querySelectorAll("[data-toggle-lesson]").forEach(button => button.addEventListener("click", () => toggleLesson(button.dataset.toggleLesson)));
+}
+
+async function toggleLesson(lessonId) {
+  const done = isLessonDone(lessonId);
+  const programId = state.lessons.find(lesson => lesson.id === lessonId)?.program_id;
+  const before = programProgress(programId);
+  const request = done
+    ? supabase.from("training_progress").delete().eq("user_id", currentUser.id).eq("lesson_id", lessonId)
+    : supabase.from("training_progress").insert({ user_id: currentUser.id, lesson_id: lessonId });
+  const { error } = await request;
+  if (error) return showToast(friendlyError(error));
+  if (done) state.progress = state.progress.filter(entry => !(entry.lesson_id === lessonId && entry.user_id === currentUser.id));
+  else state.progress.push({ user_id: currentUser.id, lesson_id: lessonId, completed_at: new Date().toISOString() });
+  const after = programProgress(programId);
+  state.focusLessonId = done ? lessonId : lessonsFor(programId).find(lesson => !isLessonDone(lesson.id))?.id || null;
+  if (!done) els.lessonList.querySelector(`[data-lesson="${lessonId}"]`)?.removeAttribute("open");
+  renderTraining();
+  const focus = state.focusLessonId && els.lessonList.querySelector(`[data-lesson="${state.focusLessonId}"]`);
+  if (focus && !done) focus.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  state.focusLessonId = null;
+  if (after.total && after.done === after.total && before.done !== before.total) {
+    showToast("Program completed! Your certificate is ready.");
+  }
+}
+
+function renderVideo(url) {
+  const safe = safeUrl(url);
+  if (!safe) return "";
+  const youtube = safe.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/);
+  if (youtube) return `<div class="video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${youtube[1]}" title="Lesson video" allow="accelerometer; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+  const vimeo = safe.match(/vimeo\.com\/(\d+)/);
+  if (vimeo) return `<div class="video-embed"><iframe src="https://player.vimeo.com/video/${vimeo[1]}" title="Lesson video" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
+  if (/\.(mp4|webm|mov)(\?|$)/i.test(safe)) return `<div class="video-embed"><video src="${escapeHtml(safe)}" controls playsinline></video></div>`;
+  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">Watch video</a>`;
+}
+
+function openCertificate() {
+  const program = state.programs.find(entry => entry.id === state.selectedProgramId);
+  if (!program) return;
+  const lessons = lessonsFor(program.id);
+  const dates = state.progress.filter(entry => entry.user_id === currentUser.id && lessons.some(lesson => lesson.id === entry.lesson_id)).map(entry => new Date(entry.completed_at));
+  const finished = dates.length ? new Date(Math.max(...dates)) : new Date();
+  const brand = state.settings.landing?.brandName || "";
+  const minutes = lessons.reduce((sum, lesson) => sum + (lesson.duration_minutes || 0), 0);
+  const win = window.open("", "_blank");
+  if (!win) return showToast("Allow pop-ups to open the certificate.");
+  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Certificate – ${escapeHtml(program.title)}</title>
+  <style>
+    @page { size: landscape; margin: 0; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #f3f1ea; display: grid; place-items: center; min-height: 100vh; }
+    .cert { width: 1000px; max-width: 94vw; aspect-ratio: 1.414; background: #fff; border: 14px solid #0f3a36; outline: 3px solid #c9902c; outline-offset: -26px; padding: 70px; box-sizing: border-box; text-align: center; display: grid; align-content: center; gap: 14px; }
+    .brand { font-family: system-ui, sans-serif; letter-spacing: 4px; text-transform: uppercase; color: #0f766e; font-weight: 800; font-size: 14px; }
+    h1 { margin: 0; font-size: 46px; color: #14211f; }
+    .lead { color: #657371; font-size: 18px; margin: 0; }
+    .name { font-size: 40px; color: #0f3a36; border-bottom: 2px solid #c9902c; padding-bottom: 6px; justify-self: center; min-width: 60%; margin: 6px 0; }
+    .program { font-size: 24px; font-style: italic; color: #14211f; margin: 0; }
+    .meta { display: flex; justify-content: space-around; margin-top: 30px; font-family: system-ui, sans-serif; color: #657371; font-size: 13px; }
+    .meta b { display: block; color: #14211f; font-size: 15px; }
+    .print { position: fixed; top: 16px; right: 16px; font: 700 14px system-ui; background: #0f766e; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
+    @media print { .print { display: none; } body { background: #fff; } .cert { max-width: none; width: 100%; height: 100vh; aspect-ratio: auto; } }
+  </style></head><body>
+  <button class="print" onclick="window.print()">Print / Save as PDF</button>
+  <div class="cert">
+    <div class="brand">${escapeHtml(brand)}</div>
+    <h1>Certificate of Completion</h1>
+    <p class="lead">This certifies that</p>
+    <div class="name">${escapeHtml(currentUser.name)}</div>
+    <p class="lead">has successfully completed the training program</p>
+    <p class="program">${escapeHtml(program.title)}</p>
+    <div class="meta">
+      <div><b>${new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(finished)}</b>Date completed</div>
+      <div><b>${lessons.length} lessons${minutes ? ` · ${minutes} min` : ""}</b>Program length</div>
+      <div><b>${escapeHtml([currentUser.discipline, currentUser.university].filter(Boolean).join(", ") || "—")}</b>Participant</div>
+    </div>
+  </div></body></html>`);
+  win.document.close();
+}
+
+/* ---- Training admin ---- */
+function renderTrainingAdmin() {
+  if (!state.trainingReady) {
+    els.programsAdminList.innerHTML = `<div class="empty-state">Run database update 0003 in Supabase to enable training programs.</div>`;
+    els.trainingReport.innerHTML = "";
+    return;
+  }
+  els.programsAdminList.innerHTML = state.programs.length ? state.programs.map(program => `
+    <article class="editable-row"><div><strong>${escapeHtml(program.title)}</strong> ${program.active === false ? `<span class="tag">Draft</span>` : ""}<p class="hint">${lessonsFor(program.id).length} lessons · ${escapeHtml(program.level || "No level")} · Visible to: ${escapeHtml(audienceLabel(program.audience))}</p></div>
+    <div class="row-actions"><button class="btn small" type="button" data-lessons-program="${program.id}">Lessons</button><button class="btn secondary small" type="button" data-edit-program="${program.id}">Edit</button><button class="btn warn small" type="button" data-remove-program="${program.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No programs yet. Create the first one above.</div>`;
+  els.programsAdminList.querySelectorAll("[data-lessons-program]").forEach(button => button.addEventListener("click", () => openLessonsAdmin(button.dataset.lessonsProgram)));
+  els.programsAdminList.querySelectorAll("[data-edit-program]").forEach(button => button.addEventListener("click", () => editProgram(button.dataset.editProgram)));
+  els.programsAdminList.querySelectorAll("[data-remove-program]").forEach(button => button.addEventListener("click", () => confirmDelete("training_programs", button.dataset.removeProgram, "this program and all its lessons")));
+
+  if (state.adminProgramId && state.programs.some(program => program.id === state.adminProgramId)) renderLessonsAdmin();
+  else els.lessonsAdmin.classList.add("hidden");
+
+  const learners = state.users.filter(user => user.status === "approved");
+  if (!state.programs.length || !learners.length) {
+    els.trainingReport.innerHTML = `<div class="empty-state">Progress will appear here once people start learning.</div>`;
+    return;
+  }
+  els.trainingReport.innerHTML = `<table class="table"><thead><tr><th>Person</th>${state.programs.map(program => `<th>${escapeHtml(program.title)}</th>`).join("")}</tr></thead><tbody>${learners.map(user => `<tr><td>${escapeHtml(user.name)}<br><small class="hint">${escapeHtml(getRoleLabel(user.role))}</small></td>${state.programs.map(program => {
+    const progress = programProgress(program.id, user.id);
+    return `<td>${progress.total ? `${progress.percent}%<div class="progress-bar" style="margin-top: 4px;"><i style="width: ${progress.percent}%"></i></div>` : "—"}</td>`;
+  }).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+function audienceLabel(value) {
+  return { all: "Everyone", user: "Clinicians", presenter: "Presenters", admin: "Admins only" }[value] || "Everyone";
+}
+
+async function saveProgram(event) {
+  event.preventDefault();
+  const payload = {
+    title: els.programTitleInput.value.trim(),
+    summary: els.programSummaryInput.value.trim(),
+    level: els.programLevelInput.value.trim(),
+    audience: els.programAudience.value,
+    cover_url: els.programCoverData.value || "",
+    sort_order: Number(els.programOrder.value) || 0,
+    active: els.programActive.checked
+  };
+  if (els.programId.value) payload.id = els.programId.value;
+  else payload.created_by = currentUser.id;
+  const { data, error } = await supabase.from("training_programs").upsert(payload).select().single();
+  if (error) return showToast(friendlyError(error));
+  const isNew = !els.programId.value;
+  clearProgramForm();
+  await refresh();
+  if (isNew && data) openLessonsAdmin(data.id);
+  showToast(isNew ? "Program created. Now add lessons." : "Program saved.");
+}
+
+function editProgram(id) {
+  const program = state.programs.find(entry => entry.id === id);
+  if (!program) return;
+  els.programId.value = program.id;
+  els.programTitleInput.value = program.title || "";
+  els.programSummaryInput.value = program.summary || "";
+  els.programLevelInput.value = program.level || "";
+  els.programAudience.value = program.audience || "all";
+  els.programCoverData.value = program.cover_url || "";
+  els.programOrder.value = program.sort_order || 0;
+  els.programActive.checked = program.active !== false;
+  els.programTitleInput.focus();
+}
+
+function clearProgramForm() {
+  els.programForm.reset();
+  els.programId.value = "";
+  els.programCoverData.value = "";
+  els.programActive.checked = true;
+}
+
+function openLessonsAdmin(programId) {
+  state.adminProgramId = programId;
+  clearLessonForm();
+  renderLessonsAdmin();
+  els.lessonsAdmin.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderLessonsAdmin() {
+  const program = state.programs.find(entry => entry.id === state.adminProgramId);
+  if (!program) return;
+  els.lessonsAdmin.classList.remove("hidden");
+  els.lessonsAdminTitle.textContent = `Lessons — ${program.title}`;
+  const lessons = lessonsFor(program.id);
+  if (!els.lessonId.value) els.lessonOrder.value = lessons.length ? Math.max(...lessons.map(lesson => lesson.sort_order || 0)) + 1 : 1;
+  els.lessonsAdminList.innerHTML = lessons.length ? lessons.map((lesson, index) => `
+    <article class="editable-row"><div><strong>${index + 1}. ${escapeHtml(lesson.title)}</strong><p class="hint">${lesson.duration_minutes || 0} min${lesson.video_url ? " · Video" : ""}${lesson.resource_url ? " · Resource" : ""}</p></div>
+    <div class="row-actions"><button class="btn secondary small" type="button" data-edit-lesson="${lesson.id}">Edit</button><button class="btn warn small" type="button" data-remove-lesson="${lesson.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No lessons yet.</div>`;
+  els.lessonsAdminList.querySelectorAll("[data-edit-lesson]").forEach(button => button.addEventListener("click", () => editLesson(button.dataset.editLesson)));
+  els.lessonsAdminList.querySelectorAll("[data-remove-lesson]").forEach(button => button.addEventListener("click", () => confirmDelete("training_lessons", button.dataset.removeLesson, "this lesson")));
+}
+
+async function saveLesson(event) {
+  event.preventDefault();
+  if (!state.adminProgramId) return;
+  const payload = {
+    program_id: state.adminProgramId,
+    title: els.lessonTitle.value.trim(),
+    body: els.lessonBody.value.trim(),
+    video_url: els.lessonVideo.value.trim(),
+    resource_url: els.lessonResourceUrl.value.trim() || els.lessonResourceData.value || "",
+    resource_name: els.lessonResourceName.value || "",
+    duration_minutes: Math.max(0, Number(els.lessonDuration.value) || 0),
+    sort_order: Number(els.lessonOrder.value) || 0
+  };
+  if (els.lessonId.value) payload.id = els.lessonId.value;
+  const { error } = await supabase.from("training_lessons").upsert(payload);
+  if (error) return showToast(friendlyError(error));
+  clearLessonForm();
+  await refresh();
+  showToast("Lesson saved.");
+}
+
+function editLesson(id) {
+  const lesson = state.lessons.find(entry => entry.id === id);
+  if (!lesson) return;
+  els.lessonId.value = lesson.id;
+  els.lessonTitle.value = lesson.title || "";
+  els.lessonBody.value = lesson.body || "";
+  els.lessonVideo.value = lesson.video_url || "";
+  els.lessonResourceUrl.value = lesson.resource_url || "";
+  els.lessonResourceData.value = "";
+  els.lessonResourceName.value = lesson.resource_name || "";
+  els.lessonDuration.value = lesson.duration_minutes || 0;
+  els.lessonOrder.value = lesson.sort_order || 0;
+  els.lessonTitle.focus();
+}
+
+function clearLessonForm() {
+  els.lessonForm.reset();
+  els.lessonId.value = "";
+  els.lessonResourceData.value = "";
+  els.lessonResourceName.value = "";
+}
+
+async function uploadProgramCover() {
+  const url = await uploadFile(els.programCover.files[0], "public-images", "training");
+  if (url) {
+    els.programCoverData.value = url;
+    showToast("Cover uploaded. Save the program to apply it.");
+  }
+}
+
+async function uploadLessonResource() {
+  const file = els.lessonResourceFile.files[0];
+  const url = await uploadFile(file, "presenter-slides", "training");
+  if (url) {
+    els.lessonResourceData.value = url;
+    els.lessonResourceUrl.value = url;
+    els.lessonResourceName.value = file.name;
+    showToast("File uploaded. Save the lesson to attach it.");
+  }
+}
+
+/* ------------------------------------------------------------------
+   Helpers
+------------------------------------------------------------------ */
+async function refresh() {
+  await loadSharedData();
+  renderAll();
+}
+
+async function confirmDelete(table, id, label) {
+  if (!window.confirm(`Remove ${label}? This cannot be undone.`)) return;
+  await deleteRow(table, id);
+}
+
+function safeUrl(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  try {
+    const url = new URL(text, window.location.href);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+function friendlyError(error) {
+  const message = error?.message || "Something went wrong.";
+  if (/relation .* does not exist|schema cache/i.test(message)) return "This feature needs the latest database update. Please contact the administrator.";
+  if (/row-level security|permission denied/i.test(message)) return "You do not have permission to do that.";
+  return message;
+}
+
+function formatRelative(value) {
+  const date = new Date(value);
+  const diff = (Date.now() - date.getTime()) / 1000;
+  if (diff < 60) return "Just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)} d ago`;
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
+
+async function lookupEmailForUsername(username) {
+  const { data, error } = await supabase.rpc("email_for_username", { lookup: username });
+  if (!error) return data || "";
+  // Fallback for databases where migration 0002 has not been applied yet.
+  const fallback = await supabase.from("profiles").select("email").eq("username", username).maybeSingle();
+  return fallback.data?.email || "";
+}
+
+async function loadPublicLanding() {
+  const { data, error } = await supabase.rpc("public_landing");
+  if (error || !data || !Object.keys(data).length) return;
+  state.settings.landing = normalizeLanding(data);
+  renderLanding();
+}
+
+function setAuthTab(tab) {
+  const signup = tab === "signup";
+  els.loginForm.classList.toggle("hidden", signup);
+  els.signupForm.classList.toggle("hidden", !signup);
+  els.pendingNotice.classList.add("hidden");
+  document.querySelectorAll(".auth-tabs [data-auth-tab]").forEach(button => {
+    button.classList.toggle("active", button.dataset.authTab === tab);
+  });
+}
+
+function showPendingNotice(status) {
+  els.loginForm.classList.add("hidden");
+  els.signupForm.classList.add("hidden");
+  els.pendingNotice.classList.remove("hidden");
+  if (status === "rejected") {
+    els.pendingTitle.textContent = "Access not available";
+    els.pendingText.textContent = "This account does not have access. Please contact the organizers if you think this is a mistake.";
+  } else if (status === "confirm-email") {
+    els.pendingTitle.textContent = "Check your email";
+    els.pendingText.textContent = "We sent you a confirmation link. After confirming, your account will be reviewed by the organizers.";
+  } else {
+    els.pendingTitle.textContent = "Waiting for approval";
+    els.pendingText.textContent = "Your account was created and is waiting for approval. You can sign in once an organizer approves it.";
+  }
+}
+
+async function signUp(event) {
+  event.preventDefault();
+  const submit = els.signupForm.querySelector("button[type=submit]");
+  submit.disabled = true;
+  try {
+    const username = els.signupUsername.value.trim().toLowerCase();
+    const taken = await lookupEmailForUsername(username);
+    if (taken) {
+      showToast("That username is already taken.");
+      return;
+    }
+    const { data, error } = await supabase.auth.signUp({
+      email: els.signupEmail.value.trim(),
+      password: els.signupPassword.value,
+      options: {
+        data: {
+          full_name: els.signupFullName.value.trim(),
+          username,
+          discipline: els.signupDiscipline.value.trim(),
+          university: els.signupUniversity.value.trim()
+        }
+      }
+    });
+    if (error) {
+      showToast(error.message);
+      return;
+    }
+    els.signupForm.reset();
+    if (data.session) await supabase.auth.signOut();
+    showPendingNotice(data.session ? "pending" : "confirm-email");
+  } finally {
+    submit.disabled = false;
+  }
 }
 
 function showToast(message) {

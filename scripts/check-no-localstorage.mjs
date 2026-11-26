@@ -6,6 +6,8 @@ const files = [
   "index.html",
   "src/app.js",
   "supabase/migrations/0001_initial_schema.sql",
+  "supabase/migrations/0002_signup_approval.sql",
+  "supabase/migrations/0003_updates_training_access.sql",
   "README.md"
 ];
 const offenders = [];
