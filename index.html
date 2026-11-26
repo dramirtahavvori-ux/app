@@ -1130,6 +1130,14 @@
       color: #ffffff;
     }
 
+    .reminder-toggle { display: inline-flex; align-items: center; gap: 8px; }
+    .reminder-dot { width: 9px; height: 9px; border-radius: 50%; background: #9aa8a6; flex: none; }
+    .reminder-toggle[aria-pressed="true"] .reminder-dot { background: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
+    .reminder-log .log-row { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 7px 10px; border-radius: 8px; background: var(--soft, #f4f7f7); }
+    .reminder-log .log-row .ok { color: #15803d; font-weight: 600; }
+    .reminder-log .log-row .bad { color: #b42318; font-weight: 600; }
+    .pill.ok { background: #e3f6ea; color: #15803d; }
+    .pill.bad { background: #fde8e7; color: #b42318; }
     .checks {
       align-content: end;
       gap: 10px;
@@ -2483,7 +2491,7 @@
 <p class="hint" id="notificationText">Enable reminders to receive a browser notification before the round starts.</p>
 </div>
 <div class="actions">
-<button class="btn secondary" data-i18n="Remind me here" id="enableReminder" type="button">Remind me here</button>
+<button aria-pressed="false" class="btn secondary reminder-toggle" id="enableReminder" type="button"><span class="reminder-dot"></span><span id="enableReminderLabel">Email reminders: On</span></button>
 <button class="btn" data-i18n="Add all sessions to my calendar" id="addAllToCalendar" type="button">Add all sessions to my calendar</button>
 </div>
 </div>
@@ -3139,6 +3147,39 @@
 <section class="admin-section hidden" id="updatesAdmin">
 <h3 data-i18n="Updates and reminders">Updates and reminders</h3>
 <p class="hint" data-i18n="Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report." style="margin-bottom: 12px;">Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report.</p>
+<div class="panel reminder-admin" style="margin-bottom: 16px;">
+<div class="split-title">
+<h3 data-i18n="Email reminders before each session" style="margin: 0;">Email reminders before each session</h3>
+<span class="pill" id="reminderConnection">…</span>
+</div>
+<p class="hint" data-i18n="Every approved member gets an email the day before and about one hour before each session on the schedule. Members can turn this off for themselves on the Morning report page." style="margin: 6px 0 10px;">Every approved member gets an email the day before and about one hour before each session on the schedule. Members can turn this off for themselves on the Morning report page.</p>
+<form class="form-grid" id="reminderForm">
+<div class="field full checks">
+<label><input checked="" id="reminderEnabled" type="checkbox"/> <span data-i18n="Send email reminders">Send email reminders</span></label>
+<label><input checked="" id="reminderDayBefore" type="checkbox"/> <span data-i18n="The day before">The day before</span></label>
+<label><input checked="" id="reminderHourBefore" type="checkbox"/> <span data-i18n="About 1 hour before">About 1 hour before</span></label>
+</div>
+<div class="field">
+<label data-i18n="Session times are in this time zone" for="reminderTimezone">Session times are in this time zone</label>
+<select id="reminderTimezone">
+<option value="America/Los_Angeles">Pacific (Los Angeles)</option>
+<option value="America/Denver">Mountain (Denver)</option>
+<option value="America/Phoenix">Arizona (Phoenix)</option>
+<option value="America/Chicago">Central (Chicago)</option>
+<option value="America/New_York">Eastern (New York)</option>
+<option value="Europe/London">London</option>
+<option value="Europe/Paris">Paris / Madrid</option>
+<option value="Europe/Istanbul">Istanbul</option>
+<option value="Asia/Tehran">Tehran</option>
+</select>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save settings" type="submit">Save settings</button>
+<button class="btn secondary" data-i18n="Send me a test reminder" id="sendTestReminder" type="button">Send me a test reminder</button>
+</div>
+</form>
+<div class="list reminder-log" id="reminderLog" style="margin-top: 12px;"></div>
+</div>
 <form class="form-grid" id="updateForm">
 <input id="updateId" type="hidden"/>
 <div class="field">
