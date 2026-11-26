@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { LANGS, DICT } from "./i18n.js";
 
 const SUPABASE_URL = __SUPABASE_URL__;
 const SUPABASE_ANON_KEY = __SUPABASE_ANON_KEY__;
@@ -47,6 +48,7 @@ heroImage: "https://vjyzwqiehyfzjnebtiwv.supabase.co/storage/v1/object/public/pu
 };
 
 let currentUser = null;
+let currentLang = detectLanguage();
 let draftAnswers = {};
 let mediaStream = null;
 let localMedia = { mic: false, camera: false, status: "Mic and camera are off." };
@@ -261,6 +263,8 @@ const els = {
   userFormTitle: $("userFormTitle"),
   pendingUsersList: $("pendingUsersList"),
   pendingCount: $("pendingCount"),
+  langSelect: $("langSelect"),
+  langSelectApp: $("langSelectApp"),
   updatesTab: $("updatesTab"),
   trainingTab: $("trainingTab"),
   updatesView: $("updatesView"),
@@ -402,17 +406,77 @@ const designer = {
   selected: null,
   drag: null
 };
+/* ------------------------------------------------------------------
+   Languages
+------------------------------------------------------------------ */
+const LOCALES = { en: "en-US", es: "es-ES", fr: "fr-FR", fa: "fa-IR-u-ca-gregory", tr: "tr-TR" };
+
+function detectLanguage() {
+  const saved = (document.cookie.match(/(?:^|; )lang=([a-z]{2})/) || [])[1];
+  if (saved && LANGS.some(lang => lang.code === saved)) return saved;
+  for (const pref of navigator.languages || [navigator.language || "en"]) {
+    const code = String(pref).slice(0, 2).toLowerCase();
+    if (LANGS.some(lang => lang.code === code)) return code;
+  }
+  return "en";
+}
+
+function t(text) {
+  if (currentLang === "en") return text;
+  return DICT[currentLang]?.[text] || text;
+}
+
+function currentLocale() {
+  return LOCALES[currentLang] || "en-US";
+}
+
+function currentDir() {
+  return LANGS.find(lang => lang.code === currentLang)?.dir || "ltr";
+}
+
+function applyStaticTranslations() {
+  document.querySelectorAll("[data-i18n]").forEach(el => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el => { el.title = t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el => { el.setAttribute("aria-label", t(el.dataset.i18nAria)); });
+}
+
+function renderLanguageMenus() {
+  for (const select of [els.langSelect, els.langSelectApp]) {
+    if (!select) continue;
+    if (!select.options.length) {
+      select.innerHTML = LANGS.map(lang => `<option value="${lang.code}">${lang.label}</option>`).join("");
+      select.addEventListener("change", () => setLanguage(select.value));
+    }
+    select.value = currentLang;
+  }
+}
+
+function setLanguage(code, { initial = false } = {}) {
+  if (!LANGS.some(lang => lang.code === code)) code = "en";
+  currentLang = code;
+  document.cookie = `lang=${code}; path=/; max-age=31536000; SameSite=Lax`;
+  document.documentElement.lang = code;
+  document.documentElement.dir = currentDir();
+  applyStaticTranslations();
+  renderLanguageMenus();
+  els.todayText.textContent = new Intl.DateTimeFormat(currentLocale(), { weekday: "long", month: "short", day: "numeric" }).format(new Date());
+  if (initial) return;
+  if (currentUser) renderAll();
+  else if (!designer.active) renderLanding();
+  const visible = [...document.querySelectorAll(".main > section")].find(section => !section.classList.contains("hidden"));
+  if (visible?.id === "updatesView") renderUpdates();
+  if (visible?.id === "trainingView") renderTraining();
+}
+
 const UPDATE_LABELS = { update: "Update", reminder: "Reminder", event: "Event", training: "Training" };
+const updateLabel = key => t(UPDATE_LABELS[key] || "Update");
 const VIEWS = ["report", "updates", "training", "profile", "presenter", "admin"];
 
 boot();
 
 async function boot() {
-  els.todayText.textContent = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric"
-  }).format(new Date());
+  setLanguage(currentLang, { initial: true });
 
   renderLanding();
   bindEvents();
@@ -647,7 +711,7 @@ async function signIn(event) {
   if (!identifier.includes("@")) {
     email = await lookupEmailForUsername(identifier);
     if (!email) {
-      showToast("No account found for that username.");
+      showToast(t("No account found for that username."));
       return;
     }
   }
@@ -668,7 +732,7 @@ async function hydrateSession(user) {
     .single();
   if (error || !profile) {
     await supabase.auth.signOut();
-    showToast("Your account does not have a profile yet. Please contact the organizers.");
+    showToast(t("Your account does not have a profile yet. Please contact the organizers."));
     return;
   }
 
@@ -861,9 +925,9 @@ function renderLandingMetricsAdmin(metrics) {
           <div class="field"><label>Big text</label><input data-landing-metric-value="${index}" value="${escapeHtml(item.value)}"></div>
           <div class="field"><label>Small text</label><input data-landing-metric-label="${index}" value="${escapeHtml(item.label)}"></div>
         </div>
-        <div class="row-actions"><button class="btn warn small" type="button" data-remove-landing-metric="${index}">Remove</button></div>
+        <div class="row-actions"><button class="btn warn small" type="button" data-remove-landing-metric="${index}">${t("Remove")}</button></div>
       </article>`).join("")
-    : `<div class="empty-state">No small boxes. Click Add small box if you want one.</div>`;
+    : `<div class="empty-state">${t("No small boxes. Click Add small box if you want one.")}</div>`;
 }
 
 function renderLandingCardsAdmin(cards) {
@@ -874,16 +938,16 @@ function renderLandingCardsAdmin(cards) {
           <div class="field"><label>Card title</label><input data-landing-card-title="${index}" value="${escapeHtml(item.title)}"></div>
           <div class="field"><label>Card text</label><input data-landing-card-text="${index}" value="${escapeHtml(item.text)}"></div>
         </div>
-        <div class="row-actions"><button class="btn warn small" type="button" data-remove-landing-card="${index}">Remove</button></div>
+        <div class="row-actions"><button class="btn warn small" type="button" data-remove-landing-card="${index}">${t("Remove")}</button></div>
       </article>`).join("")
-    : `<div class="empty-state">No right-side cards. Click Add card if you want one.</div>`;
+    : `<div class="empty-state">${t("No right-side cards. Click Add card if you want one.")}</div>`;
 }
 
 function renderMeeting() {
   const meeting = state.settings.meeting;
-  els.reportHeading.textContent = meeting.reportHeading || "Morning Report";
+  els.reportHeading.textContent = meeting.reportHeading || t("Morning Report");
   els.reportSubheading.textContent = meeting.reportSubheading || "";
-  els.meetingTitle.textContent = meeting.title || "Meeting details";
+  els.meetingTitle.textContent = meeting.title || t("Meeting details");
   els.meetingMeta.textContent = meeting.time || "";
   els.meetingNotes.textContent = meeting.notes || "";
   els.meetingLink.href = meeting.url || "#";
@@ -901,26 +965,26 @@ function renderMeeting() {
 function renderReminderStatus() {
   const next = getNextSession();
   const start = next ? sessionStart(next) : getMeetingStartDate();
-  els.notificationTitle.textContent = "Session reminders";
+  els.notificationTitle.textContent = t("Session reminders");
   if (!start) {
-    els.notificationText.textContent = "Reminders will be available once the next session is on the schedule.";
+    els.notificationText.textContent = t("Reminders will be available once the next session is on the schedule.");
     return;
   }
   const minutes = Math.round((start.getTime() - Date.now()) / 60000);
   if (minutes < 0) {
-    els.notificationTitle.textContent = "Session in progress";
-    els.notificationText.textContent = "Join video to take part now.";
+    els.notificationTitle.textContent = t("Session in progress");
+    els.notificationText.textContent = t("Join video to take part now.");
   } else if (minutes <= 15) {
-    els.notificationTitle.textContent = "Starting soon";
+    els.notificationTitle.textContent = t("Starting soon");
     els.notificationText.textContent = `The next session starts in about ${minutes} minutes. Join video when ready.`;
   } else {
-    els.notificationText.textContent = "Add sessions to your phone or computer calendar to get a reminder the day before and 15 minutes before each one.";
+    els.notificationText.textContent = t("Add sessions to your phone or computer calendar to get a reminder the day before and 15 minutes before each one.");
   }
 }
 
 function renderSchedule() {
   if (!state.schedule.length) {
-    els.schedule.innerHTML = `<div class="empty-state">No schedule items yet.</div>`;
+    els.schedule.innerHTML = `<div class="empty-state">${t("No schedule items yet.")}</div>`;
     return;
   }
   els.schedule.innerHTML = state.schedule.map(item => `
@@ -940,8 +1004,8 @@ function renderSchedule() {
 function renderPeople() {
   const presenters = state.people.filter(person => person.type === "presenter");
   const guests = state.people.filter(person => person.type === "guest");
-  els.presenters.innerHTML = presenters.length ? presenters.map(renderPersonCard).join("") : `<div class="empty-state">No presenters yet.</div>`;
-  els.guests.innerHTML = guests.length ? guests.map(renderPersonCard).join("") : `<div class="empty-state">No guests yet.</div>`;
+  els.presenters.innerHTML = presenters.length ? presenters.map(renderPersonCard).join("") : `<div class="empty-state">${t("No presenters yet.")}</div>`;
+  els.guests.innerHTML = guests.length ? guests.map(renderPersonCard).join("") : `<div class="empty-state">${t("No guests yet.")}</div>`;
 }
 
 function renderPersonCard(person) {
@@ -954,10 +1018,10 @@ function renderQuestions() {
   const locked = myAnswers.length > 0;
   els.lockedLabel.classList.toggle("hidden", !locked);
   els.submitAnswers.disabled = locked || state.questions.length === 0;
-  els.submitAnswers.textContent = locked ? "Answers submitted" : "Submit answers";
-  els.submitState.textContent = locked ? "Submitted" : "Awaiting response";
+  els.submitAnswers.textContent = locked ? t("Answers submitted") : t("Submit answers");
+  els.submitState.textContent = locked ? t("Submitted") : t("Awaiting response");
   if (!state.questions.length) {
-    els.questions.innerHTML = `<div class="empty-state">No questions have been added for this round.</div>`;
+    els.questions.innerHTML = `<div class="empty-state">${t("No questions have been added for this round.")}</div>`;
     return;
   }
   state.questions.forEach((question, index) => {
@@ -968,7 +1032,7 @@ function renderQuestions() {
     node.innerHTML = `
       <div class="split-title"><strong>${index + 1}. ${escapeHtml(question.text)}</strong>${saved ? `<span class="pill">Locked</span>` : ""}</div>
       <div class="options">${question.options.map(option => `<button class="option ${answer.choice === option ? "selected" : ""}" type="button" ${saved ? "disabled" : ""} data-question="${question.id}" data-option="${escapeHtml(option)}">${escapeHtml(option)}</button>`).join("")}</div>
-      <div class="reason-box"><label for="reason-${question.id}">Reason for your choice</label>${saved ? `<div class="locked-reason">${escapeHtml(answer.reason || "No reason provided")}</div>` : `<textarea id="reason-${question.id}" data-reason-question="${question.id}" placeholder="Briefly explain why you selected this answer.">${escapeHtml(answer.reason || "")}</textarea>`}</div>`;
+      <div class="reason-box"><label for="reason-${question.id}">${t("Reason for your choice")}</label>${saved ? `<div class="locked-reason">${escapeHtml(answer.reason || t("No reason provided"))}</div>` : `<textarea id="reason-${question.id}" data-reason-question="${question.id}" placeholder="${t("Briefly explain why you selected this answer.")}">${escapeHtml(answer.reason || "")}</textarea>`}</div>`;
     els.questions.append(node);
   });
   els.questions.querySelectorAll(".option").forEach(button => {
@@ -988,21 +1052,21 @@ function renderQuestions() {
 
 function renderLiveRoom() {
   els.liveMessages.innerHTML = state.liveMessages.length
-    ? state.liveMessages.map(message => `<article class="chat-message"><strong>${escapeHtml(message.profiles?.full_name || "Participant")} <span class="hint">| ${escapeHtml(formatDate(message.created_at))}</span></strong><div>${escapeHtml(message.body)}</div></article>`).join("")
-    : `<div class="empty-state">No live questions yet.</div>`;
+    ? state.liveMessages.map(message => `<article class="chat-message"><strong>${escapeHtml(message.profiles?.full_name || t("Participant"))} <span class="hint">| ${escapeHtml(formatDate(message.created_at))}</span></strong><div>${escapeHtml(message.body)}</div></article>`).join("")
+    : `<div class="empty-state">${t("No live questions yet.")}</div>`;
   const request = state.handRaises.find(item => item.user_id === currentUser?.id);
   if (!request) {
-    els.handRaiseStatus.textContent = "No request";
+    els.handRaiseStatus.textContent = t("No request");
     els.raiseHandBtn.disabled = false;
-    els.raiseHandBtn.textContent = "Request to speak";
+    els.raiseHandBtn.textContent = t("Request to speak");
   } else if (request.status === "pending") {
-    els.handRaiseStatus.textContent = "Waiting for approval";
+    els.handRaiseStatus.textContent = t("Waiting for approval");
     els.raiseHandBtn.disabled = true;
-    els.raiseHandBtn.textContent = "Request pending";
+    els.raiseHandBtn.textContent = t("Request pending");
   } else {
-    els.handRaiseStatus.textContent = request.status === "approved" ? "Approved to speak" : "Request declined";
+    els.handRaiseStatus.textContent = request.status === "approved" ? t("Approved to speak") : t("Request declined");
     els.raiseHandBtn.disabled = false;
-    els.raiseHandBtn.textContent = "Request again";
+    els.raiseHandBtn.textContent = t("Request again");
   }
 }
 
@@ -1015,17 +1079,17 @@ function renderMediaControls() {
   if (cameraBlocked && localMedia.camera) stopLocalMedia({ cameraOnly: true });
   els.userMicToggle.disabled = micBlocked;
   els.userCameraToggle.disabled = cameraBlocked;
-  els.userMicToggle.textContent = micBlocked ? "Mic muted by admin" : localMedia.mic ? "Turn mic off" : "Turn mic on";
-  els.userCameraToggle.textContent = cameraBlocked ? "Camera blocked by admin" : localMedia.camera ? "Turn camera off" : "Turn camera on";
-  els.mediaAccessLabel.textContent = micBlocked || cameraBlocked ? "Admin controlled" : "Ready";
-  els.mediaStatus.textContent = localMedia.status;
+  els.userMicToggle.textContent = micBlocked ? t("Mic muted by admin") : localMedia.mic ? t("Turn mic off") : t("Turn mic on");
+  els.userCameraToggle.textContent = cameraBlocked ? t("Camera blocked by admin") : localMedia.camera ? t("Turn camera off") : t("Turn camera on");
+  els.mediaAccessLabel.textContent = micBlocked || cameraBlocked ? t("Admin controlled") : t("Ready");
+  els.mediaStatus.textContent = localMedia.status.split(" | ").map(part => t(part)).join(" | ");
   els.localMediaPreview.classList.toggle("hidden", !localMedia.camera);
 }
 
 function renderPresenterSlides() {
   if (!currentUser || currentUser.role !== "presenter") return;
   if (!state.schedule.length) {
-    els.presenterSlidesList.innerHTML = `<div class="empty-state">No sessions have been scheduled yet.</div>`;
+    els.presenterSlidesList.innerHTML = `<div class="empty-state">${t("No sessions have been scheduled yet.")}</div>`;
     return;
   }
   els.presenterSlidesList.innerHTML = state.schedule.map(item => `
@@ -1053,15 +1117,15 @@ function renderPresenterSlides() {
 
 function renderPresentingMode() {
   if (!els.presentingStatus) return;
-  els.presentingStatus.textContent = presenterMode.presenting ? "Live presenting" : "Not presenting";
-  els.presentingToggle.textContent = presenterMode.presenting ? "Stop presenting" : "Start presenting";
-  els.presenterMicToggle.textContent = presenterMode.mic ? "Mic on" : "Mic off";
-  els.presenterCameraToggle.textContent = presenterMode.camera ? "Camera on" : "Camera off";
+  els.presentingStatus.textContent = presenterMode.presenting ? t("Live presenting") : t("Not presenting");
+  els.presentingToggle.textContent = presenterMode.presenting ? t("Stop presenting") : t("Start presenting");
+  els.presenterMicToggle.textContent = presenterMode.mic ? t("Mic on") : t("Mic off");
+  els.presenterCameraToggle.textContent = presenterMode.camera ? t("Camera on") : t("Camera off");
   els.presenterBackground.value = presenterMode.background;
   els.presenterPreview.classList.toggle("blur-bg", presenterMode.background === "blur");
   els.presenterPreview.classList.toggle("kidney-bg", presenterMode.background === "kidney");
   els.presenterPreview.classList.toggle("conference-bg", presenterMode.background === "conference");
-  els.presenterPreviewText.textContent = presenterMode.camera ? `${currentUser?.name || "Presenter"} camera preview` : "Camera preview off";
+  els.presenterPreviewText.textContent = presenterMode.camera ? `${currentUser?.name || t("Presenter")} camera preview` : t("Camera preview off");
 }
 
 function renderAdmin() {
@@ -1099,21 +1163,21 @@ function renderProfile() {
 
 function renderScheduleAdmin() {
   els.scheduleAdminList.innerHTML = state.schedule.length ? state.schedule.map(item => `
-    <article class="editable-row"><div><strong>${escapeHtml(item.topic)}</strong><p class="hint">${formatScheduleDate(item.date)} | ${escapeHtml(formatTimeRange(item))}<br>${escapeHtml(item.notes || "")}${item.slidesUrl || item.slidesData ? "<br>Slides attached" : ""}${item.recordingUrl || item.recordingData ? "<br>Recording attached" : ""}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-schedule="${item.id}">Edit</button><button class="btn warn small" type="button" data-remove-schedule="${item.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No schedule items yet.</div>`;
+    <article class="editable-row"><div><strong>${escapeHtml(item.topic)}</strong><p class="hint">${formatScheduleDate(item.date)} | ${escapeHtml(formatTimeRange(item))}<br>${escapeHtml(item.notes || "")}${item.slidesUrl || item.slidesData ? "<br>Slides attached" : ""}${item.recordingUrl || item.recordingData ? "<br>Recording attached" : ""}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-schedule="${item.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-schedule="${item.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("No schedule items yet.")}</div>`;
   els.scheduleAdminList.querySelectorAll("[data-edit-schedule]").forEach(button => button.addEventListener("click", () => editSchedule(button.dataset.editSchedule)));
   els.scheduleAdminList.querySelectorAll("[data-remove-schedule]").forEach(button => button.addEventListener("click", () => deleteRow("schedules", button.dataset.removeSchedule)));
 }
 
 function renderPeopleAdmin() {
   els.peopleAdminList.innerHTML = state.people.length ? state.people.map(person => `
-    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(person)}<div><strong>${escapeHtml(person.name)}</strong><p class="hint">${escapeHtml(person.type)} | ${escapeHtml(person.role)}<br>${escapeHtml(person.institution)}${person.location ? ` | ${escapeHtml(person.location)}` : ""}<br>${escapeHtml(person.introduction || "")}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-person="${person.id}">Edit</button><button class="btn warn small" type="button" data-remove-person="${person.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No people yet.</div>`;
+    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(person)}<div><strong>${escapeHtml(person.name)}</strong><p class="hint">${escapeHtml(person.type)} | ${escapeHtml(person.role)}<br>${escapeHtml(person.institution)}${person.location ? ` | ${escapeHtml(person.location)}` : ""}<br>${escapeHtml(person.introduction || "")}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-person="${person.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-person="${person.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("No people yet.")}</div>`;
   els.peopleAdminList.querySelectorAll("[data-edit-person]").forEach(button => button.addEventListener("click", () => editPerson(button.dataset.editPerson)));
   els.peopleAdminList.querySelectorAll("[data-remove-person]").forEach(button => button.addEventListener("click", () => deleteRow("people", button.dataset.removePerson)));
 }
 
 function renderQuestionsAdmin() {
   els.questionsAdminList.innerHTML = state.questions.length ? state.questions.map(question => `
-    <article class="editable-row"><div><strong>${escapeHtml(question.text)}</strong><p class="hint">${question.options.map(escapeHtml).join(", ")}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-question="${question.id}">Edit</button><button class="btn warn small" type="button" data-remove-question="${question.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No questions yet.</div>`;
+    <article class="editable-row"><div><strong>${escapeHtml(question.text)}</strong><p class="hint">${question.options.map(escapeHtml).join(", ")}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-question="${question.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-question="${question.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("No questions yet.")}</div>`;
   els.questionsAdminList.querySelectorAll("[data-edit-question]").forEach(button => button.addEventListener("click", () => editQuestion(button.dataset.editQuestion)));
   els.questionsAdminList.querySelectorAll("[data-remove-question]").forEach(button => button.addEventListener("click", () => deleteRow("questions", button.dataset.removeQuestion)));
 }
@@ -1123,10 +1187,10 @@ function renderUsersAdmin() {
   els.pendingCount.textContent = String(pending.length);
   els.pendingUsersList.innerHTML = pending.length ? pending.map(user => `
     <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions">
-      <select data-approve-role="${user.id}" aria-label="Access level"><option value="user">Clinician / attendee</option><option value="presenter">Presenter / speaker</option><option value="admin">Admin / panelist</option></select>
-      <button class="btn small" type="button" data-approve-user="${user.id}">Approve</button>
-      <button class="btn warn small" type="button" data-reject-user="${user.id}">Reject</button>
-    </div></article>`).join("") : `<div class="empty-state">No one is waiting for approval.</div>`;
+      <select data-approve-role="${user.id}" aria-label="${t("Access level")}"><option value="user">${t("Clinician / attendee")}</option><option value="presenter">${t("Presenter / speaker")}</option><option value="admin">${t("Admin / panelist")}</option></select>
+      <button class="btn small" type="button" data-approve-user="${user.id}">${t("Approve")}</button>
+      <button class="btn warn small" type="button" data-reject-user="${user.id}">${t("Reject")}</button>
+    </div></article>`).join("") : `<div class="empty-state">${t("No one is waiting for approval.")}</div>`;
   els.pendingUsersList.querySelectorAll("[data-approve-user]").forEach(button => button.addEventListener("click", () => {
     const role = els.pendingUsersList.querySelector(`[data-approve-role="${button.dataset.approveUser}"]`)?.value || "user";
     setUserAccess(button.dataset.approveUser, "approved", role);
@@ -1135,28 +1199,28 @@ function renderUsersAdmin() {
 
   const others = state.users.filter(user => user.status !== "pending");
   els.usersAdminList.innerHTML = others.length ? others.map(user => `
-    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>Access: ${escapeHtml(getRoleLabel(user.role))}${user.status === "rejected" ? " (blocked)" : ""}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-user="${user.id}">Edit profile</button></div></article>`).join("") : `<div class="empty-state">No users yet.</div>`;
+    <article class="editable-row"><div class="person-card" style="border: 0; padding: 0; background: transparent;">${renderAvatar(user)}<div><strong>${escapeHtml(user.name)}</strong><p class="hint">Username: ${escapeHtml(user.username)}<br>Email: ${escapeHtml(user.email || "No email")}<br>Access: ${escapeHtml(getRoleLabel(user.role))}${user.status === "rejected" ? " (blocked)" : ""}<br>${escapeHtml(user.discipline || "")}${user.university ? ` | ${escapeHtml(user.university)}` : ""}</p></div></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-user="${user.id}">${t("Edit profile")}</button></div></article>`).join("") : `<div class="empty-state">${t("No users yet.")}</div>`;
   els.usersAdminList.querySelectorAll("[data-edit-user]").forEach(button => button.addEventListener("click", () => editUser(button.dataset.editUser)));
 }
 
 async function setUserAccess(id, status, role) {
-  if (id === currentUser?.id) return showToast("You cannot change your own access.");
+  if (id === currentUser?.id) return showToast(t("You cannot change your own access."));
   const payload = { status };
   if (role) payload.role = role;
   const { error } = await supabase.from("profiles").update(payload).eq("id", id);
   if (error) return showToast(error.message);
   await loadSharedData();
   renderAll();
-  showToast(status === "approved" ? "Account approved." : "Account rejected.");
+  showToast(status === "approved" ? t("Account approved.") : t("Account rejected."));
 }
 
 function renderLiveRoomAdmin() {
   const mediaUsers = state.users.filter(user => user.role !== "admin");
   els.liveRoomAdminList.innerHTML = `
-    <article class="editable-row"><div><strong>Hand-raise requests</strong><p class="hint">${state.handRaises.filter(item => item.status === "pending").length} waiting for approval</p></div><button class="btn secondary small" type="button" data-clear-live-room="all">Clear live room</button></article>
-    ${state.handRaises.length ? state.handRaises.map(request => `<article class="editable-row"><div><strong>${escapeHtml(request.profiles?.full_name || "Participant")}</strong><p class="hint">Status: ${escapeHtml(request.status)} | ${escapeHtml(formatDate(request.created_at))}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-hand-raise="${request.id}" data-hand-status="approved">Approve</button><button class="btn warn small" type="button" data-hand-raise="${request.id}" data-hand-status="declined">Decline</button></div></article>`).join("") : `<div class="empty-state">No hand-raise requests yet.</div>`}
+    <article class="editable-row"><div><strong>Hand-raise requests</strong><p class="hint">${state.handRaises.filter(item => item.status === "pending").length} waiting for approval</p></div><button class="btn secondary small" type="button" data-clear-live-room="all">${t("Clear live room")}</button></article>
+    ${state.handRaises.length ? state.handRaises.map(request => `<article class="editable-row"><div><strong>${escapeHtml(request.profiles?.full_name || t("Participant"))}</strong><p class="hint">Status: ${escapeHtml(request.status)} | ${escapeHtml(formatDate(request.created_at))}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-hand-raise="${request.id}" data-hand-status="approved">${t("Approve")}</button><button class="btn warn small" type="button" data-hand-raise="${request.id}" data-hand-status="declined">${t("Decline")}</button></div></article>`).join("") : `<div class="empty-state">${t("No hand-raise requests yet.")}</div>`}
     <article class="editable-row"><div><strong>Live questions</strong><p class="hint">${state.liveMessages.length} question${state.liveMessages.length === 1 ? "" : "s"} received</p></div></article>
-    ${state.liveMessages.length ? state.liveMessages.map(message => `<article class="chat-message"><strong>${escapeHtml(message.profiles?.full_name || "Participant")} <span class="hint">| ${escapeHtml(formatDate(message.created_at))}</span></strong><div>${escapeHtml(message.body)}</div></article>`).join("") : `<div class="empty-state">No live questions yet.</div>`}
+    ${state.liveMessages.length ? state.liveMessages.map(message => `<article class="chat-message"><strong>${escapeHtml(message.profiles?.full_name || t("Participant"))} <span class="hint">| ${escapeHtml(formatDate(message.created_at))}</span></strong><div>${escapeHtml(message.body)}</div></article>`).join("") : `<div class="empty-state">${t("No live questions yet.")}</div>`}
     <article class="editable-row"><div><strong>Participant audio/video permissions</strong><p class="hint">Allow, mute, or block camera for participants and presenters.</p></div></article>
     ${mediaUsers.map(user => {
       const controls = getMediaControl(user.id);
@@ -1177,7 +1241,7 @@ function renderThankYouAdmin() {
 function renderThankYouCards() {
   const session = state.schedule.find(item => item.id === els.thankYouSession.value) || state.schedule[0];
   if (!session) {
-    els.thankYouList.innerHTML = `<div class="empty-state">Add a schedule item before generating thank-you cards.</div>`;
+    els.thankYouList.innerHTML = `<div class="empty-state">${t("Add a schedule item before generating thank-you cards.")}</div>`;
     return;
   }
   const recipients = state.users.filter(user => user.role !== "admin");
@@ -1190,7 +1254,7 @@ function renderThankYouCards() {
 
 function renderAnswers() {
   if (!state.answers.length) {
-    els.answersTable.innerHTML = `<div class="empty-state">No responses submitted yet.</div>`;
+    els.answersTable.innerHTML = `<div class="empty-state">${t("No responses submitted yet.")}</div>`;
     return;
   }
   const grouped = new Map();
@@ -1249,7 +1313,7 @@ async function saveSettings() {
     .from("app_settings")
     .upsert({ id: true, landing: state.settings.landing, meeting: state.settings.meeting, appearance: state.settings.appearance });
   if (error) return showToast(error.message);
-  showToast("Saved to Supabase.");
+  showToast(t("Saved."));
   await loadSharedData();
   renderAll();
 }
@@ -1322,11 +1386,11 @@ async function saveQuestion(event) {
 async function saveProfileFromAdmin(event) {
   event.preventDefault();
   if (!els.userId.value) {
-    showToast("Choose a user from the list below to edit. New people create their own account from the home page.");
+    showToast(t("Choose a user from the list below to edit. New people create their own account from the home page."));
     return;
   }
   if (els.userId.value === currentUser?.id && (els.userRole.value !== currentUser.role || els.userStatus.value !== "approved")) {
-    showToast("You cannot change your own access level or status.");
+    showToast(t("You cannot change your own access level or status."));
     return;
   }
   const payload = {
@@ -1370,7 +1434,7 @@ async function saveMyProfile(event) {
   await loadSharedData();
   currentUser = state.users.find(user => user.id === currentUser.id) || currentUser;
   renderAll();
-  showToast("Profile saved.");
+  showToast(t("Profile saved."));
 }
 
 async function submitAnswers() {
@@ -1379,7 +1443,7 @@ async function submitAnswers() {
     const answer = normalizeAnswer(draftAnswers[question.id]);
     return !answer.choice || !answer.reason.trim();
   });
-  if (missing) return showToast("Please select an answer and write a reason for every question.");
+  if (missing) return showToast(t("Please select an answer and write a reason for every question."));
   const rows = state.questions.map(question => ({
     user_id: currentUser.id,
     question_id: question.id,
@@ -1396,7 +1460,7 @@ async function submitAnswers() {
 async function sendLiveMessage(event) {
   event.preventDefault();
   const text = els.liveMessageInput.value.trim();
-  if (!text) return showToast("Write a question first.");
+  if (!text) return showToast(t("Write a question first."));
   const { error } = await supabase.from("live_messages").insert({ user_id: currentUser.id, body: text });
   if (error) return showToast(error.message);
   els.liveMessageInput.value = "";
@@ -1633,16 +1697,16 @@ function showAdmin() {
 async function copyMeetingLink() {
   try {
     await navigator.clipboard.writeText(state.settings.meeting.url || "");
-    showToast("Video meeting link copied.");
+    showToast(t("Video meeting link copied."));
   } catch {
-    showToast("Copy failed.");
+    showToast(t("Copy failed."));
   }
 }
 
 async function setLocalMedia({ mic, camera }) {
   const controls = getMediaControl(currentUser.id);
-  if (mic && controls.mic_allowed === false) return showToast("Admin has muted your microphone.");
-  if (camera && controls.camera_allowed === false) return showToast("Admin has blocked your camera.");
+  if (mic && controls.mic_allowed === false) return showToast(t("Admin has muted your microphone."));
+  if (camera && controls.camera_allowed === false) return showToast(t("Admin has blocked your camera."));
   stopLocalMedia();
   if (!mic && !camera) return renderMediaControls();
   try {
@@ -1653,7 +1717,7 @@ async function setLocalMedia({ mic, camera }) {
     localMedia.status = `${mic ? "Mic on" : "Mic off"} | ${camera ? "Camera on" : "Camera off"}`;
   } catch {
     localMedia.status = "Browser permission failed. Use HTTPS and allow camera/microphone.";
-    showToast("Camera/microphone permission failed.");
+    showToast(t("Camera/microphone permission failed."));
   }
   renderMediaControls();
 }
@@ -1682,7 +1746,7 @@ function stopLocalMedia(options = {}) {
 async function enableMeetingReminder() {
   const next = getNextSession();
   const start = next ? sessionStart(next) : getMeetingStartDate();
-  if (!start || start.getTime() < Date.now()) return showToast("There is no upcoming session to remind you about.");
+  if (!start || start.getTime() < Date.now()) return showToast(t("There is no upcoming session to remind you about."));
   const title = next ? next.topic : state.settings.meeting.title;
   const reminderAt = new Date(start.getTime() - 15 * 60000);
   const delay = Math.max(0, reminderAt.getTime() - Date.now());
@@ -1697,7 +1761,7 @@ async function enableMeetingReminder() {
       showToast(message);
     }, delay);
   }
-  showToast("Reminder set while this page is open. For a reminder on your phone, use \"Add to my calendar\".");
+  showToast("Reminder set while this page is open. For a reminder on your phone, add the session to your calendar.");
 }
 
 function readLandingMetricsFromAdmin() {
@@ -1816,7 +1880,7 @@ function openSlides(id) {
 
 function renderSlidesButton(item) {
   if (!item.slidesUrl && !item.slidesData) return "";
-  return `<button class="recording-link slides-link" type="button" data-view-slides="${item.id}">View slides</button>`;
+  return `<button class="recording-link slides-link" type="button" data-view-slides="${item.id}">${t("View slides")}</button>`;
 }
 
 function renderRecordingButton(item) {
@@ -1824,7 +1888,7 @@ function renderRecordingButton(item) {
   if (!href) return "";
   const safe = safeUrl(href);
   if (!safe) return "";
-  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">Watch recording</a>`;
+  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">${t("Watch recording")}</a>`;
 }
 
 function renderAvatar(person) {
@@ -1849,9 +1913,9 @@ function buildThankYouBody(user, session) {
 }
 
 function getRoleLabel(role) {
-  if (role === "admin") return "Administrator";
-  if (role === "presenter") return "Presenter";
-  return "Clinician";
+  if (role === "admin") return t("Administrator");
+  if (role === "presenter") return t("Presenter");
+  return t("Clinician");
 }
 
 function getBrandJustify(value) {
@@ -1866,7 +1930,7 @@ function getInitials(name) {
 
 function formatScheduleDate(value) {
   if (!value) return "No date";
-  return new Intl.DateTimeFormat("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`));
+  return new Intl.DateTimeFormat(currentLocale(), { weekday: "short", month: "short", day: "numeric", year: "numeric" }).format(new Date(`${value}T00:00:00`));
 }
 
 function formatTimeRange(item) {
@@ -1875,7 +1939,7 @@ function formatTimeRange(item) {
 }
 
 function formatDate(value) {
-  return new Intl.DateTimeFormat("en-US", { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
+  return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short", timeStyle: "short" }).format(new Date(value));
 }
 
 function clampNumber(value, min, max, fallback) {
@@ -1953,15 +2017,15 @@ function renderUpdateCard(item, { compact = false } = {}) {
   return `<article class="update-card ${category} ${!compact && isUnread(item) ? "unread" : ""}">
     <div class="update-head">
       <div>
-        <span class="tag ${category}">${UPDATE_LABELS[category]}</span>
-        ${item.pinned ? `<span class="tag pin">Pinned</span>` : ""}
-        ${!compact && isUnread(item) ? `<span class="tag">New</span>` : ""}
+        <span class="tag ${category}">${updateLabel(category)}</span>
+        ${item.pinned ? `<span class="tag pin">${t("Pinned")}</span>` : ""}
+        ${!compact && isUnread(item) ? `<span class="tag">${t("New")}</span>` : ""}
       </div>
       <small class="hint">${formatRelative(item.created_at)}</small>
     </div>
     <h4>${escapeHtml(item.title)}</h4>
     ${item.body ? `<p>${escapeHtml(compact && item.body.length > 220 ? `${item.body.slice(0, 220)}…` : item.body)}</p>` : ""}
-    ${link ? `<a class="update-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">Open link →</a>` : ""}
+    ${link ? `<a class="update-link" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${t("Open link")} →</a>` : ""}
   </article>`;
 }
 
@@ -1970,7 +2034,7 @@ function renderUpdates() {
   const items = visibleUpdates().filter(item => filter === "all" || (item.category || "update") === filter);
   els.updatesList.innerHTML = items.length
     ? items.map(item => renderUpdateCard(item)).join("")
-    : `<div class="empty-state">No ${filter === "all" ? "updates" : `${UPDATE_LABELS[filter].toLowerCase()}s`} yet.</div>`;
+    : `<div class="empty-state">${t("Nothing here yet.")}</div>`;
   document.querySelectorAll("[data-update-filter]").forEach(button => {
     button.classList.toggle("active", button.dataset.updateFilter === filter);
   });
@@ -2005,7 +2069,7 @@ function notifyNewUpdates(previousIds) {
   const fresh = visibleUpdates().filter(item => !previousIds.has(item.id));
   if (!fresh.length) return;
   const first = fresh[0];
-  showToast(`New ${UPDATE_LABELS[first.category] ? UPDATE_LABELS[first.category].toLowerCase() : "update"}: ${first.title}`);
+  showToast(`${updateLabel(first.category)}: ${first.title}`);
   if ("Notification" in window && Notification.permission === "granted" && document.hidden) {
     new Notification(first.title, { body: first.body?.slice(0, 140) || "" });
   }
@@ -2014,7 +2078,7 @@ function notifyNewUpdates(previousIds) {
 function renderUpdatesAdmin() {
   const items = [...state.announcements].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
   els.updatesAdminList.innerHTML = items.length ? items.map(item => `
-    <article class="editable-row"><div><span class="tag ${escapeHtml(item.category || "update")}">${UPDATE_LABELS[item.category] || "Update"}</span>${item.pinned ? ` <span class="tag pin">Pinned</span>` : ""}${item.active === false ? ` <span class="tag">Hidden</span>` : ""}<br><strong>${escapeHtml(item.title)}</strong><p class="hint">${formatDate(item.created_at)}<br>${escapeHtml((item.body || "").slice(0, 160))}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-update="${item.id}">Edit</button><button class="btn warn small" type="button" data-remove-update="${item.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">Nothing published yet.</div>`;
+    <article class="editable-row"><div><span class="tag ${escapeHtml(item.category || "update")}">${UPDATE_LABELS[item.category] || "Update"}</span>${item.pinned ? ` <span class="tag pin">Pinned</span>` : ""}${item.active === false ? ` <span class="tag">Hidden</span>` : ""}<br><strong>${escapeHtml(item.title)}</strong><p class="hint">${formatDate(item.created_at)}<br>${escapeHtml((item.body || "").slice(0, 160))}</p></div><div class="row-actions"><button class="btn secondary small" type="button" data-edit-update="${item.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-update="${item.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("Nothing published yet.")}</div>`;
   els.updatesAdminList.querySelectorAll("[data-edit-update]").forEach(button => button.addEventListener("click", () => editUpdate(button.dataset.editUpdate)));
   els.updatesAdminList.querySelectorAll("[data-remove-update]").forEach(button => button.addEventListener("click", () => confirmDelete("announcements", button.dataset.removeUpdate, "this update")));
 }
@@ -2035,7 +2099,7 @@ async function saveUpdate(event) {
   if (error) return showToast(friendlyError(error));
   clearUpdateForm();
   await refresh();
-  showToast("Published.");
+  showToast(t("Published."));
 }
 
 function editUpdate(id) {
@@ -2100,7 +2164,7 @@ function updateCountdown() {
   if (!next || els.nextSessionCard.classList.contains("hidden")) return;
   const diff = sessionStart(next).getTime() - Date.now();
   if (diff <= 0) {
-    els.nextSessionCountdown.innerHTML = `<div><b>Live</b><span>now</span></div>`;
+    els.nextSessionCountdown.innerHTML = `<div><b>${t("Live")}</b><span>${t("now")}</span></div>`;
     return;
   }
   const days = Math.floor(diff / 86400000);
@@ -2108,8 +2172,8 @@ function updateCountdown() {
   const minutes = Math.floor((diff % 3600000) / 60000);
   const seconds = Math.floor((diff % 60000) / 1000);
   const parts = days > 0
-    ? [[days, "days"], [hours, "hrs"], [minutes, "min"]]
-    : [[hours, "hrs"], [minutes, "min"], [seconds, "sec"]];
+    ? [[days, t("days")], [hours, t("hrs")], [minutes, t("min")]]
+    : [[hours, t("hrs")], [minutes, t("min")], [seconds, t("sec")]];
   els.nextSessionCountdown.innerHTML = parts.map(([value, label]) => `<div><b>${String(value).padStart(2, "0")}</b><span>${label}</span></div>`).join("");
 }
 
@@ -2117,7 +2181,7 @@ function calendarButtons(item) {
   if (!sessionStart(item)) return "";
   return `<div class="calendar-actions">
     <a class="recording-link" href="${escapeHtml(googleCalendarUrl(item))}" target="_blank" rel="noreferrer">+ Google Calendar</a>
-    <button class="recording-link" type="button" data-ics="${item.id}">+ Apple / Outlook</button>
+    <button class="recording-link" type="button" data-ics="${item.id}">+ ${t("Apple / Outlook")}</button>
   </div>`;
 }
 
@@ -2178,7 +2242,7 @@ function buildIcs(items) {
 }
 
 function downloadIcs(items, filename) {
-  if (!items.length) return showToast("There are no upcoming sessions to add.");
+  if (!items.length) return showToast(t("There are no upcoming sessions to add."));
   const blob = new Blob([buildIcs(items)], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -2188,7 +2252,7 @@ function downloadIcs(items, filename) {
   link.click();
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-  showToast("Calendar file ready. Open it to add the reminder to your calendar.");
+  showToast(t("Calendar file ready. Open it to add the reminder to your calendar."));
 }
 
 /* ------------------------------------------------------------------
@@ -2229,15 +2293,15 @@ function renderTraining() {
   const lessonsDone = progressList.reduce((sum, item) => sum + item.done, 0);
   const minutes = programs.flatMap(program => lessonsFor(program.id)).filter(lesson => isLessonDone(lesson.id)).reduce((sum, lesson) => sum + (lesson.duration_minutes || 0), 0);
   els.trainingStats.innerHTML = [
-    [programs.length, "Programs available"],
-    [inProgress, "In progress"],
-    [completed, "Completed"],
-    [lessonsDone, "Lessons finished"],
-    [minutes ? `${Math.round(minutes / 6) / 10} h` : "0 h", "Learning time"]
+    [programs.length, t("Programs available")],
+    [inProgress, t("In progress")],
+    [completed, t("Completed")],
+    [lessonsDone, t("Lessons finished")],
+    [`${Math.round(minutes / 6) / 10} ${t("h")}`, t("Learning time")]
   ].map(([value, label]) => `<div class="stat"><b>${value}</b><span>${label}</span></div>`).join("");
 
   if (!state.trainingReady) {
-    els.trainingPrograms.innerHTML = `<div class="empty-state">Training programs will appear here soon.</div>`;
+    els.trainingPrograms.innerHTML = `<div class="empty-state">${t("Training programs will appear here soon.")}</div>`;
     return;
   }
   els.trainingPrograms.innerHTML = programs.length ? programs.map(program => {
@@ -2246,14 +2310,14 @@ function renderTraining() {
     return `<button class="program-card" type="button" data-open-program="${program.id}">
       <div class="program-cover" style="${cover ? `background-image: url('${escapeHtml(cover)}')` : ""}">${cover ? "" : escapeHtml(getInitials(program.title.replace(/[^\p{L}\p{N}\s]/gu, " ")))}</div>
       <div class="program-body">
-        <div>${program.level ? `<span class="tag">${escapeHtml(program.level)}</span>` : ""}${program.active === false ? ` <span class="tag">Draft</span>` : ""}</div>
+        <div>${program.level ? `<span class="tag">${escapeHtml(program.level)}</span>` : ""}${program.active === false ? ` <span class="tag">${t("Draft")}</span>` : ""}</div>
         <strong>${escapeHtml(program.title)}</strong>
         <p class="hint">${escapeHtml((program.summary || "").slice(0, 140))}</p>
         <div class="progress-bar"><i style="width: ${progress.percent}%"></i></div>
-        <div class="progress-meta"><span>${progress.done}/${progress.total} lessons</span><span>${progress.total && progress.done === progress.total ? "Completed ✓" : `${progress.percent}%`}</span></div>
+        <div class="progress-meta"><span>${progress.done}/${progress.total} ${t("lessons")}</span><span>${progress.total && progress.done === progress.total ? `${t("Completed")} ✓` : `${progress.percent}%`}</span></div>
       </div>
     </button>`;
-  }).join("") : `<div class="empty-state">No training programs yet.</div>`;
+  }).join("") : `<div class="empty-state">${t("No training programs yet.")}</div>`;
   els.trainingPrograms.querySelectorAll("[data-open-program]").forEach(button => button.addEventListener("click", () => {
     state.selectedProgramId = button.dataset.openProgram;
     els.lessonList.innerHTML = "";
@@ -2268,7 +2332,7 @@ function renderProgramDetail(programId) {
   els.trainingOverview.classList.add("hidden");
   els.trainingDetail.classList.remove("hidden");
   const progress = programProgress(programId);
-  els.programLevel.textContent = program.level || "Program";
+  els.programLevel.textContent = program.level || t("Program");
   els.programTitle.textContent = program.title;
   els.programSummary.textContent = program.summary || "";
   els.programRing.style.setProperty("--value", progress.percent);
@@ -2286,17 +2350,17 @@ function renderProgramDetail(programId) {
     return `<details class="lesson ${done ? "done" : ""}" data-lesson="${lesson.id}" ${open ? "open" : ""}>
       <summary>
         <span class="lesson-num">${done ? "✓" : index + 1}</span>
-        <span><strong>${escapeHtml(lesson.title)}</strong><br><small class="hint">${lesson.duration_minutes ? `${lesson.duration_minutes} min` : ""}</small></span>
-        <span class="tag">${done ? "Done" : "To do"}</span>
+        <span><strong>${escapeHtml(lesson.title)}</strong><br><small class="hint">${lesson.duration_minutes ? `${lesson.duration_minutes} ${t("min")}` : ""}</small></span>
+        <span class="tag">${done ? t("Done") : t("To do")}</span>
       </summary>
       <div class="lesson-content">
         ${video}
         ${lesson.body ? `<p>${escapeHtml(lesson.body)}</p>` : ""}
-        ${resource ? `<a class="recording-link" href="${escapeHtml(resource)}" target="_blank" rel="noreferrer">Open ${escapeHtml(lesson.resource_name || "resource")}</a>` : ""}
-        <div><button class="btn ${done ? "secondary" : ""}" type="button" data-toggle-lesson="${lesson.id}">${done ? "Mark as not done" : "Mark as complete"}</button></div>
+        ${resource ? `<a class="recording-link" href="${escapeHtml(resource)}" target="_blank" rel="noreferrer">${t("Open")} ${escapeHtml(lesson.resource_name || t("resource"))}</a>` : ""}
+        <div><button class="btn ${done ? "secondary" : ""}" type="button" data-toggle-lesson="${lesson.id}">${done ? t("Mark as not done") : t("Mark as complete")}</button></div>
       </div>
     </details>`;
-  }).join("") : `<div class="empty-state">Lessons will be added soon.</div>`;
+  }).join("") : `<div class="empty-state">${t("Lessons will be added soon.")}</div>`;
   els.lessonList.querySelectorAll("[data-toggle-lesson]").forEach(button => button.addEventListener("click", () => toggleLesson(button.dataset.toggleLesson)));
 }
 
@@ -2319,7 +2383,7 @@ async function toggleLesson(lessonId) {
   if (focus && !done) focus.scrollIntoView({ behavior: "smooth", block: "nearest" });
   state.focusLessonId = null;
   if (after.total && after.done === after.total && before.done !== before.total) {
-    showToast("Program completed! Your certificate is ready.");
+    showToast(t("Program completed! Your certificate is ready."));
   }
 }
 
@@ -2331,7 +2395,7 @@ function renderVideo(url) {
   const vimeo = safe.match(/vimeo\.com\/(\d+)/);
   if (vimeo) return `<div class="video-embed"><iframe src="https://player.vimeo.com/video/${vimeo[1]}" title="Lesson video" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
   if (/\.(mp4|webm|mov)(\?|$)/i.test(safe)) return `<div class="video-embed"><video src="${escapeHtml(safe)}" controls playsinline></video></div>`;
-  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">Watch video</a>`;
+  return `<a class="recording-link" href="${escapeHtml(safe)}" target="_blank" rel="noreferrer">${t("Watch video")}</a>`;
 }
 
 function openCertificate() {
@@ -2343,8 +2407,8 @@ function openCertificate() {
   const brand = state.settings.landing?.brandName || "";
   const minutes = lessons.reduce((sum, lesson) => sum + (lesson.duration_minutes || 0), 0);
   const win = window.open("", "_blank");
-  if (!win) return showToast("Allow pop-ups to open the certificate.");
-  win.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Certificate – ${escapeHtml(program.title)}</title>
+  if (!win) return showToast(t("Allow pop-ups to open the certificate."));
+  win.document.write(`<!doctype html><html lang="${currentLang}" dir="${currentDir()}"><head><meta charset="utf-8"><title>${t("Certificate")} – ${escapeHtml(program.title)}</title>
   <style>
     @page { size: landscape; margin: 0; }
     body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #f3f1ea; display: grid; place-items: center; min-height: 100vh; }
@@ -2359,18 +2423,18 @@ function openCertificate() {
     .print { position: fixed; top: 16px; right: 16px; font: 700 14px system-ui; background: #0f766e; color: #fff; border: 0; border-radius: 8px; padding: 10px 16px; cursor: pointer; }
     @media print { .print { display: none; } body { background: #fff; } .cert { max-width: none; width: 100%; height: 100vh; aspect-ratio: auto; } }
   </style></head><body>
-  <button class="print" onclick="window.print()">Print / Save as PDF</button>
+  <button class="print" onclick="window.print()">${t("Print / Save as PDF")}</button>
   <div class="cert">
     <div class="brand">${escapeHtml(brand)}</div>
-    <h1>Certificate of Completion</h1>
-    <p class="lead">This certifies that</p>
+    <h1>${t("Certificate of Completion")}</h1>
+    <p class="lead">${t("This certifies that")}</p>
     <div class="name">${escapeHtml(currentUser.name)}</div>
-    <p class="lead">has successfully completed the training program</p>
+    <p class="lead">${t("has successfully completed the training program")}</p>
     <p class="program">${escapeHtml(program.title)}</p>
     <div class="meta">
-      <div><b>${new Intl.DateTimeFormat("en-US", { dateStyle: "long" }).format(finished)}</b>Date completed</div>
-      <div><b>${lessons.length} lessons${minutes ? ` · ${minutes} min` : ""}</b>Program length</div>
-      <div><b>${escapeHtml([currentUser.discipline, currentUser.university].filter(Boolean).join(", ") || "—")}</b>Participant</div>
+      <div><b>${new Intl.DateTimeFormat(currentLocale(), { dateStyle: "long" }).format(finished)}</b>${t("Date completed")}</div>
+      <div><b>${lessons.length} ${t("lessons")}${minutes ? ` · ${minutes} ${t("min")}` : ""}</b>${t("Program length")}</div>
+      <div><b>${escapeHtml([currentUser.discipline, currentUser.university].filter(Boolean).join(", ") || "—")}</b>${t("Participant")}</div>
     </div>
   </div></body></html>`);
   win.document.close();
@@ -2379,13 +2443,13 @@ function openCertificate() {
 /* ---- Training admin ---- */
 function renderTrainingAdmin() {
   if (!state.trainingReady) {
-    els.programsAdminList.innerHTML = `<div class="empty-state">Run database update 0003 in Supabase to enable training programs.</div>`;
+    els.programsAdminList.innerHTML = `<div class="empty-state">${t("Run database update 0003 in Supabase to enable training programs.")}</div>`;
     els.trainingReport.innerHTML = "";
     return;
   }
   els.programsAdminList.innerHTML = state.programs.length ? state.programs.map(program => `
     <article class="editable-row"><div><strong>${escapeHtml(program.title)}</strong> ${program.active === false ? `<span class="tag">Draft</span>` : ""}<p class="hint">${lessonsFor(program.id).length} lessons · ${escapeHtml(program.level || "No level")} · Visible to: ${escapeHtml(audienceLabel(program.audience))}</p></div>
-    <div class="row-actions"><button class="btn small" type="button" data-lessons-program="${program.id}">Lessons</button><button class="btn secondary small" type="button" data-edit-program="${program.id}">Edit</button><button class="btn warn small" type="button" data-remove-program="${program.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No programs yet. Create the first one above.</div>`;
+    <div class="row-actions"><button class="btn small" type="button" data-lessons-program="${program.id}">${t("Lessons")}</button><button class="btn secondary small" type="button" data-edit-program="${program.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-program="${program.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("No programs yet. Create the first one above.")}</div>`;
   els.programsAdminList.querySelectorAll("[data-lessons-program]").forEach(button => button.addEventListener("click", () => openLessonsAdmin(button.dataset.lessonsProgram)));
   els.programsAdminList.querySelectorAll("[data-edit-program]").forEach(button => button.addEventListener("click", () => editProgram(button.dataset.editProgram)));
   els.programsAdminList.querySelectorAll("[data-remove-program]").forEach(button => button.addEventListener("click", () => confirmDelete("training_programs", button.dataset.removeProgram, "this program and all its lessons")));
@@ -2395,7 +2459,7 @@ function renderTrainingAdmin() {
 
   const learners = state.users.filter(user => user.status === "approved");
   if (!state.programs.length || !learners.length) {
-    els.trainingReport.innerHTML = `<div class="empty-state">Progress will appear here once people start learning.</div>`;
+    els.trainingReport.innerHTML = `<div class="empty-state">${t("Progress will appear here once people start learning.")}</div>`;
     return;
   }
   els.trainingReport.innerHTML = `<table class="table"><thead><tr><th>Person</th>${state.programs.map(program => `<th>${escapeHtml(program.title)}</th>`).join("")}</tr></thead><tbody>${learners.map(user => `<tr><td>${escapeHtml(user.name)}<br><small class="hint">${escapeHtml(getRoleLabel(user.role))}</small></td>${state.programs.map(program => {
@@ -2427,7 +2491,7 @@ async function saveProgram(event) {
   clearProgramForm();
   await refresh();
   if (isNew && data) openLessonsAdmin(data.id);
-  showToast(isNew ? "Program created. Now add lessons." : "Program saved.");
+  showToast(isNew ? t("Program created. Now add lessons.") : t("Program saved."));
 }
 
 function editProgram(id) {
@@ -2467,7 +2531,7 @@ function renderLessonsAdmin() {
   if (!els.lessonId.value) els.lessonOrder.value = lessons.length ? Math.max(...lessons.map(lesson => lesson.sort_order || 0)) + 1 : 1;
   els.lessonsAdminList.innerHTML = lessons.length ? lessons.map((lesson, index) => `
     <article class="editable-row"><div><strong>${index + 1}. ${escapeHtml(lesson.title)}</strong><p class="hint">${lesson.duration_minutes || 0} min${lesson.video_url ? " · Video" : ""}${lesson.resource_url ? " · Resource" : ""}</p></div>
-    <div class="row-actions"><button class="btn secondary small" type="button" data-edit-lesson="${lesson.id}">Edit</button><button class="btn warn small" type="button" data-remove-lesson="${lesson.id}">Remove</button></div></article>`).join("") : `<div class="empty-state">No lessons yet.</div>`;
+    <div class="row-actions"><button class="btn secondary small" type="button" data-edit-lesson="${lesson.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-lesson="${lesson.id}">${t("Remove")}</button></div></article>`).join("") : `<div class="empty-state">${t("No lessons yet.")}</div>`;
   els.lessonsAdminList.querySelectorAll("[data-edit-lesson]").forEach(button => button.addEventListener("click", () => editLesson(button.dataset.editLesson)));
   els.lessonsAdminList.querySelectorAll("[data-remove-lesson]").forEach(button => button.addEventListener("click", () => confirmDelete("training_lessons", button.dataset.removeLesson, "this lesson")));
 }
@@ -2490,7 +2554,7 @@ async function saveLesson(event) {
   if (error) return showToast(friendlyError(error));
   clearLessonForm();
   await refresh();
-  showToast("Lesson saved.");
+  showToast(t("Lesson saved."));
 }
 
 function editLesson(id) {
@@ -2519,7 +2583,7 @@ async function uploadProgramCover() {
   const url = await uploadFile(await enhanceImage(els.programCover.files[0], "training"), "public-images", "training");
   if (url) {
     els.programCoverData.value = url;
-    showToast("Cover uploaded. Save the program to apply it.");
+    showToast(t("Cover uploaded. Save the program to apply it."));
   }
 }
 
@@ -2530,7 +2594,7 @@ async function uploadLessonResource() {
     els.lessonResourceData.value = url;
     els.lessonResourceUrl.value = url;
     els.lessonResourceName.value = file.name;
-    showToast("File uploaded. Save the lesson to attach it.");
+    showToast(t("File uploaded. Save the lesson to attach it."));
   }
 }
 
@@ -2568,11 +2632,12 @@ function friendlyError(error) {
 function formatRelative(value) {
   const date = new Date(value);
   const diff = (Date.now() - date.getTime()) / 1000;
-  if (diff < 60) return "Just now";
-  if (diff < 3600) return `${Math.floor(diff / 60)} min ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} h ago`;
-  if (diff < 604800) return `${Math.floor(diff / 86400)} d ago`;
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
+  const rtf = new Intl.RelativeTimeFormat(currentLocale(), { numeric: "auto" });
+  if (diff < 60) return rtf.format(0, "second");
+  if (diff < 3600) return rtf.format(-Math.floor(diff / 60), "minute");
+  if (diff < 86400) return rtf.format(-Math.floor(diff / 3600), "hour");
+  if (diff < 604800) return rtf.format(-Math.floor(diff / 86400), "day");
+  return new Intl.DateTimeFormat(currentLocale(), { month: "short", day: "numeric", year: "numeric" }).format(date);
 }
 
 /* ------------------------------------------------------------------
@@ -2611,13 +2676,13 @@ async function sendResetLink(event) {
 
 async function saveNewPassword(event) {
   event.preventDefault();
-  if (els.resetPassword.value !== els.resetPassword2.value) return showToast("The two passwords do not match.");
+  if (els.resetPassword.value !== els.resetPassword2.value) return showToast(t("The two passwords do not match."));
   const { data, error } = await supabase.auth.updateUser({ password: els.resetPassword.value });
   if (error) return showToast(error.message);
   recoveryMode = false;
   els.resetForm.reset();
   history.replaceState(null, "", window.location.pathname);
-  showToast("Password changed.");
+  showToast(t("Password changed."));
   if (data?.user) await hydrateSession(data.user);
 }
 
@@ -2780,9 +2845,9 @@ function renderHeroImagesAdmin(landing) {
           <button class="btn secondary small" type="button" data-hero-move="${index}" data-dir="-1" ${index === 0 ? "disabled" : ""} aria-label="Move earlier">←</button>
           <button class="btn secondary small" type="button" data-hero-move="${index}" data-dir="1" ${index === images.length - 1 ? "disabled" : ""} aria-label="Move later">→</button>
         </span>
-        <button class="btn warn small" type="button" data-hero-remove="${index}">Remove</button>
+        <button class="btn warn small" type="button" data-hero-remove="${index}">${t("Remove")}</button>
       </div>
-    </div>`).join("") : `<div class="empty-state hero-thumb-empty">No pictures yet. Use “+ Add pictures”.</div>`;
+    </div>`).join("") : `<div class="empty-state hero-thumb-empty">${t("No pictures yet. Use “+ Add pictures”.")}</div>`;
   els.adminLandingHeroInterval.value = String(landing.heroInterval ?? 6);
 }
 
@@ -2817,7 +2882,7 @@ async function uploadLandingHero() {
   if (!files.length) return;
   const added = [];
   for (const [index, file] of files.entries()) {
-    showToast(`Optimizing picture ${index + 1} of ${files.length}…`);
+    showToast(`${t("Optimizing pictures…")} ${index + 1}/${files.length}`);
     const url = await uploadFile(await enhanceImage(file, "landing"), "public-images", "landing");
     if (url) added.push(url);
   }
@@ -3027,7 +3092,7 @@ function pushUndo() {
 
 function undoDesigner() {
   const last = designer.undo.pop();
-  if (!last) return showToast("Nothing to undo.");
+  if (!last) return showToast(t("Nothing to undo."));
   designer.draft = JSON.parse(last);
   renderDesigner();
 }
@@ -3186,7 +3251,7 @@ function updateFormatBar() {
   els.dFill.value = boxStyle.fill && boxStyle.fill !== "none" ? boxStyle.fill : rgbToHex(window.getComputedStyle(sel.boxEl).backgroundColor) || "#ffffff";
   els.dRadius.value = boxStyle.radius ?? (parseFloat(window.getComputedStyle(sel.boxEl).borderTopLeftRadius) || 0);
   const removable = sel.kind === "free" || /^(metric|card):/.test(sel.key);
-  els.dHide.textContent = removable ? "Delete" : textStyle.hidden ? "Show" : "Hide";
+  els.dHide.textContent = removable ? t("Delete") : textStyle.hidden ? t("Show") : t("Hide");
   els.dFront.classList.toggle("hidden", sel.kind !== "free");
   els.dBack.classList.toggle("hidden", sel.kind !== "free");
 }
@@ -3510,17 +3575,17 @@ function setAuthTab(tab) {
 function showPendingNotice(status) {
   showAuthPanel("pending");
   if (status === "reset-sent") {
-    els.pendingTitle.textContent = "Check your email";
-    els.pendingText.textContent = "If an account exists for that email, a link to choose a new password is on its way. The link opens this page.";
+    els.pendingTitle.textContent = t("Check your email");
+    els.pendingText.textContent = t("If an account exists for that email, a link to choose a new password is on its way. The link opens this page.");
   } else if (status === "rejected") {
-    els.pendingTitle.textContent = "Access not available";
-    els.pendingText.textContent = "This account does not have access. Please contact the organizers if you think this is a mistake.";
+    els.pendingTitle.textContent = t("Access not available");
+    els.pendingText.textContent = t("This account does not have access. Please contact the organizers if you think this is a mistake.");
   } else if (status === "confirm-email") {
-    els.pendingTitle.textContent = "Check your email";
-    els.pendingText.textContent = "We sent you a confirmation link. After confirming, your account will be reviewed by the organizers.";
+    els.pendingTitle.textContent = t("Check your email");
+    els.pendingText.textContent = t("We sent you a confirmation link. After confirming, your account will be reviewed by the organizers.");
   } else {
-    els.pendingTitle.textContent = "Waiting for approval";
-    els.pendingText.textContent = "Your account was created and is waiting for approval. You can sign in once an organizer approves it.";
+    els.pendingTitle.textContent = t("Waiting for approval");
+    els.pendingText.textContent = t("Your account was created and is waiting for approval. You can sign in once an organizer approves it.");
   }
 }
 
@@ -3532,7 +3597,7 @@ async function signUp(event) {
     const username = els.signupUsername.value.trim().toLowerCase();
     const taken = await lookupEmailForUsername(username);
     if (taken) {
-      showToast("That username is already taken.");
+      showToast(t("That username is already taken."));
       return;
     }
     const { data, error } = await supabase.auth.signUp({
@@ -3560,7 +3625,7 @@ async function signUp(event) {
 }
 
 function showToast(message) {
-  els.toast.textContent = message;
+  els.toast.textContent = t(message);
   els.toast.classList.add("show");
   window.clearTimeout(showToast.timer);
   showToast.timer = window.setTimeout(() => els.toast.classList.remove("show"), 3000);
