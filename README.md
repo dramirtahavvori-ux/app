@@ -34,7 +34,9 @@ only the anon key.
 3. Run `supabase/migrations/0001_initial_schema.sql`.
 4. Run `supabase/migrations/0002_signup_approval.sql`.
 5. Run `supabase/migrations/0003_updates_training_access.sql`.
-6. In Authentication settings, enable Email/Password sign in.
+6. Run `supabase/migrations/0004_projects_activity_protection.sql`, then set the owner:
+   `update public.profiles set is_owner = true where username = 'YOUR_USERNAME';`
+7. In Authentication settings, enable Email/Password sign in.
 
 ## Features
 
@@ -48,6 +50,17 @@ only the anon key.
 - **Training programs**: courses with lessons (text, YouTube/Vimeo video,
   files), per-user progress, printable certificate of completion, and an admin
   progress report.
+
+- **Ongoing projects**: research/QI projects with status, progress, team and
+  an "I'm interested" button.
+- **Activity log** (owner only): sign-ins, page views, answers, lessons and
+  screenshot/print/copy attempts, with live alerts and CSV export.
+- **Content protection** for speakers and attendees: name + copyright
+  watermark, copyright footer, screenshot-key detection, print/copy blocking.
+  No website can fully block operating-system or phone screenshots; the
+  watermark makes every capture traceable.
+- **Languages**: English, Español, Français, فارسی (right-to-left), Türkçe.
+- **Sample content**: `supabase/seed/ckm_morning_report.sql` (CKM syndrome round).
 
 ## Accounts and Access
 

@@ -1927,6 +1927,176 @@
       unicode-bidi: plaintext;
     }
 
+
+    .project-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .project-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: #ffffff;
+      padding: 18px;
+      display: grid;
+      gap: 10px;
+      align-content: start;
+      box-shadow: 0 10px 28px rgba(17, 32, 31, .06);
+    }
+
+    .project-card h4 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .project-card .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .status-pill {
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      background: #e7f5f2;
+      color: #0a5651;
+    }
+
+    .status-pill.planning { background: #eef2ff; color: #3730a3; }
+    .status-pill.analysis { background: #e0f2fe; color: #075985; }
+    .status-pill.writing { background: #fef3c7; color: #92400e; }
+    .status-pill.submitted { background: #f3e8ff; color: #6b21a8; }
+    .status-pill.published { background: #dcfce7; color: #166534; }
+    .status-pill.paused { background: #f1f5f9; color: #475569; }
+
+    .help-banner {
+      border-radius: 10px;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
+      padding: 8px 10px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .project-people {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .activity-kind {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 800;
+      background: #eef4f3;
+      color: #24413d;
+    }
+
+    .activity-kind.alert {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    tr.alert-row td {
+      background: #fff5f5;
+    }
+
+    .watermark {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      pointer-events: none;
+      background-repeat: repeat;
+      opacity: .11;
+      mix-blend-mode: multiply;
+    }
+
+    .protect-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 91;
+      pointer-events: none;
+      padding: 5px 12px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #ffffff;
+      background: rgba(15, 58, 54, .82);
+    }
+
+    .protected .main {
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+      padding-bottom: 40px;
+    }
+
+    .protected .main :is(input, textarea, select, [contenteditable]) {
+      -webkit-user-select: text;
+      user-select: text;
+    }
+
+    .protected img {
+      -webkit-user-drag: none;
+    }
+
+    .protect-shield {
+      position: fixed;
+      inset: 0;
+      z-index: 120;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      text-align: center;
+      background: rgba(11, 20, 19, .96);
+      color: #ffffff;
+    }
+
+    .protect-shield strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 22px;
+    }
+
+    .protect-shield p {
+      margin: 0;
+      color: rgba(255, 255, 255, .75);
+    }
+
+    .blur-guard .app-shell {
+      filter: blur(18px);
+    }
+
+    @media print {
+      body.protected .app-shell {
+        display: none !important;
+      }
+
+      body.protected::after {
+        content: "Printing is not permitted.";
+        display: block;
+        padding: 40px;
+        font: 700 20px sans-serif;
+      }
+    }
+
+    @media (min-width: 1021px) {
+      .protect-footer {
+        left: 286px;
+      }
+    }
+
     @media (max-width: 1020px) {
       .landing-hero {
         grid-template-columns: minmax(0, 1fr);
@@ -2279,8 +2449,10 @@
 <button class="active" data-i18n="Morning report" id="reportTab" type="button">Morning report</button>
 <button id="updatesTab" type="button"><span data-i18n="Updates">Updates</span> <span class="nav-badge hidden" id="updatesBadge">0</span></button>
 <button data-i18n="Training" id="trainingTab" type="button">Training</button>
+<button id="projectsTab" type="button"><span data-i18n="Projects">Projects</span></button>
 <button data-i18n="My profile" id="profileTab" type="button">My profile</button>
 <button class="hidden" data-i18n="My presentation" id="presenterTab" type="button">My presentation</button>
+<button class="hidden" id="activityTab" type="button"><span data-i18n="Activity">Activity</span> <span class="nav-badge hidden" id="activityBadge">0</span></button>
 <button class="hidden" data-i18n="Admin console" id="adminTab" type="button">Admin console</button>
 </nav>
 <div class="profile-strip">
@@ -2457,6 +2629,37 @@
 <div class="lesson-list" id="lessonList"></div>
 </div>
 </section>
+<section class="hidden" id="projectsView">
+<div class="topbar">
+<div>
+<h2 data-i18n="Ongoing projects">Ongoing projects</h2>
+<p data-i18n="Research and quality projects of the team. Tap I'm interested to let the team know you'd like to join.">Research and quality projects of the team. Tap I'm interested to let the team know you'd like to join.</p>
+</div>
+<div class="actions filter-chips" id="projectsFilter">
+<button class="btn small hidden" data-i18n="+ New project" id="newProjectBtn" type="button">+ New project</button>
+<button class="chip active" data-i18n="All" data-project-filter="all" type="button">All</button>
+<button class="chip" data-i18n="Looking for help" data-project-filter="help" type="button">Looking for help</button>
+<button class="chip" data-i18n="In progress" data-project-filter="open" type="button">In progress</button>
+<button class="chip" data-i18n="Completed" data-project-filter="done" type="button">Completed</button>
+</div>
+</div>
+<div class="project-list" id="projectsList"></div>
+</section>
+<section class="hidden" id="activityView">
+<div class="topbar">
+<div>
+<h2 data-i18n="Activity">Activity</h2>
+<p data-i18n="Only you can see this page. It shows what people do in the app, including screenshot attempts.">Only you can see this page. It shows what people do in the app, including screenshot attempts.</p>
+</div>
+<div class="actions">
+<select aria-label="Person" id="activityPerson"></select>
+<select aria-label="Type" id="activityKind"></select>
+<button class="btn secondary small" data-i18n="Export CSV" id="activityExport" type="button">Export CSV</button>
+</div>
+</div>
+<div class="training-stats" id="activityStats"></div>
+<div class="panel"><div class="table-wrap" id="activityTable"></div></div>
+</section>
 <section class="hidden" id="profileView">
 <div class="topbar">
 <div>
@@ -2570,6 +2773,7 @@
 <button data-admin-section="usersAdmin" data-i18n="Users / Access" type="button">Users / Access</button>
 <button data-admin-section="updatesAdmin" data-i18n="Updates" type="button">Updates</button>
 <button data-admin-section="trainingAdmin" data-i18n="Training" type="button">Training</button>
+<button data-admin-section="projectsAdmin" data-i18n="Projects" type="button">Projects</button>
 <button data-admin-section="thankYouAdmin" data-i18n="Thank-you cards" type="button">Thank-you cards</button>
 <button data-admin-section="responsesAdmin" data-i18n="Responses" type="button">Responses</button>
 </div>
@@ -2821,6 +3025,19 @@
 </div>
 <div class="list" id="pendingUsersList" style="margin-top: 10px;"></div>
 </div>
+<div class="panel" style="margin-bottom: 14px;">
+<h3 style="margin: 0 0 6px;" data-i18n="Sign-up and protection settings">Sign-up and protection settings</h3>
+<form class="form-grid" id="accessForm">
+<div class="field full"><label data-i18n="Approve automatically when the email ends with" for="autoApproveDomains">Approve automatically when the email ends with</label>
+<input id="autoApproveDomains" placeholder="llu.edu, med.example.edu"/>
+<p class="hint" data-i18n="Leave empty to review every new account yourself. Everyone else still waits for approval.">Leave empty to review every new account yourself. Everyone else still waits for approval.</p></div>
+<div class="field full checks">
+<label><input checked="" id="protectWatermark" type="checkbox"/> <span data-i18n="Show name and copyright watermark for speakers and attendees">Show name and copyright watermark for speakers and attendees</span></label>
+<label><input id="protectBlur" type="checkbox"/> <span data-i18n="Hide content when the app window is not in focus (stronger protection)">Hide content when the app window is not in focus (stronger protection)</span></label>
+</div>
+<div class="full actions"><button class="btn" data-i18n="Save settings" type="submit">Save settings</button></div>
+</form>
+</div>
 <h3 class="hidden" id="userFormTitle" style="margin-top: 6px;">Edit user</h3>
 <form class="form-grid hidden" id="userForm">
 <input id="userId" type="hidden"/>
@@ -3048,6 +3265,40 @@
 <div class="table-wrap" id="trainingReport"></div>
 </div>
 </section>
+<section class="admin-section hidden" id="projectsAdmin">
+<h3 data-i18n="Ongoing projects">Ongoing projects</h3>
+<form class="form-grid" id="projectForm">
+<input id="projectId" type="hidden"/>
+<div class="field"><label data-i18n="Project title" for="projectTitle">Project title</label><input id="projectTitle" required=""/></div>
+<div class="field"><label data-i18n="Status" for="projectStatus">Status</label>
+<select id="projectStatus">
+<option data-i18n="Planning" value="planning">Planning</option>
+<option data-i18n="Active" value="active">Active</option>
+<option data-i18n="Data analysis" value="analysis">Data analysis</option>
+<option data-i18n="Writing" value="writing">Writing</option>
+<option data-i18n="Submitted" value="submitted">Submitted</option>
+<option data-i18n="Published" value="published">Published</option>
+<option data-i18n="Paused" value="paused">Paused</option>
+</select></div>
+<div class="field full"><label data-i18n="Summary" for="projectSummary">Summary</label><textarea id="projectSummary"></textarea></div>
+<div class="field"><label data-i18n="Project lead" for="projectLead">Project lead</label><input id="projectLead"/></div>
+<div class="field"><label data-i18n="Team" for="projectTeam">Team</label><input data-i18n-ph="Names separated by commas" id="projectTeam" placeholder="Names separated by commas"/></div>
+<div class="field"><label data-i18n="Progress (%)" for="projectProgress">Progress (%)</label><input id="projectProgress" max="100" min="0" type="number" value="0"/></div>
+<div class="field"><label data-i18n="Tags" for="projectTags">Tags</label><input data-i18n-ph="CKD, AKI, retrospective..." id="projectTags" placeholder="CKD, AKI, retrospective..."/></div>
+<div class="field"><label data-i18n="Link (optional)" for="projectLink">Link (optional)</label><input id="projectLink" placeholder="https://..." type="url"/></div>
+<div class="field"><label data-i18n="Order" for="projectOrder">Order</label><input id="projectOrder" type="number" value="0"/></div>
+<div class="field full checks">
+<label><input id="projectNeedsHelp" type="checkbox"/> <span data-i18n="Looking for help">Looking for help</span></label>
+<label><input checked="" id="projectActive" type="checkbox"/> <span data-i18n="Visible to everyone">Visible to everyone</span></label>
+</div>
+<div class="field full"><label data-i18n="What help is needed?" for="projectHelp">What help is needed?</label><input data-i18n-ph="Chart review, statistics, writing..." id="projectHelp" placeholder="Chart review, statistics, writing..."/></div>
+<div class="full actions">
+<button class="btn" data-i18n="Save project" type="submit">Save project</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelProjectEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="projectsAdminList" style="margin-top: 14px;"></div>
+</section>
 <section class="admin-section hidden" id="thankYouAdmin">
 <h3 data-i18n="Thank-you cards">Thank-you cards</h3>
 <p class="hint" data-i18n="Prepare a postcard-style thank-you email for participants after a session." style="margin-bottom: 12px;">Prepare a postcard-style thank-you email for participants after a session.</p>
@@ -3082,6 +3333,9 @@
 <button aria-label="Close" class="lightbox-close" data-i18n-aria="Close" id="lightboxClose" type="button">×</button>
 <img alt="" id="lightboxImage"/>
 </div>
+<div aria-hidden="true" class="watermark hidden" id="watermark"></div>
+<div class="protect-footer hidden" id="protectFooter"></div>
+<div class="protect-shield hidden" id="protectShield"><div><strong data-i18n="Protected content">Protected content</strong><p data-i18n="Screenshots and recordings are not permitted. This attempt has been recorded.">Screenshots and recordings are not permitted. This attempt has been recorded.</p></div></div>
 <div class="toast" id="toast"></div>
 <script src="/src/app.js" type="module"></script>
 </body>

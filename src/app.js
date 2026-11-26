@@ -72,7 +72,14 @@ let state = {
   trainingReady: false,
   updateFilter: "all",
   selectedProgramId: null,
-  adminProgramId: null
+  adminProgramId: null,
+  projects: [],
+  projectInterest: [],
+  projectsReady: false,
+  projectFilter: "all",
+  activity: [],
+  activityReady: false,
+  unseenAlerts: 0
 };
 
 const $ = id => document.getElementById(id);
@@ -265,6 +272,42 @@ const els = {
   pendingCount: $("pendingCount"),
   langSelect: $("langSelect"),
   langSelectApp: $("langSelectApp"),
+  projectsTab: $("projectsTab"),
+  projectsView: $("projectsView"),
+  activityTab: $("activityTab"),
+  activityView: $("activityView"),
+  activityBadge: $("activityBadge"),
+  projectsList: $("projectsList"),
+  newProjectBtn: $("newProjectBtn"),
+  activityPerson: $("activityPerson"),
+  activityKind: $("activityKind"),
+  activityExport: $("activityExport"),
+  activityStats: $("activityStats"),
+  activityTable: $("activityTable"),
+  projectForm: $("projectForm"),
+  projectId: $("projectId"),
+  projectTitle: $("projectTitle"),
+  projectStatus: $("projectStatus"),
+  projectSummary: $("projectSummary"),
+  projectLead: $("projectLead"),
+  projectTeam: $("projectTeam"),
+  projectProgress: $("projectProgress"),
+  projectTags: $("projectTags"),
+  projectLink: $("projectLink"),
+  projectOrder: $("projectOrder"),
+  projectNeedsHelp: $("projectNeedsHelp"),
+  projectActive: $("projectActive"),
+  projectHelp: $("projectHelp"),
+  cancelProjectEdit: $("cancelProjectEdit"),
+  projectsAdminList: $("projectsAdminList"),
+  accessForm: $("accessForm"),
+  autoApproveDomains: $("autoApproveDomains"),
+  protectWatermark: $("protectWatermark"),
+  protectBlur: $("protectBlur"),
+  watermark: $("watermark"),
+  protectFooter: $("protectFooter"),
+  protectShield: $("protectShield"),
+
   updatesTab: $("updatesTab"),
   trainingTab: $("trainingTab"),
   updatesView: $("updatesView"),
@@ -469,9 +512,32 @@ function setLanguage(code, { initial = false } = {}) {
   if (visible?.id === "trainingView") renderTraining();
 }
 
+const ALERT_KINDS = new Set(["screenshot_attempt", "print_attempt", "copy_attempt"]);
+let lastViewLogged = "";
+let activityChannel = null;
+let shieldTimer = null;
+let lastAlertAt = 0;
+const ACTIVITY_LABELS = {
+  sign_in: "Signed in",
+  sign_out: "Signed out",
+  view: "Opened a page",
+  answers_submitted: "Submitted answers",
+  lesson_completed: "Completed a lesson",
+  live_question: "Asked a live question",
+  hand_raise: "Asked to speak",
+  project_interest: "Interested in a project",
+  certificate_opened: "Opened a certificate",
+  screenshot_attempt: "Screenshot attempt",
+  print_attempt: "Print attempt",
+  copy_attempt: "Copy attempt"
+};
+const PROJECT_STATUS = {
+  planning: "Planning", active: "Active", analysis: "Data analysis", writing: "Writing",
+  submitted: "Submitted", published: "Published", paused: "Paused"
+};
 const UPDATE_LABELS = { update: "Update", reminder: "Reminder", event: "Event", training: "Training" };
 const updateLabel = key => t(UPDATE_LABELS[key] || "Update");
-const VIEWS = ["report", "updates", "training", "profile", "presenter", "admin"];
+const VIEWS = ["report", "updates", "training", "projects", "profile", "presenter", "activity", "admin"];
 
 boot();
 
@@ -687,6 +753,21 @@ function bindEvents() {
     if (event.key === "Escape" && !els.lightbox.classList.contains("hidden")) closeLightbox();
   });
   bindDesigner();
+  bindProtection();
+  document.querySelectorAll("[data-project-filter]").forEach(button => button.addEventListener("click", () => {
+    state.projectFilter = button.dataset.projectFilter;
+    renderProjects();
+  }));
+  els.projectForm.addEventListener("submit", saveProject);
+  els.cancelProjectEdit.addEventListener("click", clearProjectForm);
+  els.newProjectBtn.addEventListener("click", () => {
+    clearProjectForm();
+    openAdminSection("projectsAdmin", els.projectTitle);
+  });
+  els.activityPerson.addEventListener("change", renderActivity);
+  els.activityKind.addEventListener("change", renderActivity);
+  els.activityExport.addEventListener("click", exportActivityCsv);
+  els.accessForm.addEventListener("submit", saveAccessSettings);
   els.forgotLink.addEventListener("click", () => showAuthPanel("forgot"));
   els.forgotForm.addEventListener("submit", sendResetLink);
   els.resetForm.addEventListener("submit", saveNewPassword);
@@ -752,15 +833,27 @@ async function hydrateSession(user) {
   els.newUpdateBtn.classList.toggle("hidden", currentUser.role !== "admin");
   els.newProgramBtn.classList.toggle("hidden", currentUser.role !== "admin");
   els.presenterTab.classList.toggle("hidden", currentUser.role !== "presenter");
+  els.activityTab.classList.toggle("hidden", !currentUser.isOwner);
+  els.newProjectBtn.classList.toggle("hidden", currentUser.role !== "admin");
   await loadSharedData();
   subscribeToSharedData();
   renderAll();
+  lastViewLogged = "";
+  logActivity("sign_in", {});
   if (currentUser.role === "presenter") showPresenter();
   else showReport();
 }
 
 async function signOut() {
+  logActivity("sign_out", {});
   stopLocalMedia();
+  if (activityChannel) {
+    supabase.removeChannel(activityChannel);
+    activityChannel = null;
+  }
+  document.body.classList.remove("protected", "blur-guard");
+  els.watermark.classList.add("hidden");
+  els.protectFooter.classList.add("hidden");
   await supabase.auth.signOut();
   currentUser = null;
   draftAnswers = {};
@@ -804,8 +897,10 @@ async function loadSharedData() {
   state.settings = {
     landing: normalizeLanding(settingsResult.data?.landing || defaults.landing),
     meeting: { ...defaults.meeting, ...(settingsResult.data?.meeting || {}) },
-    appearance: { ...defaults.appearance, ...(settingsResult.data?.appearance || {}) }
+    appearance: { ...defaults.appearance, ...(settingsResult.data?.appearance || {}) },
+    access: settingsResult.data?.access || {}
   };
+  state.hasAccessColumn = Boolean(settingsResult.data && "access" in settingsResult.data);
   applyLandingHeroImage(state.settings.landing);
   state.users = (usersResult.data || []).map(normalizeProfile);
   state.schedule = (schedulesResult.data || []).map(normalizeSchedule);
@@ -842,8 +937,20 @@ function subscribeToSharedData() {
   subscribed = true;
   supabase
     .channel("nephrorounds-shared-data")
-    .on("postgres_changes", { event: "*", schema: "public" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "app_settings" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "schedules" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "people" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "questions" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "answers" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "announcements" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "live_messages" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "hand_raises" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "media_controls" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "training_programs" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "training_lessons" }, scheduleRealtimeRefresh)
+    .on("postgres_changes", { event: "*", schema: "public", table: "projects" }, scheduleRealtimeRefresh)
     .subscribe();
+  subscribeToActivity();
 }
 
 function renderAll() {
@@ -864,6 +971,9 @@ function renderAll() {
   renderUpdatesBadge();
   if (!els.updatesView.classList.contains("hidden")) renderUpdates();
   if (!els.trainingView.classList.contains("hidden")) renderTraining();
+  if (!els.projectsView.classList.contains("hidden")) renderProjects();
+  if (!els.activityView.classList.contains("hidden")) renderActivity();
+  applyProtection();
   renderAdmin();
 }
 
@@ -1016,7 +1126,8 @@ function renderPersonCard(person) {
 
 function renderQuestions() {
   els.questions.innerHTML = "";
-  const myAnswers = state.answers.filter(answer => answer.user_id === currentUser?.id);
+  const activeIds = new Set(state.questions.map(question => question.id));
+  const myAnswers = state.answers.filter(answer => answer.user_id === currentUser?.id && activeIds.has(answer.question_id));
   const locked = myAnswers.length > 0;
   els.lockedLabel.classList.toggle("hidden", !locked);
   els.submitAnswers.disabled = locked || state.questions.length === 0;
@@ -1141,6 +1252,8 @@ function renderAdmin() {
   renderAnswers();
   renderUpdatesAdmin();
   renderTrainingAdmin();
+  renderProjectsAdmin();
+  renderAccessSettings();
 }
 
 function renderUserShell() {
@@ -1313,7 +1426,7 @@ async function resetAppearance() {
 async function saveSettings() {
   const { error } = await supabase
     .from("app_settings")
-    .upsert({ id: true, landing: state.settings.landing, meeting: state.settings.meeting, appearance: state.settings.appearance });
+    .upsert({ id: true, landing: state.settings.landing, meeting: state.settings.meeting, appearance: state.settings.appearance, ...(state.hasAccessColumn ? { access: state.settings.access || {} } : {}) });
   if (error) return showToast(error.message);
   showToast(t("Saved."));
   await loadSharedData();
@@ -1454,6 +1567,7 @@ async function submitAnswers() {
   }));
   const { error } = await supabase.from("answers").insert(rows);
   if (error) return showToast(error.message);
+  logActivity("answers_submitted", { title: `${rows.length} ${t("answers")}` });
   draftAnswers = {};
   await loadSharedData();
   renderAll();
@@ -1465,12 +1579,14 @@ async function sendLiveMessage(event) {
   if (!text) return showToast(t("Write a question first."));
   const { error } = await supabase.from("live_messages").insert({ user_id: currentUser.id, body: text });
   if (error) return showToast(error.message);
+  logActivity("live_question", { title: text.slice(0, 120) });
   els.liveMessageInput.value = "";
 }
 
 async function raiseHand() {
   const { error } = await supabase.from("hand_raises").insert({ user_id: currentUser.id });
   if (error) return showToast(error.message);
+  logActivity("hand_raise", {});
 }
 
 async function updateHandRaise(id, status) {
@@ -1806,6 +1922,7 @@ function normalizeProfile(row) {
     role: row.role || "user",
     status: row.status || "approved",
     updatesSeenAt: row.updates_seen_at || null,
+    isOwner: row.is_owner === true,
     discipline: row.discipline || "",
     university: row.university || "",
     location: row.location || "",
@@ -1858,7 +1975,8 @@ function getMediaControl(userId) {
 }
 
 function hasSubmitted() {
-  return state.answers.some(answer => answer.user_id === currentUser?.id);
+  const activeIds = new Set(state.questions.map(question => question.id));
+  return state.answers.some(answer => answer.user_id === currentUser?.id && activeIds.has(answer.question_id));
 }
 
 function getMeetingStartDate() {
@@ -1967,6 +2085,7 @@ function showView(name) {
   if (!currentUser) return;
   if (name === "presenter" && currentUser.role !== "presenter") return;
   if (name === "admin" && currentUser.role !== "admin") return;
+  if (name === "activity" && !currentUser.isOwner) return;
   for (const view of VIEWS) {
     els[`${view}View`].classList.toggle("hidden", view !== name);
     els[`${view}Tab`].classList.toggle("active", view === name);
@@ -1974,6 +2093,13 @@ function showView(name) {
   if (name === "profile") renderProfile();
   if (name === "admin") renderAdmin();
   if (name === "training") renderTraining();
+  if (name === "projects") renderProjects();
+  if (name === "activity") {
+    state.unseenAlerts = 0;
+    renderActivityBadge();
+    renderActivity();
+  }
+  logView(name);
   if (name === "updates") {
     renderUpdates();
     markUpdatesSeen();
@@ -1995,6 +2121,19 @@ async function loadExtraData() {
   state.programs = programs.error ? [] : programs.data || [];
   state.lessons = lessons.error ? [] : lessons.data || [];
   state.progress = progress.error ? [] : progress.data || [];
+
+  const [projects, interest, activity] = await Promise.all([
+    supabase.from("projects").select("*").order("sort_order").order("updated_at", { ascending: false }),
+    supabase.from("project_interest").select("*"),
+    currentUser?.isOwner
+      ? supabase.from("activity_log").select("*").order("created_at", { ascending: false }).limit(2000)
+      : Promise.resolve({ data: [], error: null })
+  ]);
+  state.projectsReady = !projects.error;
+  state.projects = projects.error ? [] : projects.data || [];
+  state.projectInterest = interest.error ? [] : interest.data || [];
+  state.activityReady = !projects.error;
+  if (currentUser?.isOwner && !activity.error) state.activity = activity.data || [];
 }
 
 /* ------------------------------------------------------------------
@@ -2376,7 +2515,10 @@ async function toggleLesson(lessonId) {
   const { error } = await request;
   if (error) return showToast(friendlyError(error));
   if (done) state.progress = state.progress.filter(entry => !(entry.lesson_id === lessonId && entry.user_id === currentUser.id));
-  else state.progress.push({ user_id: currentUser.id, lesson_id: lessonId, completed_at: new Date().toISOString() });
+  else {
+    state.progress.push({ user_id: currentUser.id, lesson_id: lessonId, completed_at: new Date().toISOString() });
+    logActivity("lesson_completed", { title: state.lessons.find(lesson => lesson.id === lessonId)?.title || "" });
+  }
   const after = programProgress(programId);
   state.focusLessonId = done ? lessonId : lessonsFor(programId).find(lesson => !isLessonDone(lesson.id))?.id || null;
   if (!done) els.lessonList.querySelector(`[data-lesson="${lessonId}"]`)?.removeAttribute("open");
@@ -2410,6 +2552,7 @@ function openCertificate() {
   const minutes = lessons.reduce((sum, lesson) => sum + (lesson.duration_minutes || 0), 0);
   const win = window.open("", "_blank");
   if (!win) return showToast(t("Allow pop-ups to open the certificate."));
+  logActivity("certificate_opened", { title: program.title });
   win.document.write(`<!doctype html><html lang="${currentLang}" dir="${currentDir()}"><head><meta charset="utf-8"><title>${t("Certificate")} – ${escapeHtml(program.title)}</title>
   <style>
     @page { size: landscape; margin: 0; }
@@ -3569,6 +3712,372 @@ function bindDesigner() {
   els.loginView.addEventListener("click", event => {
     if (designer.active && event.target.closest("a, button, form") && !event.target.closest("#designerBar")) event.preventDefault();
   }, true);
+}
+
+/* ------------------------------------------------------------------
+   Activity log (written by everyone, readable by the owner only)
+------------------------------------------------------------------ */
+
+function logActivity(kind, detail = {}) {
+  if (!currentUser || !state.activityReady) return;
+  supabase.from("activity_log").insert({ user_id: currentUser.id, kind, detail }).then(({ error }) => {
+    if (error) console.warn("activity log", error.message);
+  });
+}
+
+function logView(name) {
+  if (name === lastViewLogged) return;
+  lastViewLogged = name;
+  logActivity("view", { page: name });
+}
+
+function subscribeToActivity() {
+  if (activityChannel || !currentUser?.isOwner) return;
+  activityChannel = supabase
+    .channel("owner-activity")
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "activity_log" }, payload => {
+      const row = payload.new;
+      if (!row) return;
+      state.activity.unshift(row);
+      if (state.activity.length > 2000) state.activity.length = 2000;
+      if (ALERT_KINDS.has(row.kind) && row.user_id !== currentUser.id) {
+        state.unseenAlerts += 1;
+        const who = personName(row.user_id);
+        const message = `${who}: ${t(ACTIVITY_LABELS[row.kind] || row.kind)}`;
+        showToast(message);
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification(t("Screenshot alert"), { body: message });
+        }
+      }
+      renderActivityBadge();
+      if (!els.activityView.classList.contains("hidden")) renderActivity();
+    })
+    .subscribe();
+  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+}
+
+function personName(userId) {
+  return state.users.find(user => user.id === userId)?.name || t("Unknown");
+}
+
+function renderActivityBadge() {
+  els.activityBadge.textContent = state.unseenAlerts > 9 ? "9+" : String(state.unseenAlerts);
+  els.activityBadge.classList.toggle("hidden", !state.unseenAlerts);
+}
+
+function filteredActivity() {
+  const person = els.activityPerson.value;
+  const kind = els.activityKind.value;
+  return state.activity.filter(row =>
+    (person === "all" ? row.user_id !== currentUser.id : person === "me" ? true : row.user_id === person)
+    && (kind === "all" || (kind === "alerts" ? ALERT_KINDS.has(row.kind) : row.kind === kind))
+  );
+}
+
+function activityDetail(row) {
+  const d = row.detail || {};
+  const pages = { report: "Morning report", updates: "Updates", training: "Training", projects: "Projects", profile: "My profile", presenter: "My presentation", admin: "Admin console", activity: "Activity" };
+  if (row.kind === "view") return t(pages[d.page] || d.page || "");
+  if (d.page && !d.title && !d.method) return t(pages[d.page] || d.page);
+  if (d.title) return d.title;
+  if (d.method) return `${d.method}${d.page ? ` — ${t(pages[d.page] || d.page)}` : ""}`;
+  return "";
+}
+
+function renderActivity() {
+  if (!currentUser?.isOwner) return;
+  const currentPerson = els.activityPerson.value || "all";
+  const currentKind = els.activityKind.value || "all";
+  const people = state.users.filter(user => user.id !== currentUser.id).sort((a, b) => a.name.localeCompare(b.name));
+  els.activityPerson.innerHTML = `<option value="all">${t("Everyone except me")}</option><option value="me">${t("Everyone")}</option>` + people.map(user => `<option value="${user.id}">${escapeHtml(user.name)}</option>`).join("");
+  els.activityPerson.value = [...els.activityPerson.options].some(o => o.value === currentPerson) ? currentPerson : "all";
+  els.activityKind.innerHTML = `<option value="all">${t("All activity")}</option><option value="alerts">⚠ ${t("Screenshot and copy alerts")}</option>` + Object.entries(ACTIVITY_LABELS).map(([key, label]) => `<option value="${key}">${t(label)}</option>`).join("");
+  els.activityKind.value = currentKind;
+
+  if (!state.activityReady) {
+    els.activityStats.innerHTML = "";
+    els.activityTable.innerHTML = `<div class="empty-state">${t("Run database update 0004 in Supabase to turn on the activity log.")}</div>`;
+    return;
+  }
+  const others = state.activity.filter(row => row.user_id !== currentUser.id);
+  const dayAgo = Date.now() - 86400000;
+  const weekAgo = Date.now() - 7 * 86400000;
+  const activeToday = new Set(others.filter(row => new Date(row.created_at) > dayAgo).map(row => row.user_id)).size;
+  const signInsWeek = others.filter(row => row.kind === "sign_in" && new Date(row.created_at) > weekAgo).length;
+  const alertsWeek = others.filter(row => ALERT_KINDS.has(row.kind) && new Date(row.created_at) > weekAgo).length;
+  const lessonsWeek = others.filter(row => row.kind === "lesson_completed" && new Date(row.created_at) > weekAgo).length;
+  els.activityStats.innerHTML = [
+    [activeToday, t("Active in the last 24 h")],
+    [signInsWeek, t("Sign-ins this week")],
+    [lessonsWeek, t("Lessons completed this week")],
+    [alertsWeek, t("Screenshot alerts this week")]
+  ].map(([value, label], i) => `<div class="stat"${i === 3 && value ? ' style="border-color:#fca5a5;background:#fff5f5"' : ""}><b>${value}</b><span>${label}</span></div>`).join("");
+
+  const rows = filteredActivity().slice(0, 500);
+  els.activityTable.innerHTML = rows.length ? `<table class="table"><thead><tr><th>${t("Time")}</th><th>${t("Person")}</th><th>${t("Action")}</th><th>${t("Details")}</th></tr></thead><tbody>${rows.map(row => {
+    const alert = ALERT_KINDS.has(row.kind);
+    return `<tr class="${alert ? "alert-row" : ""}"><td>${escapeHtml(formatDate(row.created_at))}</td><td>${escapeHtml(personName(row.user_id))}</td><td><span class="activity-kind ${alert ? "alert" : ""}">${escapeHtml(t(ACTIVITY_LABELS[row.kind] || row.kind))}</span></td><td>${escapeHtml(activityDetail(row))}</td></tr>`;
+  }).join("")}</tbody></table>` : `<div class="empty-state">${t("No activity yet.")}</div>`;
+}
+
+function exportActivityCsv() {
+  const rows = filteredActivity();
+  const quote = value => `"${String(value ?? "").replaceAll('"', '""')}"`;
+  const lines = [["time", "person", "email", "action", "details"].join(",")].concat(rows.map(row => {
+    const user = state.users.find(u => u.id === row.user_id);
+    return [row.created_at, user?.name || "", user?.email || "", row.kind, activityDetail(row)].map(quote).join(",");
+  }));
+  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `activity-${new Date().toISOString().slice(0, 10)}.csv`;
+  link.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+
+/* ------------------------------------------------------------------
+   Ongoing projects
+------------------------------------------------------------------ */
+
+function isInterested(projectId) {
+  return state.projectInterest.some(row => row.project_id === projectId && row.user_id === currentUser?.id);
+}
+
+function renderProjects() {
+  const filter = state.projectFilter || "all";
+  document.querySelectorAll("[data-project-filter]").forEach(button => button.classList.toggle("active", button.dataset.projectFilter === filter));
+  if (!state.projectsReady) {
+    els.projectsList.innerHTML = `<div class="empty-state">${t("Projects will appear here soon.")}</div>`;
+    return;
+  }
+  const items = state.projects
+    .filter(p => currentUser?.role === "admin" || p.active !== false)
+    .filter(p => filter === "all" || (filter === "help" && p.needs_help) || (filter === "open" && !["published", "paused"].includes(p.status)) || (filter === "done" && p.status === "published"));
+  els.projectsList.innerHTML = items.length ? items.map(p => {
+    const link = safeUrl(p.link_url);
+    const interested = isInterested(p.id);
+    const count = state.projectInterest.filter(row => row.project_id === p.id).length;
+    const tags = String(p.tags || "").split(",").map(tag => tag.trim()).filter(Boolean);
+    return `<article class="project-card">
+      <div class="meta-row"><span class="status-pill ${escapeHtml(p.status)}">${escapeHtml(t(PROJECT_STATUS[p.status] || p.status))}</span>${p.active === false ? `<span class="tag">${t("Hidden")}</span>` : ""}${tags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>
+      <h4 dir="auto">${escapeHtml(p.title)}</h4>
+      ${p.summary ? `<p class="hint" dir="auto" style="white-space: pre-wrap;">${escapeHtml(p.summary)}</p>` : ""}
+      <div><div class="progress-bar"><i style="width: ${Math.max(0, Math.min(100, Number(p.progress) || 0))}%"></i></div><div class="progress-meta"><span>${t("Progress")}</span><span>${Number(p.progress) || 0}%</span></div></div>
+      <div class="project-people" dir="auto">${p.lead_name ? `<b>${t("Lead")}:</b> ${escapeHtml(p.lead_name)}<br>` : ""}${p.team ? `<b>${t("Team")}:</b> ${escapeHtml(p.team)}` : ""}</div>
+      ${p.needs_help ? `<div class="help-banner" dir="auto">🙋 ${t("Looking for help")}${p.help_text ? `: ${escapeHtml(p.help_text)}` : ""}</div>` : ""}
+      <div class="actions" style="justify-content: flex-start;">
+        <button class="btn ${interested ? "secondary" : ""} small" type="button" data-interest="${p.id}">${interested ? `✓ ${t("You're interested")}` : t("I'm interested")}</button>
+        ${link ? `<a class="btn secondary small" href="${escapeHtml(link)}" target="_blank" rel="noreferrer">${t("Open link")}</a>` : ""}
+        ${currentUser?.role === "admin" && count ? `<span class="hint">${count} ${t("interested")}</span>` : ""}
+      </div>
+    </article>`;
+  }).join("") : `<div class="empty-state">${t("No projects yet.")}</div>`;
+  els.projectsList.querySelectorAll("[data-interest]").forEach(button => button.addEventListener("click", () => toggleInterest(button.dataset.interest)));
+}
+
+async function toggleInterest(projectId) {
+  const was = isInterested(projectId);
+  const request = was
+    ? supabase.from("project_interest").delete().eq("project_id", projectId).eq("user_id", currentUser.id)
+    : supabase.from("project_interest").insert({ project_id: projectId, user_id: currentUser.id });
+  const { error } = await request;
+  if (error) return showToast(friendlyError(error));
+  if (was) state.projectInterest = state.projectInterest.filter(row => !(row.project_id === projectId && row.user_id === currentUser.id));
+  else {
+    state.projectInterest.push({ project_id: projectId, user_id: currentUser.id });
+    logActivity("project_interest", { title: state.projects.find(p => p.id === projectId)?.title || "" });
+    showToast(t("Thanks! The project team will see that you're interested."));
+  }
+  renderProjects();
+}
+
+function renderProjectsAdmin() {
+  if (!state.projectsReady) {
+    els.projectsAdminList.innerHTML = `<div class="empty-state">${t("Run database update 0004 in Supabase to turn on projects.")}</div>`;
+    return;
+  }
+  els.projectsAdminList.innerHTML = state.projects.length ? state.projects.map(p => {
+    const names = state.projectInterest.filter(row => row.project_id === p.id).map(row => personName(row.user_id));
+    return `<article class="editable-row"><div><span class="status-pill ${escapeHtml(p.status)}">${escapeHtml(t(PROJECT_STATUS[p.status] || p.status))}</span> <strong>${escapeHtml(p.title)}</strong><p class="hint">${Number(p.progress) || 0}% · ${escapeHtml(p.lead_name || "")}${names.length ? `<br>${t("Interested")}: ${names.map(escapeHtml).join(", ")}` : ""}</p></div>
+    <div class="row-actions"><button class="btn secondary small" type="button" data-edit-project="${p.id}">${t("Edit")}</button><button class="btn warn small" type="button" data-remove-project="${p.id}">${t("Remove")}</button></div></article>`;
+  }).join("") : `<div class="empty-state">${t("No projects yet.")}</div>`;
+  els.projectsAdminList.querySelectorAll("[data-edit-project]").forEach(button => button.addEventListener("click", () => editProject(button.dataset.editProject)));
+  els.projectsAdminList.querySelectorAll("[data-remove-project]").forEach(button => button.addEventListener("click", () => confirmDelete("projects", button.dataset.removeProject, t("this project"))));
+}
+
+async function saveProject(event) {
+  event.preventDefault();
+  const payload = {
+    title: els.projectTitle.value.trim(),
+    status: els.projectStatus.value,
+    summary: els.projectSummary.value.trim(),
+    lead_name: els.projectLead.value.trim(),
+    team: els.projectTeam.value.trim(),
+    progress: Math.max(0, Math.min(100, Number(els.projectProgress.value) || 0)),
+    tags: els.projectTags.value.trim(),
+    link_url: els.projectLink.value.trim(),
+    sort_order: Number(els.projectOrder.value) || 0,
+    needs_help: els.projectNeedsHelp.checked,
+    help_text: els.projectHelp.value.trim(),
+    active: els.projectActive.checked
+  };
+  if (els.projectId.value) payload.id = els.projectId.value;
+  else payload.created_by = currentUser.id;
+  const { error } = await supabase.from("projects").upsert(payload);
+  if (error) return showToast(friendlyError(error));
+  clearProjectForm();
+  await refresh();
+  showToast(t("Saved."));
+}
+
+function editProject(id) {
+  const p = state.projects.find(item => item.id === id);
+  if (!p) return;
+  els.projectId.value = p.id;
+  els.projectTitle.value = p.title || "";
+  els.projectStatus.value = p.status || "active";
+  els.projectSummary.value = p.summary || "";
+  els.projectLead.value = p.lead_name || "";
+  els.projectTeam.value = p.team || "";
+  els.projectProgress.value = p.progress || 0;
+  els.projectTags.value = p.tags || "";
+  els.projectLink.value = p.link_url || "";
+  els.projectOrder.value = p.sort_order || 0;
+  els.projectNeedsHelp.checked = Boolean(p.needs_help);
+  els.projectHelp.value = p.help_text || "";
+  els.projectActive.checked = p.active !== false;
+  els.projectTitle.focus();
+}
+
+function clearProjectForm() {
+  els.projectForm.reset();
+  els.projectId.value = "";
+  els.projectActive.checked = true;
+}
+
+/* ------------------------------------------------------------------
+   Content protection for speakers and attendees
+------------------------------------------------------------------ */
+
+function protectionSettings() {
+  const protect = state.settings.access?.protect || {};
+  return { watermark: protect.watermark !== false, blurOnLeave: protect.blurOnLeave === true };
+}
+
+function isProtectedUser() {
+  return Boolean(currentUser && currentUser.role !== "admin");
+}
+
+function applyProtection() {
+  const on = isProtectedUser();
+  const settings = protectionSettings();
+  document.body.classList.toggle("protected", on);
+  els.watermark.classList.toggle("hidden", !on || !settings.watermark);
+  els.protectFooter.classList.toggle("hidden", !on);
+  if (!on) {
+    document.body.classList.remove("blur-guard");
+    return;
+  }
+  const landing = state.settings.landing || {};
+  const copyright = formatCopyright(landing.copyright ?? defaultCopyright(landing), landing.brandName);
+  els.protectFooter.textContent = `${copyright} — ${t("Confidential. Screenshots and recordings are not permitted.")}`;
+  if (settings.watermark) {
+    const key = `${currentUser.name}|${currentUser.email}|${copyright}`;
+    if (els.watermark.dataset.key !== key) {
+      els.watermark.dataset.key = key;
+      els.watermark.style.backgroundImage = `url("${watermarkTile([currentUser.name, currentUser.email, new Date().toLocaleDateString(currentLocale()), copyright])}")`;
+    }
+  }
+}
+
+function watermarkTile(lines) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 420;
+  canvas.height = 260;
+  const ctx = canvas.getContext("2d");
+  ctx.translate(210, 130);
+  ctx.rotate(-Math.PI / 7);
+  ctx.textAlign = "center";
+  ctx.fillStyle = "#0b2421";
+  lines.filter(Boolean).forEach((line, i) => {
+    ctx.font = i === 0 ? "700 18px Inter, Vazirmatn, sans-serif" : "600 13px Inter, Vazirmatn, sans-serif";
+    ctx.fillText(String(line).slice(0, 60), 0, -24 + i * 22);
+  });
+  return canvas.toDataURL("image/png");
+}
+
+function protectionAlert(kind, method) {
+  if (!isProtectedUser()) return;
+  els.protectShield.classList.remove("hidden");
+  window.clearTimeout(shieldTimer);
+  shieldTimer = window.setTimeout(() => els.protectShield.classList.add("hidden"), 2500);
+  if (Date.now() - lastAlertAt < 3000) return;
+  lastAlertAt = Date.now();
+  logActivity(kind, { method, page: lastViewLogged });
+}
+
+function bindProtection() {
+  document.addEventListener("keydown", event => {
+    if (!isProtectedUser()) return;
+    const key = event.key || "";
+    const lower = key.toLowerCase();
+    const macShot = event.metaKey && event.shiftKey && ["3", "4", "5", "6", "s"].includes(lower);
+    const winShot = key === "PrintScreen" || (event.metaKey && event.shiftKey && lower === "s");
+    if (macShot || winShot) {
+      protectionAlert("screenshot_attempt", key === "PrintScreen" ? "Print Screen key" : `Shortcut ${event.metaKey ? "Cmd/Win" : "Ctrl"}+Shift+${key.toUpperCase()}`);
+    } else if ((event.metaKey || event.ctrlKey) && lower === "p") {
+      event.preventDefault();
+      protectionAlert("print_attempt", "Print shortcut");
+    }
+  }, true);
+  document.addEventListener("keyup", event => {
+    if (!isProtectedUser() || event.key !== "PrintScreen") return;
+    protectionAlert("screenshot_attempt", "Print Screen key");
+    navigator.clipboard?.writeText?.("").catch(() => {});
+  }, true);
+  window.addEventListener("beforeprint", () => protectionAlert("print_attempt", "Print"));
+  document.addEventListener("copy", event => {
+    if (!isProtectedUser()) return;
+    const target = event.target;
+    if (target?.closest?.("input, textarea, [contenteditable]")) return;
+    event.preventDefault();
+    protectionAlert("copy_attempt", "Copy");
+  });
+  document.addEventListener("contextmenu", event => {
+    if (isProtectedUser() && event.target.closest?.(".main img, .main video, .hero-slide, .slide-viewer")) event.preventDefault();
+  });
+  document.addEventListener("dragstart", event => {
+    if (isProtectedUser() && event.target.tagName === "IMG") event.preventDefault();
+  });
+  window.addEventListener("blur", () => {
+    if (!isProtectedUser() || !protectionSettings().blurOnLeave) return;
+    window.setTimeout(() => {
+      if (document.activeElement?.tagName === "IFRAME") return;
+      document.body.classList.add("blur-guard");
+    }, 0);
+  });
+  window.addEventListener("focus", () => document.body.classList.remove("blur-guard"));
+}
+
+/* ---- access settings (admin) ---- */
+function renderAccessSettings() {
+  const access = state.settings.access || {};
+  if (document.activeElement !== els.autoApproveDomains) els.autoApproveDomains.value = (access.autoApproveDomains || []).join(", ");
+  const protect = protectionSettings();
+  els.protectWatermark.checked = protect.watermark;
+  els.protectBlur.checked = protect.blurOnLeave;
+}
+
+async function saveAccessSettings(event) {
+  event.preventDefault();
+  const domains = els.autoApproveDomains.value.split(/[,\s]+/).map(d => d.trim().toLowerCase().replace(/^@/, "")).filter(d => /^[a-z0-9.-]+\.[a-z]{2,}$/.test(d));
+  state.settings.access = {
+    ...(state.settings.access || {}),
+    autoApproveDomains: [...new Set(domains)],
+    protect: { watermark: els.protectWatermark.checked, blurOnLeave: els.protectBlur.checked }
+  };
+  await saveSettings();
 }
 
 async function lookupEmailForUsername(username) {
