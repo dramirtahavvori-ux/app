@@ -1,6 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Vazirmatn:wght@400;700;900&display=swap">
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>NephroRounds Studio</title>
@@ -1575,6 +1578,307 @@
       color: var(--muted);
     }
 
+    .is-hidden-el {
+      display: none !important;
+    }
+
+    .landing-canvas {
+      position: relative;
+    }
+
+    .landing-boxes {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      pointer-events: none;
+    }
+
+    .free-box {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      pointer-events: auto;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      color: #ffffff;
+      font-size: 18px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      overflow: hidden;
+    }
+
+    .login-view .btn:not(.light):not(.ghost):not(.secondary):not(.warn) {
+      background: var(--lp-accent, var(--brand));
+    }
+
+    .login-view .auth-tabs button.active,
+    .login-view .text-link {
+      color: var(--lp-accent-dark, var(--brand-dark));
+    }
+
+    .login-view.plain-headline .landing-copy h2 {
+      background: none;
+      -webkit-text-fill-color: currentColor;
+      color: #ffffff;
+    }
+
+    .app-copyright {
+      color: rgba(239, 248, 246, .45);
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .designer-callout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0f3a36, #13457a);
+      color: #eef8f6;
+    }
+
+    .designer-callout .hint {
+      color: rgba(238, 248, 246, .75);
+    }
+
+    /* ---------- editor ---------- */
+    .designer-bar {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: #0b1413;
+      color: #e8f2f0;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      font-family: Inter, system-ui, sans-serif;
+      font-size: 13px;
+    }
+
+    .designer-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+    }
+
+    .designer-row.format.disabled > :not(.designer-sel) {
+      opacity: .35;
+      pointer-events: none;
+    }
+
+    .designer-title {
+      margin-right: 8px;
+      font-size: 14px;
+    }
+
+    .designer-spacer {
+      flex: 1;
+    }
+
+    .designer-sel {
+      min-width: 150px;
+      color: #9fd8cd;
+      font-weight: 700;
+    }
+
+    .designer-hidden {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .dbtn {
+      min-height: 32px;
+      padding: 5px 10px;
+      border-radius: 7px;
+      background: rgba(255, 255, 255, .08);
+      color: #e8f2f0;
+      border: 1px solid rgba(255, 255, 255, .12);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .dbtn:hover {
+      background: rgba(255, 255, 255, .16);
+    }
+
+    .dbtn.icon {
+      min-width: 32px;
+      padding: 5px 6px;
+    }
+
+    .dbtn.on {
+      background: #14b8a6;
+      border-color: #14b8a6;
+      color: #04211d;
+    }
+
+    .dbtn.primary {
+      background: #14b8a6;
+      border-color: #14b8a6;
+      color: #04211d;
+    }
+
+    .dbtn.danger {
+      color: #fca5a5;
+    }
+
+    .dfield {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #b9cfcb;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .designer-bar select,
+    .designer-bar input[type=number] {
+      width: auto;
+      min-height: 32px;
+      padding: 4px 8px;
+      border-radius: 7px;
+      border: 1px solid rgba(255, 255, 255, .15);
+      background: #16211f;
+      color: #e8f2f0;
+      font-size: 13px;
+    }
+
+    .designer-bar input[type=number] {
+      width: 64px;
+    }
+
+    .designer-bar input[type=color] {
+      width: 34px;
+      min-height: 28px;
+      height: 28px;
+      padding: 2px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, .2);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .designer-bar input[type=range] {
+      width: 90px;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .designer-bar input[type=checkbox] {
+      width: 16px;
+      min-height: 16px;
+      height: 16px;
+    }
+
+    .login-view.designing [data-edit-key],
+    .login-view.designing [data-edit-box] {
+      cursor: text;
+      outline: 1px dashed rgba(153, 246, 228, .0);
+      outline-offset: 3px;
+      transition: outline-color .15s ease;
+    }
+
+    .login-view.designing [data-edit-key]:hover,
+    .login-view.designing [data-edit-box]:hover {
+      outline-color: rgba(153, 246, 228, .6);
+    }
+
+    .login-view.designing .is-selected {
+      outline: 2px solid #2dd4bf !important;
+      outline-offset: 3px;
+    }
+
+    .login-view.designing .is-hidden-el {
+      display: revert !important;
+      opacity: .25;
+    }
+
+    .login-view.designing form,
+    .login-view.designing .auth-tabs,
+    .login-view.designing .landing-cta,
+    .login-view.designing .landing-nav-actions,
+    .login-view.designing .hero-nav,
+    .login-view.designing .hero-dots {
+      pointer-events: none;
+    }
+
+    .login-view.designing .free-box {
+      overflow: visible;
+      cursor: move;
+      outline: 1px dashed rgba(255, 255, 255, .35);
+      user-select: none;
+    }
+
+    .login-view.designing .free-box.editing {
+      cursor: text;
+      user-select: text;
+    }
+
+    .free-box .handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      background: #2dd4bf;
+      border: 2px solid #04211d;
+      display: none;
+    }
+
+    .login-view.designing .free-box.is-selected .handle {
+      display: block;
+    }
+
+    .handle.se { right: -6px; bottom: -6px; cursor: nwse-resize; }
+    .handle.sw { left: -6px; bottom: -6px; cursor: nesw-resize; }
+    .handle.ne { right: -6px; top: -6px; cursor: nesw-resize; }
+    .handle.nw { left: -6px; top: -6px; cursor: nwse-resize; }
+    .handle.e { right: -6px; top: 50%; margin-top: -6px; cursor: ew-resize; }
+    .handle.w { left: -6px; top: 50%; margin-top: -6px; cursor: ew-resize; }
+
+    .designer-hint {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      z-index: 60;
+      transform: translateX(-50%);
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(11, 20, 19, .9);
+      color: #e8f2f0;
+      font: 600 12px Inter, system-ui, sans-serif;
+      pointer-events: none;
+    }
+
+    @media (max-width: 660px) {
+      .landing-boxes {
+        position: static;
+        display: grid;
+        gap: 10px;
+        padding: 0 18px;
+      }
+
+      .free-box {
+        position: static;
+        width: auto !important;
+        height: auto !important;
+        min-height: 0;
+      }
+
+      .designer-callout {
+        flex-direction: column;
+        align-items: stretch;
+      }
+    }
+
     @media (max-width: 1020px) {
       .landing-hero {
         grid-template-columns: minmax(0, 1fr);
@@ -1741,12 +2045,69 @@
 </head>
 <body>
   <div id="loginView" class="login-view">
+    <div id="designerBar" class="designer-bar hidden" role="toolbar" aria-label="Home page editor">
+      <div class="designer-row">
+        <strong class="designer-title">✎ Home page editor</strong>
+        <button id="dAddBox" class="dbtn" type="button" title="Add a text box">＋ Text box</button>
+        <button id="dAddMetric" class="dbtn" type="button" title="Add a small box under the headline">＋ Small box</button>
+        <button id="dAddCard" class="dbtn" type="button" title="Add a card under the pictures">＋ Card</button>
+        <button id="dThemeBtn" class="dbtn" type="button">🎨 Page colors</button>
+        <button id="dUndo" class="dbtn" type="button" title="Undo (Cmd+Z)">↶ Undo</button>
+        <span class="designer-spacer"></span>
+        <button id="dCancel" class="dbtn" type="button">Cancel</button>
+        <button id="dSave" class="dbtn primary" type="button">Save changes</button>
+      </div>
+      <div id="dFormat" class="designer-row format disabled">
+        <span id="dSelLabel" class="designer-sel">Click any text or box to edit it</span>
+        <select id="dFont" title="Font">
+          <option value="">Default font</option>
+          <option value="Inter">Inter</option>
+          <option value="Montserrat">Montserrat</option>
+          <option value="Playfair Display">Playfair Display</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Vazirmatn">Vazirmatn (فارسی)</option>
+          <option value="Courier New">Courier</option>
+        </select>
+        <label class="dfield" title="Text size">Size <input id="dSize" type="number" min="10" max="120" step="1"></label>
+        <button id="dBold" class="dbtn icon" type="button" title="Bold"><b>B</b></button>
+        <button id="dItalic" class="dbtn icon" type="button" title="Italic"><i>I</i></button>
+        <button class="dbtn icon" type="button" data-align="left" title="Align left">⇤</button>
+        <button class="dbtn icon" type="button" data-align="center" title="Center">≡</button>
+        <button class="dbtn icon" type="button" data-align="right" title="Align right">⇥</button>
+        <label class="dfield" title="Text color">Text <input id="dColor" type="color"></label>
+        <label class="dfield" title="Box fill color">Fill <input id="dFill" type="color"></label>
+        <button id="dNoFill" class="dbtn" type="button" title="No fill">No fill</button>
+        <label class="dfield" title="Rounded corners">Corners <input id="dRadius" type="range" min="0" max="40"></label>
+        <button id="dFront" class="dbtn icon" type="button" title="Bring to front">⤒</button>
+        <button id="dBack" class="dbtn icon" type="button" title="Send to back">⤓</button>
+        <button id="dReset" class="dbtn" type="button" title="Back to original style">Reset style</button>
+        <button id="dHide" class="dbtn danger" type="button">Hide</button>
+      </div>
+      <div id="dTheme" class="designer-row theme hidden">
+        <label class="dfield">Background 1 <input id="tBg1" type="color"></label>
+        <label class="dfield">Background 2 <input id="tBg2" type="color"></label>
+        <label class="dfield">Buttons <input id="tAccent" type="color"></label>
+        <label class="dfield">Page font
+          <select id="tFont">
+            <option value="">Default</option>
+            <option value="Inter">Inter</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Playfair Display">Playfair Display</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Vazirmatn">Vazirmatn (فارسی)</option>
+          </select>
+        </label>
+        <label class="dfield"><input id="tGradient" type="checkbox"> Colorful headline</label>
+        <button id="tReset" class="dbtn" type="button">Original colors</button>
+        <span id="dHiddenList" class="designer-hidden"></span>
+      </div>
+    </div>
     <header class="landing-nav">
       <div class="brand">
         <div class="brand-mark">NR</div>
         <div>
-          <h1 id="landingBrandName">NephroRounds Studio</h1>
-          <p id="landingBrandTagline">Editable nephrology morning report</p>
+          <h1 id="landingBrandName" data-edit-key="brandName" dir="auto">NephroRounds Studio</h1>
+          <p id="landingBrandTagline" data-edit-key="brandTagline" dir="auto">Editable nephrology morning report</p>
         </div>
       </div>
       <div class="landing-nav-actions">
@@ -1755,11 +2116,13 @@
       </div>
     </header>
 
+    <div id="landingCanvas" class="landing-canvas">
+    <div id="landingBoxes" class="landing-boxes"></div>
     <section class="landing-hero">
       <div class="landing-copy">
-        <span id="landingHeroBadge" class="pill glow">Nephrology case conference</span>
-        <h2 id="landingHeroHeadline">Schedule. Speakers. Guests. Questions. All editable.</h2>
-        <p id="landingLoginLead" class="landing-lead">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
+        <span id="landingHeroBadge" class="pill glow" data-edit-key="heroBadge" dir="auto">Nephrology case conference</span>
+        <h2 id="landingHeroHeadline" data-edit-key="heroHeadline" dir="auto">Schedule. Speakers. Guests. Questions. All editable.</h2>
+        <p id="landingLoginLead" class="landing-lead" data-edit-key="loginLead" dir="auto">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
         <div class="landing-cta">
           <button class="btn light" type="button" data-auth-tab="signup">Join the rounds</button>
           <button class="btn ghost" type="button" data-auth-tab="signin">I already have an account</button>
@@ -1768,7 +2131,7 @@
       </div>
 
       <div id="authCard" class="auth-card">
-        <h2 id="landingLoginHeadline">Build each round yourself.</h2>
+        <h2 id="landingLoginHeadline" data-edit-key="loginHeadline" dir="auto">Build each round yourself.</h2>
         <div class="auth-tabs" role="tablist">
           <button id="signinTabBtn" class="active" type="button" data-auth-tab="signin">Sign in</button>
           <button id="signupTabBtn" type="button" data-auth-tab="signup">Create account</button>
@@ -1859,8 +2222,10 @@
       <div id="landingCards" class="feature-grid"></div>
     </section>
 
+    </div>
+
     <footer class="landing-footer">
-      <span id="landingFooterName">NephroRounds Studio</span>
+      <span id="landingFooterName" data-edit-key="copyright" dir="auto">NephroRounds Studio</span>
     </footer>
   </div>
 
@@ -1889,6 +2254,7 @@
           <small id="profileRole"></small>
         </div>
         <button id="logoutBtn" class="btn secondary" type="button">Sign out</button>
+        <small id="appCopyright" class="app-copyright" dir="auto"></small>
       </div>
     </aside>
 
@@ -2191,6 +2557,13 @@
           </div>
 
           <section id="landingAdmin" class="admin-section hidden">
+            <div class="designer-callout">
+              <div>
+                <strong>Design the home page visually</strong>
+                <p class="hint">Click any text to change it, change fonts and colors, add text boxes and drag or resize them — like PowerPoint.</p>
+              </div>
+              <button id="openDesigner" class="btn" type="button">✎ Open home page editor</button>
+            </div>
             <h3>Landing page</h3>
             <form id="landingForm" class="form-grid">
               <input id="landingHeroImageData" type="hidden">
@@ -2213,6 +2586,10 @@
               <div class="field">
                 <label for="adminLandingHeroBadge">Hero badge</label>
                 <input id="adminLandingHeroBadge">
+              </div>
+              <div class="field">
+                <label for="adminLandingCopyright">Copyright notice</label>
+                <input id="adminLandingCopyright" placeholder="© {year} Your name. All rights reserved.">
               </div>
               <div class="field">
                 <label for="adminLandingHeroInterval">Change picture every</label>
