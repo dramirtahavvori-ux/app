@@ -1879,6 +1879,51 @@
       }
     }
 
+
+    .lang-select {
+      width: auto;
+      min-height: 36px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, .24);
+      background: rgba(255, 255, 255, .08);
+      color: #eef8f6;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .lang-select option {
+      color: #14211f;
+    }
+
+    .landing-nav .lang-select {
+      margin-inline-start: auto;
+    }
+
+    html[lang="fa"] body,
+    html[lang="fa"] button,
+    html[lang="fa"] input,
+    html[lang="fa"] select,
+    html[lang="fa"] textarea {
+      font-family: Vazirmatn, Inter, system-ui, sans-serif;
+    }
+
+    html[lang="fa"] * {
+      letter-spacing: 0 !important;
+    }
+
+    html[dir="rtl"] .nav button {
+      text-align: right;
+    }
+
+    html[dir="rtl"] .hero-nav.prev { left: auto; right: 14px; }
+    html[dir="rtl"] .hero-nav.next { right: auto; left: 14px; }
+
+    html[dir="rtl"] :is(p, h1, h2, h3, h4, strong, li, small, time, .hint, .free-box-text) {
+      unicode-bidi: plaintext;
+    }
+
     @media (max-width: 1020px) {
       .landing-hero {
         grid-template-columns: minmax(0, 1fr);
@@ -2044,1043 +2089,997 @@
   </style>
 </head>
 <body>
-  <div id="loginView" class="login-view">
-    <div id="designerBar" class="designer-bar hidden" role="toolbar" aria-label="Home page editor">
-      <div class="designer-row">
-        <strong class="designer-title">✎ Home page editor</strong>
-        <button id="dAddBox" class="dbtn" type="button" title="Add a text box">＋ Text box</button>
-        <button id="dAddMetric" class="dbtn" type="button" title="Add a small box under the headline">＋ Small box</button>
-        <button id="dAddCard" class="dbtn" type="button" title="Add a card under the pictures">＋ Card</button>
-        <button id="dThemeBtn" class="dbtn" type="button">🎨 Page colors</button>
-        <button id="dUndo" class="dbtn" type="button" title="Undo (Cmd+Z)">↶ Undo</button>
-        <span class="designer-spacer"></span>
-        <button id="dCancel" class="dbtn" type="button">Cancel</button>
-        <button id="dSave" class="dbtn primary" type="button">Save changes</button>
-      </div>
-      <div id="dFormat" class="designer-row format disabled">
-        <span id="dSelLabel" class="designer-sel">Click any text or box to edit it</span>
-        <select id="dFont" title="Font">
-          <option value="">Default font</option>
-          <option value="Inter">Inter</option>
-          <option value="Montserrat">Montserrat</option>
-          <option value="Playfair Display">Playfair Display</option>
-          <option value="Georgia">Georgia</option>
-          <option value="Vazirmatn">Vazirmatn (فارسی)</option>
-          <option value="Courier New">Courier</option>
-        </select>
-        <label class="dfield" title="Text size">Size <input id="dSize" type="number" min="10" max="120" step="1"></label>
-        <button id="dBold" class="dbtn icon" type="button" title="Bold"><b>B</b></button>
-        <button id="dItalic" class="dbtn icon" type="button" title="Italic"><i>I</i></button>
-        <button class="dbtn icon" type="button" data-align="left" title="Align left">⇤</button>
-        <button class="dbtn icon" type="button" data-align="center" title="Center">≡</button>
-        <button class="dbtn icon" type="button" data-align="right" title="Align right">⇥</button>
-        <label class="dfield" title="Text color">Text <input id="dColor" type="color"></label>
-        <label class="dfield" title="Box fill color">Fill <input id="dFill" type="color"></label>
-        <button id="dNoFill" class="dbtn" type="button" title="No fill">No fill</button>
-        <label class="dfield" title="Rounded corners">Corners <input id="dRadius" type="range" min="0" max="40"></label>
-        <button id="dFront" class="dbtn icon" type="button" title="Bring to front">⤒</button>
-        <button id="dBack" class="dbtn icon" type="button" title="Send to back">⤓</button>
-        <button id="dReset" class="dbtn" type="button" title="Back to original style">Reset style</button>
-        <button id="dHide" class="dbtn danger" type="button">Hide</button>
-      </div>
-      <div id="dTheme" class="designer-row theme hidden">
-        <label class="dfield">Background 1 <input id="tBg1" type="color"></label>
-        <label class="dfield">Background 2 <input id="tBg2" type="color"></label>
-        <label class="dfield">Buttons <input id="tAccent" type="color"></label>
-        <label class="dfield">Page font
-          <select id="tFont">
-            <option value="">Default</option>
-            <option value="Inter">Inter</option>
-            <option value="Montserrat">Montserrat</option>
-            <option value="Playfair Display">Playfair Display</option>
-            <option value="Georgia">Georgia</option>
-            <option value="Vazirmatn">Vazirmatn (فارسی)</option>
-          </select>
-        </label>
-        <label class="dfield"><input id="tGradient" type="checkbox"> Colorful headline</label>
-        <button id="tReset" class="dbtn" type="button">Original colors</button>
-        <span id="dHiddenList" class="designer-hidden"></span>
-      </div>
-    </div>
-    <header class="landing-nav">
-      <div class="brand">
-        <div class="brand-mark">NR</div>
-        <div>
-          <h1 id="landingBrandName" data-edit-key="brandName" dir="auto">NephroRounds Studio</h1>
-          <p id="landingBrandTagline" data-edit-key="brandTagline" dir="auto">Editable nephrology morning report</p>
-        </div>
-      </div>
-      <div class="landing-nav-actions">
-        <button class="btn ghost" type="button" data-auth-tab="signin">Sign in</button>
-        <button class="btn light" type="button" data-auth-tab="signup">Create account</button>
-      </div>
-    </header>
-
-    <div id="landingCanvas" class="landing-canvas">
-    <div id="landingBoxes" class="landing-boxes"></div>
-    <section class="landing-hero">
-      <div class="landing-copy">
-        <span id="landingHeroBadge" class="pill glow" data-edit-key="heroBadge" dir="auto">Nephrology case conference</span>
-        <h2 id="landingHeroHeadline" data-edit-key="heroHeadline" dir="auto">Schedule. Speakers. Guests. Questions. All editable.</h2>
-        <p id="landingLoginLead" class="landing-lead" data-edit-key="loginLead" dir="auto">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
-        <div class="landing-cta">
-          <button class="btn light" type="button" data-auth-tab="signup">Join the rounds</button>
-          <button class="btn ghost" type="button" data-auth-tab="signin">I already have an account</button>
-        </div>
-        <div id="landingMetrics" class="metric-row"></div>
-      </div>
-
-      <div id="authCard" class="auth-card">
-        <h2 id="landingLoginHeadline" data-edit-key="loginHeadline" dir="auto">Build each round yourself.</h2>
-        <div class="auth-tabs" role="tablist">
-          <button id="signinTabBtn" class="active" type="button" data-auth-tab="signin">Sign in</button>
-          <button id="signupTabBtn" type="button" data-auth-tab="signup">Create account</button>
-        </div>
-
-        <form id="loginForm">
-          <div class="field">
-            <label for="username">Username or email</label>
-            <input id="username" autocomplete="username" required>
-          </div>
-          <div class="field" style="margin-top: 12px;">
-            <label for="password">Password</label>
-            <input id="password" type="password" autocomplete="current-password" required>
-          </div>
-          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Sign in</button>
-          <button id="forgotLink" class="text-link" type="button">Forgot password?</button>
-        </form>
-
-        <form id="forgotForm" class="hidden">
-          <p class="hint" style="margin-bottom: 12px;">Enter the email you signed up with. We will send you a link to choose a new password.</p>
-          <div class="field">
-            <label for="forgotEmail">Email</label>
-            <input id="forgotEmail" type="email" autocomplete="email" required>
-          </div>
-          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Send reset link</button>
-          <button class="text-link" type="button" data-auth-tab="signin">Back to sign in</button>
-        </form>
-
-        <form id="resetForm" class="hidden">
-          <p class="hint" style="margin-bottom: 12px;">Choose a new password for your account.</p>
-          <div class="field">
-            <label for="resetPassword">New password</label>
-            <input id="resetPassword" type="password" autocomplete="new-password" minlength="8" required>
-          </div>
-          <div class="field" style="margin-top: 12px;">
-            <label for="resetPassword2">Repeat new password</label>
-            <input id="resetPassword2" type="password" autocomplete="new-password" minlength="8" required>
-          </div>
-          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Save new password</button>
-        </form>
-
-        <form id="signupForm" class="hidden">
-          <div class="form-grid">
-            <div class="field full">
-              <label for="signupFullName">Full name</label>
-              <input id="signupFullName" autocomplete="name" required>
-            </div>
-            <div class="field">
-              <label for="signupUsername">Username</label>
-              <input id="signupUsername" autocomplete="off" pattern="[A-Za-z0-9._-]{3,30}" title="3-30 letters, numbers, dot, dash or underscore" required>
-            </div>
-            <div class="field">
-              <label for="signupEmail">Email</label>
-              <input id="signupEmail" type="email" autocomplete="email" required>
-            </div>
-            <div class="field">
-              <label for="signupDiscipline">Specialty</label>
-              <input id="signupDiscipline" placeholder="Nephrology, Internal Medicine...">
-            </div>
-            <div class="field">
-              <label for="signupUniversity">University / hospital</label>
-              <input id="signupUniversity">
-            </div>
-            <div class="field full">
-              <label for="signupPassword">Password</label>
-              <input id="signupPassword" type="password" autocomplete="new-password" minlength="8" required>
-            </div>
-          </div>
-          <button class="btn" type="submit" style="width: 100%; margin-top: 18px;">Create account</button>
-          <p class="hint" style="margin-top: 10px;">New accounts are reviewed by the organizers before access is granted.</p>
-        </form>
-
-        <div id="pendingNotice" class="pending-notice hidden">
-          <strong id="pendingTitle">Request received</strong>
-          <p id="pendingText" class="hint">Your account is waiting for approval. You will be able to sign in once an organizer approves it.</p>
-          <button id="pendingBack" class="btn secondary" type="button" style="margin-top: 12px;">Back to sign in</button>
-        </div>
-      </div>
-    </section>
-
-    <section class="landing-showcase">
-      <div id="heroSlider" class="hero-slider hidden" aria-roledescription="carousel">
-        <div id="heroSlides" class="hero-slides"></div>
-        <button id="heroPrev" class="hero-nav prev" type="button" aria-label="Previous image">‹</button>
-        <button id="heroNext" class="hero-nav next" type="button" aria-label="Next image">›</button>
-        <div id="heroDots" class="hero-dots"></div>
-      </div>
-      <div id="landingCards" class="feature-grid"></div>
-    </section>
-
-    </div>
-
-    <footer class="landing-footer">
-      <span id="landingFooterName" data-edit-key="copyright" dir="auto">NephroRounds Studio</span>
-    </footer>
-  </div>
-
-  <div id="appView" class="app-shell hidden">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="brand-mark">NR</div>
-        <div>
-          <h1 id="appShellName">NephroRounds</h1>
-          <p id="todayText"></p>
-        </div>
-      </div>
-
-      <nav class="nav">
-        <button id="reportTab" class="active" type="button">Morning report</button>
-        <button id="updatesTab" type="button">Updates <span id="updatesBadge" class="nav-badge hidden">0</span></button>
-        <button id="trainingTab" type="button">Training</button>
-        <button id="profileTab" type="button">My profile</button>
-        <button id="presenterTab" class="hidden" type="button">My presentation</button>
-        <button id="adminTab" class="hidden" type="button">Admin console</button>
-      </nav>
-
-      <div class="profile-strip">
-        <div>
-          <strong id="profileName"></strong><br>
-          <small id="profileRole"></small>
-        </div>
-        <button id="logoutBtn" class="btn secondary" type="button">Sign out</button>
-        <small id="appCopyright" class="app-copyright" dir="auto"></small>
-      </div>
-    </aside>
-
-    <main class="main">
-      <section id="reportView">
-        <div class="topbar">
-          <div>
-            <h2 id="reportHeading">Nephrology Morning Report</h2>
-            <p id="reportSubheading">Schedule, speakers, video access, and locked audience responses.</p>
-          </div>
-          <div class="actions">
-            <button id="copyMeetingLink" class="btn secondary" type="button">Copy video link</button>
-            <a id="meetingLink" class="btn" href="#" target="_blank" rel="noreferrer">Join video</a>
-          </div>
-        </div>
-
-        <div id="notificationPanel" class="notification-panel">
-          <div>
-            <strong id="notificationTitle">15-minute meeting reminder</strong>
-            <p id="notificationText" class="hint">Enable reminders to receive a browser notification before the round starts.</p>
-          </div>
-          <div class="actions">
-            <button id="enableReminder" class="btn secondary" type="button">Remind me here</button>
-            <button id="addAllToCalendar" class="btn" type="button">Add all sessions to my calendar</button>
-          </div>
-        </div>
-
-        <div id="nextSessionCard" class="next-session hidden">
-          <div>
-            <span class="pill">Next session</span>
-            <h3 id="nextSessionTitle"></h3>
-            <p id="nextSessionMeta" class="hint"></p>
-          </div>
-          <div class="countdown" id="nextSessionCountdown"></div>
-        </div>
-
-        <div id="pinnedUpdates" class="pinned-updates hidden"></div>
-
-        <div class="panel">
-          <div class="split-title">
-            <div>
-              <h3>Audio and video</h3>
-              <p id="mediaStatus" class="hint">Mic and camera are off. Admin can allow, mute, or block camera access in Live room.</p>
-            </div>
-            <span id="mediaAccessLabel" class="pill">Ready</span>
-          </div>
-          <div class="presenter-stage" style="margin-top: 12px;">
-            <video id="localMediaPreview" class="media-preview" autoplay muted playsinline></video>
-            <div class="live-room">
-              <div class="control-grid">
-                <button id="userMicToggle" class="btn secondary" type="button">Turn mic on</button>
-                <button id="userCameraToggle" class="btn secondary" type="button">Turn camera on</button>
-                <button id="stopMediaBtn" class="btn warn" type="button">Stop audio/video</button>
-              </div>
-              <p class="hint">Your browser may ask permission. On iPhone/Android, open the hosted app in Safari/Chrome and allow camera/microphone.</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="panel">
-            <h3>Schedule</h3>
-            <div id="schedule" class="schedule"></div>
-          </div>
-
-          <div id="meetingCard" class="panel meeting-now">
-            <div class="split-title">
-              <div>
-                <h3 id="meetingTitle">Today round</h3>
-                <p id="meetingMeta" class="hint"></p>
-              </div>
-              <span class="pill" id="submitState">Awaiting response</span>
-            </div>
-            <p id="meetingNotes" class="hint"></p>
-            <div class="video-panel">
-              <strong>Mobile video access</strong>
-              <p class="hint">Open this app on a phone and tap Join video. Zoom, Teams, and Google Meet links work here.</p>
-            </div>
-          </div>
-        </div>
-
-        <div id="slideViewerPanel" class="panel slide-viewer hidden">
-          <div class="split-title">
-            <div>
-              <h3 id="slideViewerTitle">Slides</h3>
-              <p class="hint">PDF slide decks open inside the app. PowerPoint files may open in a new tab or download, depending on the device.</p>
-            </div>
-            <div class="actions">
-              <a id="slideOpenLink" class="btn secondary" href="#" target="_blank" rel="noreferrer">Open in new tab</a>
-              <button id="closeSlides" class="btn secondary" type="button">Close slides</button>
-            </div>
-          </div>
-          <iframe id="slideFrame" class="slide-frame" title="Session slides"></iframe>
-        </div>
-
-        <div class="panel">
-          <h3>Presenters</h3>
-          <div id="presenters" class="people-grid"></div>
-        </div>
-
-        <div class="panel">
-          <h3>Guests</h3>
-          <div id="guests" class="people-grid"></div>
-        </div>
-
-        <div class="panel">
-          <div class="split-title">
-            <div>
-              <h3>Round questions</h3>
-              <p class="hint">Choose an answer and write the reason for your choice. Once submitted, both are locked.</p>
-            </div>
-            <span id="lockedLabel" class="pill hidden">Submitted and locked</span>
-          </div>
-          <div id="questions" class="question-list"></div>
-          <button id="submitAnswers" class="btn" type="button" style="margin-top: 14px;">Submit answers</button>
-        </div>
-
-        <div class="panel live-room">
-          <div class="split-title">
-            <div>
-              <h3>Live Q&A and hand raise</h3>
-              <p class="hint">Participants can send questions during the report or request permission to speak.</p>
-            </div>
-            <span id="handRaiseStatus" class="pill">No request</span>
-          </div>
-          <div id="liveMessages" class="chat-feed"></div>
-          <form id="liveMessageForm" class="chat-compose">
-            <input id="liveMessageInput" placeholder="Type a question for the presenter..." autocomplete="off">
-            <button class="btn secondary" type="submit">Send question</button>
-            <button id="raiseHandBtn" class="btn" type="button">Request to speak</button>
-          </form>
-        </div>
-      </section>
-
-      <section id="updatesView" class="hidden">
-        <div class="topbar">
-          <div>
-            <h2>Updates</h2>
-            <p>Announcements, reminders, and news from the organizers.</p>
-          </div>
-          <div class="actions filter-chips" id="updatesFilter">
-            <button id="newUpdateBtn" class="btn small hidden" type="button">+ New update</button>
-            <button class="chip active" type="button" data-update-filter="all">All</button>
-            <button class="chip" type="button" data-update-filter="update">Updates</button>
-            <button class="chip" type="button" data-update-filter="reminder">Reminders</button>
-            <button class="chip" type="button" data-update-filter="event">Events</button>
-            <button class="chip" type="button" data-update-filter="training">Training</button>
-          </div>
-        </div>
-        <div id="updatesList" class="updates-list"></div>
-      </section>
-
-      <section id="trainingView" class="hidden">
-        <div class="topbar">
-          <div>
-            <h2>Training programs</h2>
-            <p>Structured learning modules. Track your progress and earn a certificate when you finish.</p>
-          </div>
-          <button id="newProgramBtn" class="btn hidden" type="button">+ New program</button>
-        </div>
-        <div id="trainingOverview">
-          <div id="trainingStats" class="training-stats"></div>
-          <div id="trainingPrograms" class="program-grid"></div>
-        </div>
-        <div id="trainingDetail" class="hidden">
-          <button id="trainingBack" class="btn secondary small" type="button">← All programs</button>
-          <div class="panel program-hero">
-            <div>
-              <span id="programLevel" class="pill"></span>
-              <h3 id="programTitle"></h3>
-              <p id="programSummary" class="hint"></p>
-            </div>
-            <div class="program-progress">
-              <div class="progress-ring" id="programRing"><span id="programPercent">0%</span></div>
-              <button id="programCertificate" class="btn hidden" type="button">View certificate</button>
-            </div>
-          </div>
-          <div id="lessonList" class="lesson-list"></div>
-        </div>
-      </section>
-
-      <section id="profileView" class="hidden">
-        <div class="topbar">
-          <div>
-            <h2>My Profile</h2>
-            <p>Update your photo, login, affiliation, and personal information.</p>
-          </div>
-        </div>
-        <div class="panel">
-          <form id="profileForm" class="form-grid">
-            <input id="profilePhotoData" type="hidden">
-            <div class="field">
-              <label for="profileFullName">Full name</label>
-              <input id="profileFullName" required>
-            </div>
-            <div class="field">
-              <label for="profileUsernameInput">Username</label>
-              <input id="profileUsernameInput" autocomplete="off" required>
-            </div>
-            <div class="field">
-              <label for="profilePasswordInput">New password</label>
-              <input id="profilePasswordInput" type="password" autocomplete="new-password" placeholder="Leave empty to keep current password">
-            </div>
-            <div class="field">
-              <label for="profileEmail">Email</label>
-              <input id="profileEmail" type="email" placeholder="name@hospital.edu">
-            </div>
-            <div class="field">
-              <label for="profileDiscipline">Discipline / specialty</label>
-              <input id="profileDiscipline" placeholder="Nephrology, Internal Medicine, Research...">
-            </div>
-            <div class="field">
-              <label for="profileUniversity">University / hospital</label>
-              <input id="profileUniversity">
-            </div>
-            <div class="field">
-              <label for="profileLocation">City / country</label>
-              <input id="profileLocation">
-            </div>
-            <div class="field">
-              <label for="profilePhoto">Profile photo</label>
-              <input id="profilePhoto" type="file" accept="image/*">
-            </div>
-            <div class="field full">
-              <label for="profileBio">Bio / introduction</label>
-              <textarea id="profileBio"></textarea>
-            </div>
-            <div class="full actions">
-              <button class="btn" type="submit">Save my profile</button>
-            </div>
-          </form>
-        </div>
-      </section>
-
-      <section id="presenterView" class="hidden">
-        <div class="topbar">
-          <div>
-            <h2>My Presentation</h2>
-            <p>Upload or link your session slides without entering the admin console.</p>
-          </div>
-        </div>
-        <div class="panel">
-          <div class="split-title">
-            <div>
-              <h3>Presenting mode</h3>
-              <p class="hint">Control your microphone, camera, slides, and virtual background before speaking.</p>
-            </div>
-            <span id="presentingStatus" class="pill">Not presenting</span>
-          </div>
-          <div class="presenter-stage">
-            <div id="presenterPreview" class="video-preview">
-              <strong id="presenterPreviewText">Camera preview off</strong>
-            </div>
-            <div class="live-room">
-              <div class="control-grid">
-                <button id="presentingToggle" class="btn" type="button">Start presenting</button>
-                <button id="presenterMicToggle" class="btn secondary" type="button">Mic off</button>
-                <button id="presenterCameraToggle" class="btn secondary" type="button">Camera off</button>
-              </div>
-              <div class="field">
-                <label for="presenterBackground">Video background</label>
-                <select id="presenterBackground">
-                  <option value="clean">Clean studio</option>
-                  <option value="blur">Blur style</option>
-                  <option value="kidney">Kidney teaching room</option>
-                  <option value="conference">Conference pattern</option>
-                </select>
-              </div>
-              <p class="hint">Use this to check your camera and slides before you go live. The session itself runs through the video link (Zoom, Teams, or Google Meet).</p>
-            </div>
-          </div>
-        </div>
-        <div class="panel">
-          <div id="presenterSlidesList" class="list"></div>
-        </div>
-      </section>
-
-      <section id="adminView" class="hidden">
-        <div class="topbar">
-          <div>
-            <h2>Admin Console</h2>
-            <p>Manage meetings, schedule, people, updates, training, and who has access.</p>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="admin-tabs">
-            <button data-admin-section="landingAdmin" type="button">Landing page</button>
-            <button class="active" data-admin-section="meetingAdmin" type="button">Meeting</button>
-            <button data-admin-section="scheduleAdmin" type="button">Schedule</button>
-            <button data-admin-section="peopleAdmin" type="button">People</button>
-            <button data-admin-section="questionsAdmin" type="button">Questions</button>
-            <button data-admin-section="liveRoomAdmin" type="button">Live room</button>
-            <button data-admin-section="appearanceAdmin" type="button">Design</button>
-            <button data-admin-section="usersAdmin" type="button">Users / Access</button>
-            <button data-admin-section="updatesAdmin" type="button">Updates</button>
-            <button data-admin-section="trainingAdmin" type="button">Training</button>
-            <button data-admin-section="thankYouAdmin" type="button">Thank-you cards</button>
-            <button data-admin-section="responsesAdmin" type="button">Responses</button>
-          </div>
-
-          <section id="landingAdmin" class="admin-section hidden">
-            <div class="designer-callout">
-              <div>
-                <strong>Design the home page visually</strong>
-                <p class="hint">Click any text to change it, change fonts and colors, add text boxes and drag or resize them — like PowerPoint.</p>
-              </div>
-              <button id="openDesigner" class="btn" type="button">✎ Open home page editor</button>
-            </div>
-            <h3>Landing page</h3>
-            <form id="landingForm" class="form-grid">
-              <input id="landingHeroImageData" type="hidden">
-              <div class="field">
-                <label for="adminLandingBrandName">App name</label>
-                <input id="adminLandingBrandName">
-              </div>
-              <div class="field">
-                <label for="adminLandingBrandTagline">App tagline</label>
-                <input id="adminLandingBrandTagline">
-              </div>
-              <div class="field">
-                <label for="adminLandingLoginHeadline">Login headline</label>
-                <input id="adminLandingLoginHeadline">
-              </div>
-              <div class="field">
-                <label for="adminLandingLoginLead">Login description</label>
-                <input id="adminLandingLoginLead">
-              </div>
-              <div class="field">
-                <label for="adminLandingHeroBadge">Hero badge</label>
-                <input id="adminLandingHeroBadge">
-              </div>
-              <div class="field">
-                <label for="adminLandingCopyright">Copyright notice</label>
-                <input id="adminLandingCopyright" placeholder="© {year} Your name. All rights reserved.">
-              </div>
-              <div class="field">
-                <label for="adminLandingHeroInterval">Change picture every</label>
-                <select id="adminLandingHeroInterval">
-                  <option value="4">4 seconds</option>
-                  <option value="6">6 seconds</option>
-                  <option value="8">8 seconds</option>
-                  <option value="10">10 seconds</option>
-                  <option value="15">15 seconds</option>
-                  <option value="0">Don't change automatically</option>
-                </select>
-              </div>
-              <div class="field full">
-                <div class="split-title">
-                  <div>
-                    <h3 style="margin: 0;">Home page pictures</h3>
-                    <p class="hint">Add one or more pictures. They rotate automatically on the home page. Pictures are sharpened and optimized when uploaded — upload the largest version you have for the clearest result.</p>
-                  </div>
-                  <label class="btn secondary small file-btn">+ Add pictures<input id="adminLandingHeroImage" type="file" accept="image/*" multiple></label>
-                </div>
-                <div id="heroImagesAdmin" class="hero-thumbs"></div>
-              </div>
-              <div class="field full">
-                <label for="adminLandingHeroHeadline">Hero headline</label>
-                <textarea id="adminLandingHeroHeadline"></textarea>
-              </div>
-              <div class="field full">
-                <div class="split-title">
-                  <div>
-                    <h3 style="margin: 0;">Small boxes under hero image</h3>
-                    <p class="hint">Add, remove, or leave empty any number of small boxes.</p>
-                  </div>
-                  <div class="actions">
-                    <button id="addLandingMetric" class="btn secondary small" type="button">Add small box</button>
-                    <button id="clearLandingMetrics" class="btn warn small" type="button">Remove all</button>
-                  </div>
-                </div>
-                <div id="landingMetricsAdminList" class="list" style="margin-top: 10px;"></div>
-              </div>
-              <div class="field full">
-                <div class="split-title">
-                  <div>
-                    <h3 style="margin: 0;">Right-side landing cards</h3>
-                    <p class="hint">These are the larger cards on the right side of the landing page.</p>
-                  </div>
-                  <div class="actions">
-                    <button id="addLandingCard" class="btn secondary small" type="button">Add card</button>
-                    <button id="clearLandingCards" class="btn warn small" type="button">Remove all</button>
-                  </div>
-                </div>
-                <div id="landingCardsAdminList" class="list" style="margin-top: 10px;"></div>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save landing page</button>
-                <button id="clearLandingHeroImage" class="btn secondary" type="button">Remove all pictures</button>
-              </div>
-            </form>
-          </section>
-
-          <section id="meetingAdmin" class="admin-section">
-            <h3>Meeting details</h3>
-            <form id="meetingForm" class="form-grid">
-              <div class="field">
-                <label for="adminReportHeading">Main page heading</label>
-                <input id="adminReportHeading" placeholder="Nephrology Morning Report">
-              </div>
-              <div class="field">
-                <label for="adminReportSubheading">Main page subtitle</label>
-                <input id="adminReportSubheading" placeholder="Schedule, speakers, video access...">
-              </div>
-              <div class="field">
-                <label for="adminMeetingTitle">Round title</label>
-                <input id="adminMeetingTitle">
-              </div>
-              <div class="field">
-                <label for="adminMeetingTime">Meeting time text</label>
-                <input id="adminMeetingTime" placeholder="08:30 - 09:00">
-              </div>
-              <div class="field full">
-                <label for="adminMeetingUrl">Zoom / Teams / Google Meet link</label>
-                <input id="adminMeetingUrl" type="url">
-              </div>
-              <div class="field full">
-                <label for="adminMeetingNotes">Round notes</label>
-                <textarea id="adminMeetingNotes"></textarea>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save meeting</button>
-                <button id="clearMeeting" class="btn secondary" type="button">Hide / clear meeting card</button>
-              </div>
-            </form>
-          </section>
-
-          <section id="scheduleAdmin" class="admin-section hidden">
-            <h3>Calendar and schedule</h3>
-            <form id="scheduleForm" class="form-grid">
-              <input id="scheduleId" type="hidden">
-              <div class="field">
-                <label for="scheduleDate">Date</label>
-                <input id="scheduleDate" type="date" required>
-              </div>
-              <div class="field">
-                <label for="scheduleTime">Time</label>
-                <input id="scheduleTime" type="time" required>
-              </div>
-              <div class="field">
-                <label for="scheduleEndTime">End time</label>
-                <input id="scheduleEndTime" type="time">
-              </div>
-              <div class="field">
-                <label for="scheduleTopic">Topic</label>
-                <input id="scheduleTopic" placeholder="AKI, Electrolytes, Dialysis..." required>
-              </div>
-              <div class="field full">
-                <label for="scheduleNotes">Notes or agenda items</label>
-                <textarea id="scheduleNotes" placeholder="Write one agenda item per line."></textarea>
-              </div>
-              <div class="field">
-                <label for="scheduleRecordingUrl">Recording link</label>
-                <input id="scheduleRecordingUrl" type="url" placeholder="Zoom cloud, Google Drive, YouTube, Vimeo...">
-              </div>
-              <div class="field">
-                <label for="scheduleRecordingFile">Upload recording file</label>
-                <input id="scheduleRecordingFile" type="file" accept="video/*">
-                <input id="scheduleRecordingData" type="hidden">
-              </div>
-              <div class="field">
-                <label for="scheduleSlidesUrl">Slides link</label>
-                <input id="scheduleSlidesUrl" type="url" placeholder="PDF, Google Drive, OneDrive, Box...">
-              </div>
-              <div class="field">
-                <label for="scheduleSlidesFile">Upload slides</label>
-                <input id="scheduleSlidesFile" type="file" accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation">
-                <input id="scheduleSlidesData" type="hidden">
-                <input id="scheduleSlidesName" type="hidden">
-                <input id="scheduleSlidesType" type="hidden">
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save schedule item</button>
-                <button id="cancelScheduleEdit" class="btn secondary" type="button">Clear form</button>
-              </div>
-            </form>
-            <div id="scheduleAdminList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="peopleAdmin" class="admin-section hidden">
-            <h3>Presenters and guests</h3>
-            <form id="personForm" class="form-grid">
-              <input id="personId" type="hidden">
-              <input id="personPhotoData" type="hidden">
-              <div class="field">
-                <label for="personType">Type</label>
-                <select id="personType">
-                  <option value="presenter">Presenter</option>
-                  <option value="guest">Guest</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="personName">Name</label>
-                <input id="personName" required>
-              </div>
-              <div class="field">
-                <label for="personRole">Role / title</label>
-                <input id="personRole" placeholder="Nephrology Fellow, Guest Discussant..." required>
-              </div>
-              <div class="field">
-                <label for="personInstitution">University / hospital</label>
-                <input id="personInstitution" required>
-              </div>
-              <div class="field">
-                <label for="personLocation">City / country</label>
-                <input id="personLocation">
-              </div>
-              <div class="field">
-                <label for="personPhoto">Photo</label>
-                <input id="personPhoto" type="file" accept="image/*">
-              </div>
-              <div class="field full">
-                <label for="personIntro">Introduction</label>
-                <textarea id="personIntro" placeholder="Presenter introduction, guest bio, or topic description."></textarea>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save person</button>
-                <button id="cancelPersonEdit" class="btn secondary" type="button">Clear form</button>
-              </div>
-            </form>
-            <div id="peopleAdminList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="questionsAdmin" class="admin-section hidden">
-            <h3>Questions</h3>
-            <form id="questionForm" class="form-grid">
-              <input id="questionId" type="hidden">
-              <div class="field full">
-                <label for="questionText">Question text</label>
-                <textarea id="questionText" required></textarea>
-              </div>
-              <div class="field full">
-                <label for="questionOptions">Answer options</label>
-                <input id="questionOptions" placeholder="Example: Yes, No, Needs attending input">
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save question</button>
-                <button id="cancelQuestionEdit" class="btn secondary" type="button">Clear form</button>
-              </div>
-            </form>
-            <div id="questionsAdminList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="usersAdmin" class="admin-section hidden">
-            <h3>Users and access</h3>
-            <p class="hint" style="margin-bottom: 12px;">People create their own account from the home page. Approve them here and choose their access: Admin (panelist), Presenter (speaker), or Clinician (attendee).</p>
-            <div class="panel pending-panel" style="margin-bottom: 14px;">
-              <div class="split-title">
-                <h3 style="margin: 0;">Waiting for approval</h3>
-                <span id="pendingCount" class="pill">0</span>
-              </div>
-              <div id="pendingUsersList" class="list" style="margin-top: 10px;"></div>
-            </div>
-            <h3 id="userFormTitle" class="hidden" style="margin-top: 6px;">Edit user</h3>
-            <form id="userForm" class="form-grid hidden">
-              <input id="userId" type="hidden">
-              <input id="userPhotoData" type="hidden">
-              <div class="field">
-                <label for="userFullName">Full name</label>
-                <input id="userFullName" placeholder="Example: Amir Tahavvori, MD" required>
-              </div>
-              <div class="field">
-                <label for="userUsername">Username</label>
-                <input id="userUsername" autocomplete="off" required>
-              </div>
-              <input id="userPassword" type="hidden">
-              <div class="field">
-                <label for="userStatus">Account status</label>
-                <select id="userStatus">
-                  <option value="approved">Approved</option>
-                  <option value="pending">Waiting for approval</option>
-                  <option value="rejected">Rejected / blocked</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="userEmail">Email</label>
-                <input id="userEmail" type="email" placeholder="name@hospital.edu">
-              </div>
-              <div class="field">
-                <label for="userRole">Access level</label>
-                <select id="userRole">
-                  <option value="user">Clinician / attendee</option>
-                  <option value="presenter">Presenter / speaker</option>
-                  <option value="admin">Admin / panelist</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="userDiscipline">Discipline / specialty</label>
-                <input id="userDiscipline" placeholder="Nephrology, Internal Medicine...">
-              </div>
-              <div class="field">
-                <label for="userUniversity">University / hospital</label>
-                <input id="userUniversity">
-              </div>
-              <div class="field">
-                <label for="userLocation">City / country</label>
-                <input id="userLocation">
-              </div>
-              <div class="field">
-                <label for="userPhoto">Profile photo</label>
-                <input id="userPhoto" type="file" accept="image/*">
-              </div>
-              <div class="field full">
-                <label for="userBio">Bio / introduction</label>
-                <textarea id="userBio"></textarea>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save user</button>
-                <button id="cancelUserEdit" class="btn secondary" type="button">Cancel</button>
-              </div>
-            </form>
-            <div id="usersAdminList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="liveRoomAdmin" class="admin-section hidden">
-            <h3>Live room control</h3>
-            <p class="hint" style="margin-bottom: 12px;">Review live questions and approve or decline hand-raise requests.</p>
-            <div id="liveRoomAdminList" class="list"></div>
-          </section>
-
-          <section id="appearanceAdmin" class="admin-section hidden">
-            <h3>Design and box sizes</h3>
-            <form id="appearanceForm" class="form-grid">
-              <div class="field">
-                <label for="appearanceScheduleHeight">Schedule box height</label>
-                <input id="appearanceScheduleHeight" type="number" min="130" max="320" step="10">
-              </div>
-              <div class="field">
-                <label for="appearanceHeroHeight">Landing image height</label>
-                <input id="appearanceHeroHeight" type="number" min="220" max="520" step="10">
-              </div>
-              <div class="field">
-                <label for="appearanceAvatarSize">Presenter / guest photo size</label>
-                <input id="appearanceAvatarSize" type="number" min="56" max="110" step="2">
-              </div>
-              <div class="field">
-                <label for="appearancePanelPadding">Panel spacing</label>
-                <input id="appearancePanelPadding" type="number" min="12" max="30" step="2">
-              </div>
-              <div class="field">
-                <label for="appearanceBrandAlign">App name alignment</label>
-                <select id="appearanceBrandAlign">
-                  <option value="left">Left</option>
-                  <option value="center">Center</option>
-                  <option value="right">Right</option>
-                </select>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save design</button>
-                <button id="resetAppearance" class="btn secondary" type="button">Reset design</button>
-              </div>
-            </form>
-          </section>
-
-          <section id="updatesAdmin" class="admin-section hidden">
-            <h3>Updates and reminders</h3>
-            <p class="hint" style="margin-bottom: 12px;">Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report.</p>
-            <form id="updateForm" class="form-grid">
-              <input id="updateId" type="hidden">
-              <div class="field">
-                <label for="updateTitle">Title</label>
-                <input id="updateTitle" required>
-              </div>
-              <div class="field">
-                <label for="updateCategory">Type</label>
-                <select id="updateCategory">
-                  <option value="update">Update / news</option>
-                  <option value="reminder">Reminder</option>
-                  <option value="event">Event</option>
-                  <option value="training">Training</option>
-                </select>
-              </div>
-              <div class="field full">
-                <label for="updateBody">Message</label>
-                <textarea id="updateBody"></textarea>
-              </div>
-              <div class="field">
-                <label for="updateLink">Link (optional)</label>
-                <input id="updateLink" type="url" placeholder="https://...">
-              </div>
-              <div class="field checks">
-                <label><input id="updatePinned" type="checkbox"> Pin to top</label>
-                <label><input id="updateActive" type="checkbox" checked> Visible to everyone</label>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Publish</button>
-                <button id="cancelUpdateEdit" class="btn secondary" type="button">Clear form</button>
-              </div>
-            </form>
-            <div id="updatesAdminList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="trainingAdmin" class="admin-section hidden">
-            <h3>Training programs</h3>
-            <form id="programForm" class="form-grid">
-              <input id="programId" type="hidden">
-              <input id="programCoverData" type="hidden">
-              <div class="field">
-                <label for="programTitleInput">Program title</label>
-                <input id="programTitleInput" placeholder="Fluid and electrolytes essentials" required>
-              </div>
-              <div class="field">
-                <label for="programLevelInput">Level / tag</label>
-                <input id="programLevelInput" placeholder="Beginner, PGY-1, CME...">
-              </div>
-              <div class="field full">
-                <label for="programSummaryInput">Summary</label>
-                <textarea id="programSummaryInput"></textarea>
-              </div>
-              <div class="field">
-                <label for="programAudience">Who can see it</label>
-                <select id="programAudience">
-                  <option value="all">Everyone</option>
-                  <option value="user">Clinicians / attendees only</option>
-                  <option value="presenter">Presenters only</option>
-                  <option value="admin">Admins only (draft)</option>
-                </select>
-              </div>
-              <div class="field">
-                <label for="programCover">Cover image</label>
-                <input id="programCover" type="file" accept="image/*">
-              </div>
-              <div class="field">
-                <label for="programOrder">Order</label>
-                <input id="programOrder" type="number" value="0">
-              </div>
-              <div class="field checks">
-                <label><input id="programActive" type="checkbox" checked> Published</label>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Save program</button>
-                <button id="cancelProgramEdit" class="btn secondary" type="button">Clear form</button>
-              </div>
-            </form>
-            <div id="programsAdminList" class="list" style="margin-top: 14px;"></div>
-
-            <div id="lessonsAdmin" class="panel hidden" style="margin-top: 18px;">
-              <div class="split-title">
-                <h3 id="lessonsAdminTitle" style="margin: 0;">Lessons</h3>
-                <button id="closeLessonsAdmin" class="btn secondary small" type="button">Close</button>
-              </div>
-              <form id="lessonForm" class="form-grid" style="margin-top: 12px;">
-                <input id="lessonId" type="hidden">
-                <input id="lessonResourceData" type="hidden">
-                <input id="lessonResourceName" type="hidden">
-                <div class="field">
-                  <label for="lessonTitle">Lesson title</label>
-                  <input id="lessonTitle" required>
-                </div>
-                <div class="field">
-                  <label for="lessonDuration">Duration (minutes)</label>
-                  <input id="lessonDuration" type="number" min="0" value="10">
-                </div>
-                <div class="field full">
-                  <label for="lessonBody">Lesson content</label>
-                  <textarea id="lessonBody" placeholder="Key points, reading, case discussion..." style="min-height: 140px;"></textarea>
-                </div>
-                <div class="field">
-                  <label for="lessonVideo">Video link (YouTube, Vimeo, or file)</label>
-                  <input id="lessonVideo" type="url">
-                </div>
-                <div class="field">
-                  <label for="lessonResourceUrl">Resource link</label>
-                  <input id="lessonResourceUrl" type="url" placeholder="Article, guideline, Google Drive...">
-                </div>
-                <div class="field">
-                  <label for="lessonResourceFile">Or upload a file (PDF, slides)</label>
-                  <input id="lessonResourceFile" type="file">
-                </div>
-                <div class="field">
-                  <label for="lessonOrder">Order</label>
-                  <input id="lessonOrder" type="number" value="0">
-                </div>
-                <div class="full actions">
-                  <button class="btn" type="submit">Save lesson</button>
-                  <button id="cancelLessonEdit" class="btn secondary" type="button">Clear form</button>
-                </div>
-              </form>
-              <div id="lessonsAdminList" class="list" style="margin-top: 14px;"></div>
-            </div>
-
-            <div class="panel" style="margin-top: 18px;">
-              <h3 style="margin-top: 0;">Progress report</h3>
-              <div id="trainingReport" class="table-wrap"></div>
-            </div>
-          </section>
-
-          <section id="thankYouAdmin" class="admin-section hidden">
-            <h3>Thank-you cards</h3>
-            <p class="hint" style="margin-bottom: 12px;">Prepare a postcard-style thank-you email for participants after a session.</p>
-            <form id="thankYouForm" class="form-grid">
-              <div class="field">
-                <label for="thankYouSession">Session</label>
-                <select id="thankYouSession"></select>
-              </div>
-              <div class="field">
-                <label for="thankYouSubject">Email subject</label>
-                <input id="thankYouSubject" value="Thank you for attending Nephrology Morning Report">
-              </div>
-              <div class="field full">
-                <label for="thankYouMessage">Card message</label>
-                <textarea id="thankYouMessage">Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.</textarea>
-              </div>
-              <div class="full actions">
-                <button class="btn" type="submit">Generate cards</button>
-              </div>
-            </form>
-            <div id="thankYouList" class="list" style="margin-top: 14px;"></div>
-          </section>
-
-          <section id="responsesAdmin" class="admin-section hidden">
-            <h3>Submitted responses</h3>
-            <div id="answersTable"></div>
-          </section>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true" aria-label="Image viewer">
-    <button id="lightboxClose" class="lightbox-close" type="button" aria-label="Close">×</button>
-    <img id="lightboxImage" alt="">
-  </div>
-  <div id="toast" class="toast"></div>
-
-  <script type="module" src="/src/app.js"></script>
+<div class="login-view" id="loginView">
+<div aria-label="Home page editor" class="designer-bar hidden" data-i18n-aria="Home page editor" id="designerBar" role="toolbar">
+<div class="designer-row">
+<strong class="designer-title" data-i18n="✎ Home page editor">✎ Home page editor</strong>
+<button class="dbtn" data-i18n="＋ Text box" data-i18n-title="Add a text box" id="dAddBox" title="Add a text box" type="button">＋ Text box</button>
+<button class="dbtn" data-i18n="＋ Small box" data-i18n-title="Add a small box under the headline" id="dAddMetric" title="Add a small box under the headline" type="button">＋ Small box</button>
+<button class="dbtn" data-i18n="＋ Card" data-i18n-title="Add a card under the pictures" id="dAddCard" title="Add a card under the pictures" type="button">＋ Card</button>
+<button class="dbtn" data-i18n="🎨 Page colors" id="dThemeBtn" type="button">🎨 Page colors</button>
+<button class="dbtn" data-i18n="↶ Undo" data-i18n-title="Undo (Cmd+Z)" id="dUndo" title="Undo (Cmd+Z)" type="button">↶ Undo</button>
+<span class="designer-spacer"></span>
+<button class="dbtn" data-i18n="Cancel" id="dCancel" type="button">Cancel</button>
+<button class="dbtn primary" data-i18n="Save changes" id="dSave" type="button">Save changes</button>
+</div>
+<div class="designer-row format disabled" id="dFormat">
+<span class="designer-sel" id="dSelLabel">Click any text or box to edit it</span>
+<select data-i18n-title="Font" id="dFont" title="Font">
+<option data-i18n="Default font" value="">Default font</option>
+<option value="Inter">Inter</option>
+<option value="Montserrat">Montserrat</option>
+<option value="Playfair Display">Playfair Display</option>
+<option value="Georgia">Georgia</option>
+<option value="Vazirmatn">Vazirmatn (فارسی)</option>
+<option value="Courier New">Courier</option>
+</select>
+<label class="dfield" data-i18n-title="Text size" title="Text size"><span data-i18n="Size">Size</span> <input id="dSize" max="120" min="10" step="1" type="number"/></label>
+<button class="dbtn icon" data-i18n-title="Bold" id="dBold" title="Bold" type="button"><b>B</b></button>
+<button class="dbtn icon" data-i18n-title="Italic" id="dItalic" title="Italic" type="button"><i>I</i></button>
+<button class="dbtn icon" data-align="left" data-i18n-title="Align left" title="Align left" type="button">⇤</button>
+<button class="dbtn icon" data-align="center" data-i18n-title="Center" title="Center" type="button">≡</button>
+<button class="dbtn icon" data-align="right" data-i18n-title="Align right" title="Align right" type="button">⇥</button>
+<label class="dfield" data-i18n-title="Text color" title="Text color"><span data-i18n="Text">Text</span> <input id="dColor" type="color"/></label>
+<label class="dfield" data-i18n-title="Box fill color" title="Box fill color"><span data-i18n="Fill">Fill</span> <input id="dFill" type="color"/></label>
+<button class="dbtn" data-i18n="No fill" data-i18n-title="No fill" id="dNoFill" title="No fill" type="button">No fill</button>
+<label class="dfield" data-i18n-title="Rounded corners" title="Rounded corners"><span data-i18n="Corners">Corners</span> <input id="dRadius" max="40" min="0" type="range"/></label>
+<button class="dbtn icon" data-i18n-title="Bring to front" id="dFront" title="Bring to front" type="button">⤒</button>
+<button class="dbtn icon" data-i18n-title="Send to back" id="dBack" title="Send to back" type="button">⤓</button>
+<button class="dbtn" data-i18n="Reset style" data-i18n-title="Back to original style" id="dReset" title="Back to original style" type="button">Reset style</button>
+<button class="dbtn danger" id="dHide" type="button">Hide</button>
+</div>
+<div class="designer-row theme hidden" id="dTheme">
+<label class="dfield"><span data-i18n="Background 1">Background 1</span> <input id="tBg1" type="color"/></label>
+<label class="dfield"><span data-i18n="Background 2">Background 2</span> <input id="tBg2" type="color"/></label>
+<label class="dfield"><span data-i18n="Buttons">Buttons</span> <input id="tAccent" type="color"/></label>
+<label class="dfield"><span data-i18n="Page font">Page font</span> <select id="tFont">
+<option data-i18n="Default" value="">Default</option>
+<option value="Inter">Inter</option>
+<option value="Montserrat">Montserrat</option>
+<option value="Playfair Display">Playfair Display</option>
+<option value="Georgia">Georgia</option>
+<option value="Vazirmatn">Vazirmatn (فارسی)</option>
+</select>
+</label>
+<label class="dfield"><input id="tGradient" type="checkbox"/> <span data-i18n="Colorful headline">Colorful headline</span></label>
+<button class="dbtn" data-i18n="Original colors" id="tReset" type="button">Original colors</button>
+<span class="designer-hidden" id="dHiddenList"></span>
+</div>
+</div>
+<header class="landing-nav">
+<div class="brand">
+<div class="brand-mark">NR</div>
+<div>
+<h1 data-edit-key="brandName" dir="auto" id="landingBrandName">NephroRounds Studio</h1>
+<p data-edit-key="brandTagline" dir="auto" id="landingBrandTagline">Editable nephrology morning report</p>
+</div>
+</div>
+<select aria-label="Language" class="lang-select" id="langSelect"></select>
+<div class="landing-nav-actions">
+<button class="btn ghost" data-auth-tab="signin" data-i18n="Sign in" type="button">Sign in</button>
+<button class="btn light" data-auth-tab="signup" data-i18n="Create account" type="button">Create account</button>
+</div>
+</header>
+<div class="landing-canvas" id="landingCanvas">
+<div class="landing-boxes" id="landingBoxes"></div>
+<section class="landing-hero">
+<div class="landing-copy">
+<span class="pill glow" data-edit-key="heroBadge" dir="auto" id="landingHeroBadge">Nephrology case conference</span>
+<h2 data-edit-key="heroHeadline" dir="auto" id="landingHeroHeadline">Schedule. Speakers. Guests. Questions. All editable.</h2>
+<p class="landing-lead" data-edit-key="loginLead" dir="auto" id="landingLoginLead">Edit the schedule, presenters, guests, photos, introductions, questions, and the meeting link from the admin console.</p>
+<div class="landing-cta">
+<button class="btn light" data-auth-tab="signup" data-i18n="Join the rounds" type="button">Join the rounds</button>
+<button class="btn ghost" data-auth-tab="signin" data-i18n="I already have an account" type="button">I already have an account</button>
+</div>
+<div class="metric-row" id="landingMetrics"></div>
+</div>
+<div class="auth-card" id="authCard">
+<h2 data-edit-key="loginHeadline" dir="auto" id="landingLoginHeadline">Build each round yourself.</h2>
+<div class="auth-tabs" role="tablist">
+<button class="active" data-auth-tab="signin" data-i18n="Sign in" id="signinTabBtn" type="button">Sign in</button>
+<button data-auth-tab="signup" data-i18n="Create account" id="signupTabBtn" type="button">Create account</button>
+</div>
+<form id="loginForm">
+<div class="field">
+<label data-i18n="Username or email" for="username">Username or email</label>
+<input autocomplete="username" id="username" required=""/>
+</div>
+<div class="field" style="margin-top: 12px;">
+<label data-i18n="Password" for="password">Password</label>
+<input autocomplete="current-password" id="password" required="" type="password"/>
+</div>
+<button class="btn" data-i18n="Sign in" style="width: 100%; margin-top: 18px;" type="submit">Sign in</button>
+<button class="text-link" data-i18n="Forgot password?" id="forgotLink" type="button">Forgot password?</button>
+</form>
+<form class="hidden" id="forgotForm">
+<p class="hint" data-i18n="Enter the email you signed up with. We will send you a link to choose a new password." style="margin-bottom: 12px;">Enter the email you signed up with. We will send you a link to choose a new password.</p>
+<div class="field">
+<label data-i18n="Email" for="forgotEmail">Email</label>
+<input autocomplete="email" id="forgotEmail" required="" type="email"/>
+</div>
+<button class="btn" data-i18n="Send reset link" style="width: 100%; margin-top: 18px;" type="submit">Send reset link</button>
+<button class="text-link" data-auth-tab="signin" data-i18n="Back to sign in" type="button">Back to sign in</button>
+</form>
+<form class="hidden" id="resetForm">
+<p class="hint" data-i18n="Choose a new password for your account." style="margin-bottom: 12px;">Choose a new password for your account.</p>
+<div class="field">
+<label data-i18n="New password" for="resetPassword">New password</label>
+<input autocomplete="new-password" id="resetPassword" minlength="8" required="" type="password"/>
+</div>
+<div class="field" style="margin-top: 12px;">
+<label data-i18n="Repeat new password" for="resetPassword2">Repeat new password</label>
+<input autocomplete="new-password" id="resetPassword2" minlength="8" required="" type="password"/>
+</div>
+<button class="btn" data-i18n="Save new password" style="width: 100%; margin-top: 18px;" type="submit">Save new password</button>
+</form>
+<form class="hidden" id="signupForm">
+<div class="form-grid">
+<div class="field full">
+<label data-i18n="Full name" for="signupFullName">Full name</label>
+<input autocomplete="name" id="signupFullName" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Username" for="signupUsername">Username</label>
+<input autocomplete="off" data-i18n-title="3-30 letters, numbers, dot, dash or underscore" id="signupUsername" pattern="[A-Za-z0-9._-]{3,30}" required="" title="3-30 letters, numbers, dot, dash or underscore"/>
+</div>
+<div class="field">
+<label data-i18n="Email" for="signupEmail">Email</label>
+<input autocomplete="email" id="signupEmail" required="" type="email"/>
+</div>
+<div class="field">
+<label data-i18n="Specialty" for="signupDiscipline">Specialty</label>
+<input data-i18n-ph="Nephrology, Internal Medicine..." id="signupDiscipline" placeholder="Nephrology, Internal Medicine..."/>
+</div>
+<div class="field">
+<label data-i18n="University / hospital" for="signupUniversity">University / hospital</label>
+<input id="signupUniversity"/>
+</div>
+<div class="field full">
+<label data-i18n="Password" for="signupPassword">Password</label>
+<input autocomplete="new-password" id="signupPassword" minlength="8" required="" type="password"/>
+</div>
+</div>
+<button class="btn" data-i18n="Create account" style="width: 100%; margin-top: 18px;" type="submit">Create account</button>
+<p class="hint" data-i18n="New accounts are reviewed by the organizers before access is granted." style="margin-top: 10px;">New accounts are reviewed by the organizers before access is granted.</p>
+</form>
+<div class="pending-notice hidden" id="pendingNotice">
+<strong id="pendingTitle">Request received</strong>
+<p class="hint" id="pendingText">Your account is waiting for approval. You will be able to sign in once an organizer approves it.</p>
+<button class="btn secondary" data-i18n="Back to sign in" id="pendingBack" style="margin-top: 12px;" type="button">Back to sign in</button>
+</div>
+</div>
+</section>
+<section class="landing-showcase">
+<div aria-roledescription="carousel" class="hero-slider hidden" id="heroSlider">
+<div class="hero-slides" id="heroSlides"></div>
+<button aria-label="Previous image" class="hero-nav prev" data-i18n-aria="Previous image" id="heroPrev" type="button">‹</button>
+<button aria-label="Next image" class="hero-nav next" data-i18n-aria="Next image" id="heroNext" type="button">›</button>
+<div class="hero-dots" id="heroDots"></div>
+</div>
+<div class="feature-grid" id="landingCards"></div>
+</section>
+</div>
+<footer class="landing-footer">
+<span data-edit-key="copyright" dir="auto" id="landingFooterName">NephroRounds Studio</span>
+</footer>
+</div>
+<div class="app-shell hidden" id="appView">
+<aside class="sidebar">
+<div class="brand">
+<div class="brand-mark">NR</div>
+<div>
+<h1 id="appShellName">NephroRounds</h1>
+<p id="todayText"></p>
+</div>
+</div>
+<nav class="nav">
+<button class="active" data-i18n="Morning report" id="reportTab" type="button">Morning report</button>
+<button id="updatesTab" type="button"><span data-i18n="Updates">Updates</span> <span class="nav-badge hidden" id="updatesBadge">0</span></button>
+<button data-i18n="Training" id="trainingTab" type="button">Training</button>
+<button data-i18n="My profile" id="profileTab" type="button">My profile</button>
+<button class="hidden" data-i18n="My presentation" id="presenterTab" type="button">My presentation</button>
+<button class="hidden" data-i18n="Admin console" id="adminTab" type="button">Admin console</button>
+</nav>
+<div class="profile-strip">
+<div>
+<strong id="profileName"></strong><br/>
+<small id="profileRole"></small>
+</div>
+<select aria-label="Language" class="lang-select app" id="langSelectApp"></select>
+<button class="btn secondary" data-i18n="Sign out" id="logoutBtn" type="button">Sign out</button>
+<small class="app-copyright" dir="auto" id="appCopyright"></small>
+</div>
+</aside>
+<main class="main">
+<section id="reportView">
+<div class="topbar">
+<div>
+<h2 id="reportHeading">Nephrology Morning Report</h2>
+<p id="reportSubheading">Schedule, speakers, video access, and locked audience responses.</p>
+</div>
+<div class="actions">
+<button class="btn secondary" data-i18n="Copy video link" id="copyMeetingLink" type="button">Copy video link</button>
+<a class="btn" data-i18n="Join video" href="#" id="meetingLink" rel="noreferrer" target="_blank">Join video</a>
+</div>
+</div>
+<div class="notification-panel" id="notificationPanel">
+<div>
+<strong id="notificationTitle">15-minute meeting reminder</strong>
+<p class="hint" id="notificationText">Enable reminders to receive a browser notification before the round starts.</p>
+</div>
+<div class="actions">
+<button class="btn secondary" data-i18n="Remind me here" id="enableReminder" type="button">Remind me here</button>
+<button class="btn" data-i18n="Add all sessions to my calendar" id="addAllToCalendar" type="button">Add all sessions to my calendar</button>
+</div>
+</div>
+<div class="next-session hidden" id="nextSessionCard">
+<div>
+<span class="pill" data-i18n="Next session">Next session</span>
+<h3 id="nextSessionTitle"></h3>
+<p class="hint" id="nextSessionMeta"></p>
+</div>
+<div class="countdown" id="nextSessionCountdown"></div>
+</div>
+<div class="pinned-updates hidden" id="pinnedUpdates"></div>
+<div class="panel">
+<div class="split-title">
+<div>
+<h3 data-i18n="Audio and video">Audio and video</h3>
+<p class="hint" id="mediaStatus">Mic and camera are off. Admin can allow, mute, or block camera access in Live room.</p>
+</div>
+<span class="pill" id="mediaAccessLabel">Ready</span>
+</div>
+<div class="presenter-stage" style="margin-top: 12px;">
+<video autoplay="" class="media-preview" id="localMediaPreview" muted="" playsinline=""></video>
+<div class="live-room">
+<div class="control-grid">
+<button class="btn secondary" id="userMicToggle" type="button">Turn mic on</button>
+<button class="btn secondary" id="userCameraToggle" type="button">Turn camera on</button>
+<button class="btn warn" data-i18n="Stop audio/video" id="stopMediaBtn" type="button">Stop audio/video</button>
+</div>
+<p class="hint" data-i18n="Your browser may ask permission. On iPhone/Android, open the hosted app in Safari/Chrome and allow camera/microphone.">Your browser may ask permission. On iPhone/Android, open the hosted app in Safari/Chrome and allow camera/microphone.</p>
+</div>
+</div>
+</div>
+<div class="grid">
+<div class="panel">
+<h3 data-i18n="Schedule">Schedule</h3>
+<div class="schedule" id="schedule"></div>
+</div>
+<div class="panel meeting-now" id="meetingCard">
+<div class="split-title">
+<div>
+<h3 id="meetingTitle">Today round</h3>
+<p class="hint" id="meetingMeta"></p>
+</div>
+<span class="pill" id="submitState">Awaiting response</span>
+</div>
+<p class="hint" id="meetingNotes"></p>
+<div class="video-panel">
+<strong data-i18n="Mobile video access">Mobile video access</strong>
+<p class="hint" data-i18n="Open this app on a phone and tap Join video. Zoom, Teams, and Google Meet links work here.">Open this app on a phone and tap Join video. Zoom, Teams, and Google Meet links work here.</p>
+</div>
+</div>
+</div>
+<div class="panel slide-viewer hidden" id="slideViewerPanel">
+<div class="split-title">
+<div>
+<h3 id="slideViewerTitle">Slides</h3>
+<p class="hint" data-i18n="PDF slide decks open inside the app. PowerPoint files may open in a new tab or download, depending on the device.">PDF slide decks open inside the app. PowerPoint files may open in a new tab or download, depending on the device.</p>
+</div>
+<div class="actions">
+<a class="btn secondary" data-i18n="Open in new tab" href="#" id="slideOpenLink" rel="noreferrer" target="_blank">Open in new tab</a>
+<button class="btn secondary" data-i18n="Close slides" id="closeSlides" type="button">Close slides</button>
+</div>
+</div>
+<iframe class="slide-frame" data-i18n-title="Session slides" id="slideFrame" title="Session slides"></iframe>
+</div>
+<div class="panel">
+<h3 data-i18n="Presenters">Presenters</h3>
+<div class="people-grid" id="presenters"></div>
+</div>
+<div class="panel">
+<h3 data-i18n="Guests">Guests</h3>
+<div class="people-grid" id="guests"></div>
+</div>
+<div class="panel">
+<div class="split-title">
+<div>
+<h3 data-i18n="Round questions">Round questions</h3>
+<p class="hint" data-i18n="Choose an answer and write the reason for your choice. Once submitted, both are locked.">Choose an answer and write the reason for your choice. Once submitted, both are locked.</p>
+</div>
+<span class="pill hidden" data-i18n="Submitted and locked" id="lockedLabel">Submitted and locked</span>
+</div>
+<div class="question-list" id="questions"></div>
+<button class="btn" id="submitAnswers" style="margin-top: 14px;" type="button">Submit answers</button>
+</div>
+<div class="panel live-room">
+<div class="split-title">
+<div>
+<h3 data-i18n="Live Q&amp;A and hand raise">Live Q&amp;A and hand raise</h3>
+<p class="hint" data-i18n="Participants can send questions during the report or request permission to speak.">Participants can send questions during the report or request permission to speak.</p>
+</div>
+<span class="pill" id="handRaiseStatus">No request</span>
+</div>
+<div class="chat-feed" id="liveMessages"></div>
+<form class="chat-compose" id="liveMessageForm">
+<input autocomplete="off" data-i18n-ph="Type a question for the presenter..." id="liveMessageInput" placeholder="Type a question for the presenter..."/>
+<button class="btn secondary" data-i18n="Send question" type="submit">Send question</button>
+<button class="btn" id="raiseHandBtn" type="button">Request to speak</button>
+</form>
+</div>
+</section>
+<section class="hidden" id="updatesView">
+<div class="topbar">
+<div>
+<h2 data-i18n="Updates">Updates</h2>
+<p data-i18n="Announcements, reminders, and news from the organizers.">Announcements, reminders, and news from the organizers.</p>
+</div>
+<div class="actions filter-chips" id="updatesFilter">
+<button class="btn small hidden" data-i18n="+ New update" id="newUpdateBtn" type="button">+ New update</button>
+<button class="chip active" data-i18n="All" data-update-filter="all" type="button">All</button>
+<button class="chip" data-i18n="Updates" data-update-filter="update" type="button">Updates</button>
+<button class="chip" data-i18n="Reminders" data-update-filter="reminder" type="button">Reminders</button>
+<button class="chip" data-i18n="Events" data-update-filter="event" type="button">Events</button>
+<button class="chip" data-i18n="Training" data-update-filter="training" type="button">Training</button>
+</div>
+</div>
+<div class="updates-list" id="updatesList"></div>
+</section>
+<section class="hidden" id="trainingView">
+<div class="topbar">
+<div>
+<h2 data-i18n="Training programs">Training programs</h2>
+<p data-i18n="Structured learning modules. Track your progress and earn a certificate when you finish.">Structured learning modules. Track your progress and earn a certificate when you finish.</p>
+</div>
+<button class="btn hidden" data-i18n="+ New program" id="newProgramBtn" type="button">+ New program</button>
+</div>
+<div id="trainingOverview">
+<div class="training-stats" id="trainingStats"></div>
+<div class="program-grid" id="trainingPrograms"></div>
+</div>
+<div class="hidden" id="trainingDetail">
+<button class="btn secondary small" data-i18n="← All programs" id="trainingBack" type="button">← All programs</button>
+<div class="panel program-hero">
+<div>
+<span class="pill" id="programLevel"></span>
+<h3 id="programTitle"></h3>
+<p class="hint" id="programSummary"></p>
+</div>
+<div class="program-progress">
+<div class="progress-ring" id="programRing"><span id="programPercent">0%</span></div>
+<button class="btn hidden" data-i18n="View certificate" id="programCertificate" type="button">View certificate</button>
+</div>
+</div>
+<div class="lesson-list" id="lessonList"></div>
+</div>
+</section>
+<section class="hidden" id="profileView">
+<div class="topbar">
+<div>
+<h2 data-i18n="My Profile">My Profile</h2>
+<p data-i18n="Update your photo, login, affiliation, and personal information.">Update your photo, login, affiliation, and personal information.</p>
+</div>
+</div>
+<div class="panel">
+<form class="form-grid" id="profileForm">
+<input id="profilePhotoData" type="hidden"/>
+<div class="field">
+<label data-i18n="Full name" for="profileFullName">Full name</label>
+<input id="profileFullName" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Username" for="profileUsernameInput">Username</label>
+<input autocomplete="off" id="profileUsernameInput" required=""/>
+</div>
+<div class="field">
+<label data-i18n="New password" for="profilePasswordInput">New password</label>
+<input autocomplete="new-password" data-i18n-ph="Leave empty to keep current password" id="profilePasswordInput" placeholder="Leave empty to keep current password" type="password"/>
+</div>
+<div class="field">
+<label data-i18n="Email" for="profileEmail">Email</label>
+<input data-i18n-ph="name@hospital.edu" id="profileEmail" placeholder="name@hospital.edu" type="email"/>
+</div>
+<div class="field">
+<label data-i18n="Discipline / specialty" for="profileDiscipline">Discipline / specialty</label>
+<input data-i18n-ph="Nephrology, Internal Medicine, Research..." id="profileDiscipline" placeholder="Nephrology, Internal Medicine, Research..."/>
+</div>
+<div class="field">
+<label data-i18n="University / hospital" for="profileUniversity">University / hospital</label>
+<input id="profileUniversity"/>
+</div>
+<div class="field">
+<label data-i18n="City / country" for="profileLocation">City / country</label>
+<input id="profileLocation"/>
+</div>
+<div class="field">
+<label data-i18n="Profile photo" for="profilePhoto">Profile photo</label>
+<input accept="image/*" id="profilePhoto" type="file"/>
+</div>
+<div class="field full">
+<label data-i18n="Bio / introduction" for="profileBio">Bio / introduction</label>
+<textarea id="profileBio"></textarea>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save my profile" type="submit">Save my profile</button>
+</div>
+</form>
+</div>
+</section>
+<section class="hidden" id="presenterView">
+<div class="topbar">
+<div>
+<h2 data-i18n="My Presentation">My Presentation</h2>
+<p data-i18n="Upload or link your session slides without entering the admin console.">Upload or link your session slides without entering the admin console.</p>
+</div>
+</div>
+<div class="panel">
+<div class="split-title">
+<div>
+<h3 data-i18n="Presenting mode">Presenting mode</h3>
+<p class="hint" data-i18n="Control your microphone, camera, slides, and virtual background before speaking.">Control your microphone, camera, slides, and virtual background before speaking.</p>
+</div>
+<span class="pill" id="presentingStatus">Not presenting</span>
+</div>
+<div class="presenter-stage">
+<div class="video-preview" id="presenterPreview">
+<strong id="presenterPreviewText">Camera preview off</strong>
+</div>
+<div class="live-room">
+<div class="control-grid">
+<button class="btn" id="presentingToggle" type="button">Start presenting</button>
+<button class="btn secondary" id="presenterMicToggle" type="button">Mic off</button>
+<button class="btn secondary" id="presenterCameraToggle" type="button">Camera off</button>
+</div>
+<div class="field">
+<label data-i18n="Video background" for="presenterBackground">Video background</label>
+<select id="presenterBackground">
+<option data-i18n="Clean studio" value="clean">Clean studio</option>
+<option data-i18n="Blur style" value="blur">Blur style</option>
+<option data-i18n="Kidney teaching room" value="kidney">Kidney teaching room</option>
+<option data-i18n="Conference pattern" value="conference">Conference pattern</option>
+</select>
+</div>
+<p class="hint" data-i18n="Use this to check your camera and slides before you go live. The session itself runs through the video link (Zoom, Teams, or Google Meet).">Use this to check your camera and slides before you go live. The session itself runs through the video link (Zoom, Teams, or Google Meet).</p>
+</div>
+</div>
+</div>
+<div class="panel">
+<div class="list" id="presenterSlidesList"></div>
+</div>
+</section>
+<section class="hidden" id="adminView">
+<div class="topbar">
+<div>
+<h2 data-i18n="Admin Console">Admin Console</h2>
+<p data-i18n="Manage meetings, schedule, people, updates, training, and who has access.">Manage meetings, schedule, people, updates, training, and who has access.</p>
+</div>
+</div>
+<div class="panel">
+<div class="admin-tabs">
+<button data-admin-section="landingAdmin" data-i18n="Landing page" type="button">Landing page</button>
+<button class="active" data-admin-section="meetingAdmin" data-i18n="Meeting" type="button">Meeting</button>
+<button data-admin-section="scheduleAdmin" data-i18n="Schedule" type="button">Schedule</button>
+<button data-admin-section="peopleAdmin" data-i18n="People" type="button">People</button>
+<button data-admin-section="questionsAdmin" data-i18n="Questions" type="button">Questions</button>
+<button data-admin-section="liveRoomAdmin" data-i18n="Live room" type="button">Live room</button>
+<button data-admin-section="appearanceAdmin" data-i18n="Design" type="button">Design</button>
+<button data-admin-section="usersAdmin" data-i18n="Users / Access" type="button">Users / Access</button>
+<button data-admin-section="updatesAdmin" data-i18n="Updates" type="button">Updates</button>
+<button data-admin-section="trainingAdmin" data-i18n="Training" type="button">Training</button>
+<button data-admin-section="thankYouAdmin" data-i18n="Thank-you cards" type="button">Thank-you cards</button>
+<button data-admin-section="responsesAdmin" data-i18n="Responses" type="button">Responses</button>
+</div>
+<section class="admin-section hidden" id="landingAdmin">
+<div class="designer-callout">
+<div>
+<strong data-i18n="Design the home page visually">Design the home page visually</strong>
+<p class="hint" data-i18n="Click any text to change it, change fonts and colors, add text boxes and drag or resize them — like PowerPoint.">Click any text to change it, change fonts and colors, add text boxes and drag or resize them — like PowerPoint.</p>
+</div>
+<button class="btn" data-i18n="✎ Open home page editor" id="openDesigner" type="button">✎ Open home page editor</button>
+</div>
+<h3 data-i18n="Landing page">Landing page</h3>
+<form class="form-grid" id="landingForm">
+<input id="landingHeroImageData" type="hidden"/>
+<div class="field">
+<label data-i18n="App name" for="adminLandingBrandName">App name</label>
+<input id="adminLandingBrandName"/>
+</div>
+<div class="field">
+<label data-i18n="App tagline" for="adminLandingBrandTagline">App tagline</label>
+<input id="adminLandingBrandTagline"/>
+</div>
+<div class="field">
+<label data-i18n="Login headline" for="adminLandingLoginHeadline">Login headline</label>
+<input id="adminLandingLoginHeadline"/>
+</div>
+<div class="field">
+<label data-i18n="Login description" for="adminLandingLoginLead">Login description</label>
+<input id="adminLandingLoginLead"/>
+</div>
+<div class="field">
+<label data-i18n="Hero badge" for="adminLandingHeroBadge">Hero badge</label>
+<input id="adminLandingHeroBadge"/>
+</div>
+<div class="field">
+<label data-i18n="Copyright notice" for="adminLandingCopyright">Copyright notice</label>
+<input data-i18n-ph="© {year} Your name. All rights reserved." id="adminLandingCopyright" placeholder="© {year} Your name. All rights reserved."/>
+</div>
+<div class="field">
+<label data-i18n="Change picture every" for="adminLandingHeroInterval">Change picture every</label>
+<select id="adminLandingHeroInterval">
+<option data-i18n="4 seconds" value="4">4 seconds</option>
+<option data-i18n="6 seconds" value="6">6 seconds</option>
+<option data-i18n="8 seconds" value="8">8 seconds</option>
+<option data-i18n="10 seconds" value="10">10 seconds</option>
+<option data-i18n="15 seconds" value="15">15 seconds</option>
+<option data-i18n="Don't change automatically" value="0">Don't change automatically</option>
+</select>
+</div>
+<div class="field full">
+<div class="split-title">
+<div>
+<h3 data-i18n="Home page pictures" style="margin: 0;">Home page pictures</h3>
+<p class="hint" data-i18n="Add one or more pictures. They rotate automatically on the home page. Pictures are sharpened and optimized when uploaded — upload the largest version you have for the clearest result.">Add one or more pictures. They rotate automatically on the home page. Pictures are sharpened and optimized when uploaded — upload the largest version you have for the clearest result.</p>
+</div>
+<label class="btn secondary small file-btn"><span data-i18n="+ Add pictures">+ Add pictures</span><input accept="image/*" id="adminLandingHeroImage" multiple="" type="file"/></label>
+</div>
+<div class="hero-thumbs" id="heroImagesAdmin"></div>
+</div>
+<div class="field full">
+<label data-i18n="Hero headline" for="adminLandingHeroHeadline">Hero headline</label>
+<textarea id="adminLandingHeroHeadline"></textarea>
+</div>
+<div class="field full">
+<div class="split-title">
+<div>
+<h3 data-i18n="Small boxes under hero image" style="margin: 0;">Small boxes under hero image</h3>
+<p class="hint" data-i18n="Add, remove, or leave empty any number of small boxes.">Add, remove, or leave empty any number of small boxes.</p>
+</div>
+<div class="actions">
+<button class="btn secondary small" data-i18n="Add small box" id="addLandingMetric" type="button">Add small box</button>
+<button class="btn warn small" data-i18n="Remove all" id="clearLandingMetrics" type="button">Remove all</button>
+</div>
+</div>
+<div class="list" id="landingMetricsAdminList" style="margin-top: 10px;"></div>
+</div>
+<div class="field full">
+<div class="split-title">
+<div>
+<h3 data-i18n="Right-side landing cards" style="margin: 0;">Right-side landing cards</h3>
+<p class="hint" data-i18n="These are the larger cards on the right side of the landing page.">These are the larger cards on the right side of the landing page.</p>
+</div>
+<div class="actions">
+<button class="btn secondary small" data-i18n="Add card" id="addLandingCard" type="button">Add card</button>
+<button class="btn warn small" data-i18n="Remove all" id="clearLandingCards" type="button">Remove all</button>
+</div>
+</div>
+<div class="list" id="landingCardsAdminList" style="margin-top: 10px;"></div>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save landing page" type="submit">Save landing page</button>
+<button class="btn secondary" data-i18n="Remove all pictures" id="clearLandingHeroImage" type="button">Remove all pictures</button>
+</div>
+</form>
+</section>
+<section class="admin-section" id="meetingAdmin">
+<h3 data-i18n="Meeting details">Meeting details</h3>
+<form class="form-grid" id="meetingForm">
+<div class="field">
+<label data-i18n="Main page heading" for="adminReportHeading">Main page heading</label>
+<input data-i18n-ph="Nephrology Morning Report" id="adminReportHeading" placeholder="Nephrology Morning Report"/>
+</div>
+<div class="field">
+<label data-i18n="Main page subtitle" for="adminReportSubheading">Main page subtitle</label>
+<input data-i18n-ph="Schedule, speakers, video access..." id="adminReportSubheading" placeholder="Schedule, speakers, video access..."/>
+</div>
+<div class="field">
+<label data-i18n="Round title" for="adminMeetingTitle">Round title</label>
+<input id="adminMeetingTitle"/>
+</div>
+<div class="field">
+<label data-i18n="Meeting time text" for="adminMeetingTime">Meeting time text</label>
+<input id="adminMeetingTime" placeholder="08:30 - 09:00"/>
+</div>
+<div class="field full">
+<label data-i18n="Zoom / Teams / Google Meet link" for="adminMeetingUrl">Zoom / Teams / Google Meet link</label>
+<input id="adminMeetingUrl" type="url"/>
+</div>
+<div class="field full">
+<label data-i18n="Round notes" for="adminMeetingNotes">Round notes</label>
+<textarea id="adminMeetingNotes"></textarea>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save meeting" type="submit">Save meeting</button>
+<button class="btn secondary" data-i18n="Hide / clear meeting card" id="clearMeeting" type="button">Hide / clear meeting card</button>
+</div>
+</form>
+</section>
+<section class="admin-section hidden" id="scheduleAdmin">
+<h3 data-i18n="Calendar and schedule">Calendar and schedule</h3>
+<form class="form-grid" id="scheduleForm">
+<input id="scheduleId" type="hidden"/>
+<div class="field">
+<label data-i18n="Date" for="scheduleDate">Date</label>
+<input id="scheduleDate" required="" type="date"/>
+</div>
+<div class="field">
+<label data-i18n="Time" for="scheduleTime">Time</label>
+<input id="scheduleTime" required="" type="time"/>
+</div>
+<div class="field">
+<label data-i18n="End time" for="scheduleEndTime">End time</label>
+<input id="scheduleEndTime" type="time"/>
+</div>
+<div class="field">
+<label data-i18n="Topic" for="scheduleTopic">Topic</label>
+<input data-i18n-ph="AKI, Electrolytes, Dialysis..." id="scheduleTopic" placeholder="AKI, Electrolytes, Dialysis..." required=""/>
+</div>
+<div class="field full">
+<label data-i18n="Notes or agenda items" for="scheduleNotes">Notes or agenda items</label>
+<textarea id="scheduleNotes" placeholder="Write one agenda item per line."></textarea>
+</div>
+<div class="field">
+<label data-i18n="Recording link" for="scheduleRecordingUrl">Recording link</label>
+<input data-i18n-ph="Zoom cloud, Google Drive, YouTube, Vimeo..." id="scheduleRecordingUrl" placeholder="Zoom cloud, Google Drive, YouTube, Vimeo..." type="url"/>
+</div>
+<div class="field">
+<label data-i18n="Upload recording file" for="scheduleRecordingFile">Upload recording file</label>
+<input accept="video/*" id="scheduleRecordingFile" type="file"/>
+<input id="scheduleRecordingData" type="hidden"/>
+</div>
+<div class="field">
+<label data-i18n="Slides link" for="scheduleSlidesUrl">Slides link</label>
+<input data-i18n-ph="PDF, Google Drive, OneDrive, Box..." id="scheduleSlidesUrl" placeholder="PDF, Google Drive, OneDrive, Box..." type="url"/>
+</div>
+<div class="field">
+<label data-i18n="Upload slides" for="scheduleSlidesFile">Upload slides</label>
+<input accept=".pdf,.ppt,.pptx,application/pdf,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation" id="scheduleSlidesFile" type="file"/>
+<input id="scheduleSlidesData" type="hidden"/>
+<input id="scheduleSlidesName" type="hidden"/>
+<input id="scheduleSlidesType" type="hidden"/>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save schedule item" type="submit">Save schedule item</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelScheduleEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="scheduleAdminList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="peopleAdmin">
+<h3 data-i18n="Presenters and guests">Presenters and guests</h3>
+<form class="form-grid" id="personForm">
+<input id="personId" type="hidden"/>
+<input id="personPhotoData" type="hidden"/>
+<div class="field">
+<label data-i18n="Type" for="personType">Type</label>
+<select id="personType">
+<option data-i18n="Presenter" value="presenter">Presenter</option>
+<option data-i18n="Guest" value="guest">Guest</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="Name" for="personName">Name</label>
+<input id="personName" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Role / title" for="personRole">Role / title</label>
+<input data-i18n-ph="Nephrology Fellow, Guest Discussant..." id="personRole" placeholder="Nephrology Fellow, Guest Discussant..." required=""/>
+</div>
+<div class="field">
+<label data-i18n="University / hospital" for="personInstitution">University / hospital</label>
+<input id="personInstitution" required=""/>
+</div>
+<div class="field">
+<label data-i18n="City / country" for="personLocation">City / country</label>
+<input id="personLocation"/>
+</div>
+<div class="field">
+<label data-i18n="Photo" for="personPhoto">Photo</label>
+<input accept="image/*" id="personPhoto" type="file"/>
+</div>
+<div class="field full">
+<label data-i18n="Introduction" for="personIntro">Introduction</label>
+<textarea id="personIntro" placeholder="Presenter introduction, guest bio, or topic description."></textarea>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save person" type="submit">Save person</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelPersonEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="peopleAdminList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="questionsAdmin">
+<h3 data-i18n="Questions">Questions</h3>
+<form class="form-grid" id="questionForm">
+<input id="questionId" type="hidden"/>
+<div class="field full">
+<label data-i18n="Question text" for="questionText">Question text</label>
+<textarea id="questionText" required=""></textarea>
+</div>
+<div class="field full">
+<label data-i18n="Answer options" for="questionOptions">Answer options</label>
+<input data-i18n-ph="Example: Yes, No, Needs attending input" id="questionOptions" placeholder="Example: Yes, No, Needs attending input"/>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save question" type="submit">Save question</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelQuestionEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="questionsAdminList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="usersAdmin">
+<h3 data-i18n="Users and access">Users and access</h3>
+<p class="hint" data-i18n="People create their own account from the home page. Approve them here and choose their access: Admin (panelist), Presenter (speaker), or Clinician (attendee)." style="margin-bottom: 12px;">People create their own account from the home page. Approve them here and choose their access: Admin (panelist), Presenter (speaker), or Clinician (attendee).</p>
+<div class="panel pending-panel" style="margin-bottom: 14px;">
+<div class="split-title">
+<h3 data-i18n="Waiting for approval" style="margin: 0;">Waiting for approval</h3>
+<span class="pill" id="pendingCount">0</span>
+</div>
+<div class="list" id="pendingUsersList" style="margin-top: 10px;"></div>
+</div>
+<h3 class="hidden" id="userFormTitle" style="margin-top: 6px;">Edit user</h3>
+<form class="form-grid hidden" id="userForm">
+<input id="userId" type="hidden"/>
+<input id="userPhotoData" type="hidden"/>
+<div class="field">
+<label data-i18n="Full name" for="userFullName">Full name</label>
+<input data-i18n-ph="Example: Amir Tahavvori, MD" id="userFullName" placeholder="Example: Amir Tahavvori, MD" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Username" for="userUsername">Username</label>
+<input autocomplete="off" id="userUsername" required=""/>
+</div>
+<input id="userPassword" type="hidden"/>
+<div class="field">
+<label data-i18n="Account status" for="userStatus">Account status</label>
+<select id="userStatus">
+<option data-i18n="Approved" value="approved">Approved</option>
+<option data-i18n="Waiting for approval" value="pending">Waiting for approval</option>
+<option data-i18n="Rejected / blocked" value="rejected">Rejected / blocked</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="Email" for="userEmail">Email</label>
+<input data-i18n-ph="name@hospital.edu" id="userEmail" placeholder="name@hospital.edu" type="email"/>
+</div>
+<div class="field">
+<label data-i18n="Access level" for="userRole">Access level</label>
+<select id="userRole">
+<option data-i18n="Clinician / attendee" value="user">Clinician / attendee</option>
+<option data-i18n="Presenter / speaker" value="presenter">Presenter / speaker</option>
+<option data-i18n="Admin / panelist" value="admin">Admin / panelist</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="Discipline / specialty" for="userDiscipline">Discipline / specialty</label>
+<input data-i18n-ph="Nephrology, Internal Medicine..." id="userDiscipline" placeholder="Nephrology, Internal Medicine..."/>
+</div>
+<div class="field">
+<label data-i18n="University / hospital" for="userUniversity">University / hospital</label>
+<input id="userUniversity"/>
+</div>
+<div class="field">
+<label data-i18n="City / country" for="userLocation">City / country</label>
+<input id="userLocation"/>
+</div>
+<div class="field">
+<label data-i18n="Profile photo" for="userPhoto">Profile photo</label>
+<input accept="image/*" id="userPhoto" type="file"/>
+</div>
+<div class="field full">
+<label data-i18n="Bio / introduction" for="userBio">Bio / introduction</label>
+<textarea id="userBio"></textarea>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save user" type="submit">Save user</button>
+<button class="btn secondary" data-i18n="Cancel" id="cancelUserEdit" type="button">Cancel</button>
+</div>
+</form>
+<div class="list" id="usersAdminList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="liveRoomAdmin">
+<h3 data-i18n="Live room control">Live room control</h3>
+<p class="hint" data-i18n="Review live questions and approve or decline hand-raise requests." style="margin-bottom: 12px;">Review live questions and approve or decline hand-raise requests.</p>
+<div class="list" id="liveRoomAdminList"></div>
+</section>
+<section class="admin-section hidden" id="appearanceAdmin">
+<h3 data-i18n="Design and box sizes">Design and box sizes</h3>
+<form class="form-grid" id="appearanceForm">
+<div class="field">
+<label data-i18n="Schedule box height" for="appearanceScheduleHeight">Schedule box height</label>
+<input id="appearanceScheduleHeight" max="320" min="130" step="10" type="number"/>
+</div>
+<div class="field">
+<label data-i18n="Landing image height" for="appearanceHeroHeight">Landing image height</label>
+<input id="appearanceHeroHeight" max="520" min="220" step="10" type="number"/>
+</div>
+<div class="field">
+<label data-i18n="Presenter / guest photo size" for="appearanceAvatarSize">Presenter / guest photo size</label>
+<input id="appearanceAvatarSize" max="110" min="56" step="2" type="number"/>
+</div>
+<div class="field">
+<label data-i18n="Panel spacing" for="appearancePanelPadding">Panel spacing</label>
+<input id="appearancePanelPadding" max="30" min="12" step="2" type="number"/>
+</div>
+<div class="field">
+<label data-i18n="App name alignment" for="appearanceBrandAlign">App name alignment</label>
+<select id="appearanceBrandAlign">
+<option data-i18n="Left" value="left">Left</option>
+<option data-i18n="Center" value="center">Center</option>
+<option data-i18n="Right" value="right">Right</option>
+</select>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save design" type="submit">Save design</button>
+<button class="btn secondary" data-i18n="Reset design" id="resetAppearance" type="button">Reset design</button>
+</div>
+</form>
+</section>
+<section class="admin-section hidden" id="updatesAdmin">
+<h3 data-i18n="Updates and reminders">Updates and reminders</h3>
+<p class="hint" data-i18n="Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report." style="margin-bottom: 12px;">Everything you post here appears on the Updates page for everyone. Pinned posts also appear at the top of the Morning report.</p>
+<form class="form-grid" id="updateForm">
+<input id="updateId" type="hidden"/>
+<div class="field">
+<label data-i18n="Title" for="updateTitle">Title</label>
+<input id="updateTitle" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Type" for="updateCategory">Type</label>
+<select id="updateCategory">
+<option data-i18n="Update / news" value="update">Update / news</option>
+<option data-i18n="Reminder" value="reminder">Reminder</option>
+<option data-i18n="Event" value="event">Event</option>
+<option data-i18n="Training" value="training">Training</option>
+</select>
+</div>
+<div class="field full">
+<label data-i18n="Message" for="updateBody">Message</label>
+<textarea id="updateBody"></textarea>
+</div>
+<div class="field">
+<label data-i18n="Link (optional)" for="updateLink">Link (optional)</label>
+<input id="updateLink" placeholder="https://..." type="url"/>
+</div>
+<div class="field checks">
+<label><input id="updatePinned" type="checkbox"/> <span data-i18n="Pin to top">Pin to top</span></label>
+<label><input checked="" id="updateActive" type="checkbox"/> <span data-i18n="Visible to everyone">Visible to everyone</span></label>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Publish" type="submit">Publish</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelUpdateEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="updatesAdminList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="trainingAdmin">
+<h3 data-i18n="Training programs">Training programs</h3>
+<form class="form-grid" id="programForm">
+<input id="programId" type="hidden"/>
+<input id="programCoverData" type="hidden"/>
+<div class="field">
+<label data-i18n="Program title" for="programTitleInput">Program title</label>
+<input data-i18n-ph="Fluid and electrolytes essentials" id="programTitleInput" placeholder="Fluid and electrolytes essentials" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Level / tag" for="programLevelInput">Level / tag</label>
+<input data-i18n-ph="Beginner, PGY-1, CME..." id="programLevelInput" placeholder="Beginner, PGY-1, CME..."/>
+</div>
+<div class="field full">
+<label data-i18n="Summary" for="programSummaryInput">Summary</label>
+<textarea id="programSummaryInput"></textarea>
+</div>
+<div class="field">
+<label data-i18n="Who can see it" for="programAudience">Who can see it</label>
+<select id="programAudience">
+<option data-i18n="Everyone" value="all">Everyone</option>
+<option data-i18n="Clinicians / attendees only" value="user">Clinicians / attendees only</option>
+<option data-i18n="Presenters only" value="presenter">Presenters only</option>
+<option data-i18n="Admins only (draft)" value="admin">Admins only (draft)</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="Cover image" for="programCover">Cover image</label>
+<input accept="image/*" id="programCover" type="file"/>
+</div>
+<div class="field">
+<label data-i18n="Order" for="programOrder">Order</label>
+<input id="programOrder" type="number" value="0"/>
+</div>
+<div class="field checks">
+<label><input checked="" id="programActive" type="checkbox"/> <span data-i18n="Published">Published</span></label>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save program" type="submit">Save program</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelProgramEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="programsAdminList" style="margin-top: 14px;"></div>
+<div class="panel hidden" id="lessonsAdmin" style="margin-top: 18px;">
+<div class="split-title">
+<h3 id="lessonsAdminTitle" style="margin: 0;">Lessons</h3>
+<button class="btn secondary small" data-i18n="Close" id="closeLessonsAdmin" type="button">Close</button>
+</div>
+<form class="form-grid" id="lessonForm" style="margin-top: 12px;">
+<input id="lessonId" type="hidden"/>
+<input id="lessonResourceData" type="hidden"/>
+<input id="lessonResourceName" type="hidden"/>
+<div class="field">
+<label data-i18n="Lesson title" for="lessonTitle">Lesson title</label>
+<input id="lessonTitle" required=""/>
+</div>
+<div class="field">
+<label data-i18n="Duration (minutes)" for="lessonDuration">Duration (minutes)</label>
+<input id="lessonDuration" min="0" type="number" value="10"/>
+</div>
+<div class="field full">
+<label data-i18n="Lesson content" for="lessonBody">Lesson content</label>
+<textarea id="lessonBody" placeholder="Key points, reading, case discussion..." style="min-height: 140px;"></textarea>
+</div>
+<div class="field">
+<label data-i18n="Video link (YouTube, Vimeo, or file)" for="lessonVideo">Video link (YouTube, Vimeo, or file)</label>
+<input id="lessonVideo" type="url"/>
+</div>
+<div class="field">
+<label data-i18n="Resource link" for="lessonResourceUrl">Resource link</label>
+<input data-i18n-ph="Article, guideline, Google Drive..." id="lessonResourceUrl" placeholder="Article, guideline, Google Drive..." type="url"/>
+</div>
+<div class="field">
+<label data-i18n="Or upload a file (PDF, slides)" for="lessonResourceFile">Or upload a file (PDF, slides)</label>
+<input id="lessonResourceFile" type="file"/>
+</div>
+<div class="field">
+<label data-i18n="Order" for="lessonOrder">Order</label>
+<input id="lessonOrder" type="number" value="0"/>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Save lesson" type="submit">Save lesson</button>
+<button class="btn secondary" data-i18n="Clear form" id="cancelLessonEdit" type="button">Clear form</button>
+</div>
+</form>
+<div class="list" id="lessonsAdminList" style="margin-top: 14px;"></div>
+</div>
+<div class="panel" style="margin-top: 18px;">
+<h3 data-i18n="Progress report" style="margin-top: 0;">Progress report</h3>
+<div class="table-wrap" id="trainingReport"></div>
+</div>
+</section>
+<section class="admin-section hidden" id="thankYouAdmin">
+<h3 data-i18n="Thank-you cards">Thank-you cards</h3>
+<p class="hint" data-i18n="Prepare a postcard-style thank-you email for participants after a session." style="margin-bottom: 12px;">Prepare a postcard-style thank-you email for participants after a session.</p>
+<form class="form-grid" id="thankYouForm">
+<div class="field">
+<label data-i18n="Session" for="thankYouSession">Session</label>
+<select id="thankYouSession"></select>
+</div>
+<div class="field">
+<label data-i18n="Email subject" for="thankYouSubject">Email subject</label>
+<input id="thankYouSubject" value="Thank you for attending Nephrology Morning Report"/>
+</div>
+<div class="field full">
+<label data-i18n="Card message" for="thankYouMessage">Card message</label>
+<textarea id="thankYouMessage">Thank you for attending our nephrology morning report. We appreciate your participation and thoughtful engagement.</textarea>
+</div>
+<div class="full actions">
+<button class="btn" data-i18n="Generate cards" type="submit">Generate cards</button>
+</div>
+</form>
+<div class="list" id="thankYouList" style="margin-top: 14px;"></div>
+</section>
+<section class="admin-section hidden" id="responsesAdmin">
+<h3 data-i18n="Submitted responses">Submitted responses</h3>
+<div id="answersTable"></div>
+</section>
+</div>
+</section>
+</main>
+</div>
+<div aria-label="Image viewer" aria-modal="true" class="lightbox hidden" data-i18n-aria="Image viewer" id="lightbox" role="dialog">
+<button aria-label="Close" class="lightbox-close" data-i18n-aria="Close" id="lightboxClose" type="button">×</button>
+<img alt="" id="lightboxImage"/>
+</div>
+<div class="toast" id="toast"></div>
+<script src="/src/app.js" type="module"></script>
 </body>
-</html>
+
