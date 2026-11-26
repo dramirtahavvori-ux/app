@@ -36,15 +36,20 @@ only the anon key.
 5. Run `supabase/migrations/0003_updates_training_access.sql`.
 6. Run `supabase/migrations/0004_projects_activity_protection.sql`, then set the owner:
    `update public.profiles set is_owner = true where username = 'YOUR_USERNAME';`
-7. In Authentication settings, enable Email/Password sign in.
+7. Run `supabase/migrations/0005_email_reminders.sql` (email reminders), then in
+   Supabase → Integrations → Vault add a secret named `brevo_api_key` containing
+   a Brevo API key (Brevo → Settings → SMTP & API → API keys).
+8. In Authentication settings, enable Email/Password sign in.
 
 ## Features
 
 - **Morning report**: schedule, next-session countdown, presenters and guests,
   locked audience questions, live Q&A and hand raise, slides and recordings.
-- **Reminders**: every session can be added to Google Calendar or Apple /
-  Outlook (.ics) with alerts the day before and 15 minutes before. All
-  upcoming sessions can be added at once.
+- **Reminders**: approved members get an email the day before and about one
+  hour before every session (sent automatically every 5 minutes by pg_cron
+  through Brevo). Each member can turn email reminders on or off; admins choose
+  the time zone, which reminders to send, and can send a test email. Sessions
+  can also be added to Google Calendar or Apple / Outlook (.ics).
 - **Updates**: admins post updates, reminders, events and training news.
   Pinned posts appear on the morning report; users see an unread badge.
 - **Training programs**: courses with lessons (text, YouTube/Vimeo video,
